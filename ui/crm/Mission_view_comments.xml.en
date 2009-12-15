@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+<br/>
+<table cellspacing="0" cellpadding="0" border="0" width="100%"
+  stl:repeat="comment comments">
+  <tbody>
+    <tr class="comment-header">
+      <td><a name="c${comment/id}" /></td>
+      <td width="600">Comment <a href="#c${comment/id}">#${comment/id}</a></td>
+      <td>${comment/datetime}</td>
+    </tr>
+    <tr stl:if="comment/file" class="comment-file">
+      <td colspan="3">
+        Attachement: <a
+          href="${path_to_resource}/${comment/file}/;download">${comment/file}</a>
+      </td>
+    </tr>
+    <tr stl:if="comment/alert_datetime" class="comment-alert">
+      <td colspan="3">
+        <img src="/ui/crm/images/1240913119_bell.png" />
+        ${comment/alert_datetime}
+      </td>
+    </tr>
+    <tr class="comment-text">
+      <td colspan="3">
+        <pre class="com">${comment/comment}</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br/>
+</stl:block>

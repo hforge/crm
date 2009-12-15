@@ -1,0 +1,138 @@
+/**************************************************************************
+ * Prospect form *
+ **************************************************************************/
+
+#prospect-main{
+  background-color: #EEEEFF;
+  padding: 5px 10px 0px 10px;
+}
+#prospect-main legend {
+  background-color: #EEEEFF;
+  font-size: 1.2em;
+}
+#edit-mission table td,
+#new-mission table td,
+#prospect-main table td {
+  padding: 2px;
+}
+
+#content form #company {
+  background-color: #DFBADD;
+  margin: 0 10px;
+}
+#content form #company legend {
+  background-color: #DFBADD;
+  font-size: 1.1em;
+}
+fieldset#company legend a {
+  padding-left: 20px;
+}
+
+#edit-mission,
+#new-mission {
+  background-color: #CFCAEA;/*B0F0A0;*/
+  margin: 5px;
+  padding: 4px 8px;
+}
+#edit-mission legend,
+#new-mission legend {
+  background-color: #CFCAEA;/*B0F0A0;*/
+  font-size: 1.1em;
+}
+#edit-mission-details {
+  background-color: #ADA0D9;
+  margin: 0 5px 5px 0;
+}
+#edit-mission-title input,
+#edit-mission-description textarea {
+  background-color: #e9e0ff;
+}
+
+#view-missions h3 {
+  margin: 0 0 5px 0;
+}
+#view-missions p.batchcontrol {
+  margin: 0 0 2px 0;
+}
+
+#view-missions table {
+  background-color: #fff;
+}
+#crm-alerts table th,
+#crm-search table th,
+#view-missions table th {
+  background-color: #CFCAEA;
+}
+#crm-alerts table tr.odd td,
+#crm-search table tr.odd td,
+#view-missions table tr.odd td {
+  background-color: #EEEEFF;
+}
+
+#crm-search table th {
+  padding: 5px;
+}
+
+#edit-mission table tr {
+  background-color: inherit;
+  vertical-align:top;
+}
+
+#view-comments tr.comment-header {
+  background-color: #ADA0D9; /*66BB66;*/
+  font-weight: bold;
+}
+#edit-mission table td#view-comments {
+  padding-left: 10px;
+  border-left: 1px solid #ADA0D9;
+}
+#view-comments tr td a {
+  color: #000;
+}
+#view-comments tr.comment-file td {
+  font-style: italic;
+}
+#view-comments tr.comment-text {
+  background-color: #f0f0ff;
+}
+#view-comments tr.comment-alert {
+  background-color: #e9e0ff;
+}
+
+#crm-infos {
+  margin: 20px 0 0 250px;
+  padding: 0 50px 0 40px;
+  border: 1px solid black;
+  font-size: 1.1em;
+}
+#crm-infos td {
+  padding: 15px;
+}
+
+#crm-infos td.total {
+  border-top: 1px solid black;
+}
+
+#edit-mission td label {
+  vertical-align: middle;
+}
+
+#new-mission td.amount input,
+#edit-mission td.amount input,
+#crm-infos td.amount {
+  text-align: right;
+}
+
+#edit-company,
+#new-company {
+  text-decoration: underline;
+  cursor: pointer;
+}
+#hide-company-form {
+  cursor: pointer;
+}
+#edit-company.disabled {
+  text-decoration: line-through;
+  cursor: default;
+}
+

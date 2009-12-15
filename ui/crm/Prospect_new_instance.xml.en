@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+
+<fieldset id="prospect-main">
+  <legend>${title}</legend>
+  <span style="font-style: italic;">Fields marked with an asterisk are required.</span>
+<form id="autoform" name="autoform" action="${action}" method="post"
+  enctype="multipart/form-data">
+  <table cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr style="vertical-align: top;">
+        <!-- LEFT COLUMN -->
+        <td>
+          <table cellpadding="0" cellspacing="0">
+            <tbody>
+              <tr>
+                <td>
+                  <label for="${p_company/name}"><!--class="${p_company/class}">-->
+                    ${p_company/title} *</label>
+                </td>
+                <td id="company_widget">${p_company/widget}
+                  <a id="new-company" onclick="crm_show_new();">New</a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="${p_lastname/name}"><!--class="${p_lastname/class}">-->
+                    ${p_lastname/title} *
+                  </label>
+                </td>
+                <td>${p_lastname/widget}</td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="${p_firstname/name}" class="${p_firstname/class}">
+                    ${p_firstname/title}
+                  </label>
+                </td>
+                <td>${p_firstname/widget}</td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <table cellpadding="0" cellspacing="0">
+                    <tbody>
+                      <tr>
+                        <td width="60">
+                          <label for="${p_phone/name}" class="${p_phone/class}">
+                            ${p_phone/title}
+                          </label>
+                        </td>
+                        <td>${p_phone/widget}</td>
+                        <td>
+                          <label for="${p_mobile/name}" class="${p_mobile/class}">
+                            ${p_mobile/title}
+                          </label>
+                        </td>
+                        <td>${p_mobile/widget}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="${p_email/name}" class="${p_email/class}">
+                    ${p_email/title}
+                  </label>
+                </td>
+                <td>${p_email/widget}</td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="${p_status/name}"><!--class="${p_status/class}">-->
+                    ${p_status/title}
+                  </label>
+                </td>
+                <td>${p_status/widget}</td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="${p_comment/name}" class="${p_comment/class}">
+                    ${p_comment/title}
+                  </label>
+                </td>
+                <td>${p_comment/widget}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+        <!-- RIGHT COLUMN -->
+        <td>
+          <fieldset id="company">
+            <legend>Company</legend>
+            <input id="action_on_company" name="action_on_company" type="hidden"
+                   value=""/>
+            <table cellpadding="0" cellspacing="0" width="100%">
+              <tbody>
+                <tr>
+                  <td>
+                    <label for="${c_title/name}" class="${c_title/class}">
+                      ${c_title/title}</label>
+                  </td>
+                  <td>${c_title/widget}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <label for="${c_address_1/name}" class="${c_address_1/class}">
+                      ${c_address_1/title}</label>
+                  </td>
+                  <td>${c_address_1/widget}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>${c_address_2/widget}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <label for="${c_zipcode/name}"
+                      class="${c_zipcode/class}">${c_zipcode/title}</label>
+                  </td>
+                  <td>${c_zipcode/widget}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <label for="${c_town/name}"
+                      class="${c_town/class}">${c_town/title}</label>
+                  </td>
+                  <td>${c_town/widget}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <label for="${c_country/name}"
+                      class="${c_country/class}">${c_country/title}</label>
+                  </td>
+                  <td>${c_country/widget}</td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <label for="${c_phone/name}" class="${c_phone/class}">
+                              Phone</label></td>
+                          <td>${c_phone/widget}</td>
+                          <td>
+                            <label for="${c_fax/name}" class="${c_fax/class}">
+                              Fax</label></td>
+                          <td>${c_fax/widget}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- MISSION -->
+  <fieldset id="edit-mission" style="width: 60%;">
+    <legend>Mission</legend>
+    <table cellpadding="0" cellspacing="0">
+      <tbody>
+        <tr>
+          <td>
+            <label for="${m_title/name}"><!--class="${m_title/class}">-->
+              ${m_title/title} *</label>
+          </td>
+          <td>${m_title/widget}</td>
+        </tr>
+        <tr>
+          <td>
+            <label for="${m_description/name}"><!--class="${m_description/class}">-->
+              ${m_description/title} *</label>
+          </td>
+          <td>${m_description/widget}</td>
+        </tr>
+        <tr>
+          <td>
+            <label for="${m_status/name}"><!--class="${m_status/class}">-->
+              ${m_status/title}</label>
+          </td>
+          <td>${m_status/widget}</td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <table cellpadding="0" cellspacing="0" width="90%">
+              <tbody>
+                <tr>
+                  <td>
+                    <label for="${m_amount/name}"
+                      class="${m_amount/class}">${m_amount/title}</label>
+                  </td>
+                  <td class="amount">${m_amount/widget}</td>
+                  <td>
+                    <label for="${m_probability/name}"
+                      class="${m_probability/class}">${m_probability/title}</label>
+                  </td>
+                  <td class="amount">${m_probability/widget} %</td>
+                  <td>
+                    <label for="${m_deadline/name}"
+                      class="${m_deadline/class}">${m_deadline/title}</label>
+                  </td>
+                  <td>${m_deadline/widget}</td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </fieldset>
+  <p stl:if="submit_value">
+    <input type="submit" value="${submit_value}" class="${submit_class}" />
+  </p>
+  <script language="javascript">
+      crm_main('${p_company/name}', '${first_widget}');
+  </script>
+</form>
+</fieldset>
+</stl:block>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+
+<form id="autoform" name="autoform" action="${action}" method="post"
+  enctype="multipart/form-data">
+  <table cellpadding="0" cellspacing="0">
+    <tbody>
+      <!-- MISSION TITLE AND DESCRIPTION -->
+      <tr id="edit-mission-title">
+        <td>
+          <label for="${m_title/name}"><!--class="${m_title/class}">-->
+            ${m_title/title} *</label>
+        </td>
+        <td>${m_title/widget}</td>
+      </tr>
+      <tr id="edit-mission-description">
+        <td>
+          <label for="${m_description/name}" class="${m_description/class}">
+            ${m_description/title}</label>
+        </td>
+        <td>${m_description/widget}</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <fieldset id="edit-mission-details">
+            <table cellpadding="0" cellspacing="0" width="100%">
+              <tbody>
+                <tr>
+                  <td>
+                    <label for="${m_comment/name}"><!--class="${m_comment/class}">-->
+                      ${m_comment/title} *
+                    </label>
+                  </td>
+                  <td>${m_comment/widget}</td>
+                </tr>
+                <!-- ATTACHEMENT -->
+                <tr>
+                  <td>
+                    <label for="${file/name}" class="${file/class}">
+                      ${file/title}
+                    </label>
+                  </td>
+                  <td>
+                    <input type="file" id="file" name="${file/name}" size="35" />
+                  </td>
+                </tr>
+                <!-- ALERT -->
+                <tr>
+                  <td colspan="2">
+                    <img src="/ui/crm/images/1240913081_bell_add.png" />
+                    <label for="${alert_date/name}" class="${alert_date/class}">
+                      ${alert_date/title}
+                    </label>${alert_date/widget}
+                    <label for="${alert_time/name}" class="${alert_time/class}">
+                      ${alert_time/title}
+                    </label>${alert_time/widget}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="${m_status/name}" class="${m_status/class}">
+            ${m_status/title}
+          </label>
+        </td>
+        <td>${m_status/widget}</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <table cellpadding="0" cellspacing="0" width="90%">
+            <tbody>
+              <tr>
+                <td>
+                  <label for="${m_amount/name}"
+                    class="${m_amount/class}">${m_amount/title}</label>
+                </td>
+                <td class="amount">${m_amount/widget}</td>
+                <td>
+                  <label for="${m_probability/name}"
+                    class="${m_probability/class}">${m_probability/title}</label>
+                </td>
+                <td class="amount">${m_probability/widget} %</td>
+                <td>
+                  <label for="${m_deadline/name}"
+                    class="${m_deadline/class}">${m_deadline/title}</label>
+                </td>
+                <td>${m_deadline/widget}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p stl:if="submit_value">
+    <input type="submit" value="Update mission" class="${submit_class}" />
+  </p>
+  <script language="javascript">
+    $("#${first_widget}").focus();
+  </script>
+</form>
+</stl:block>
