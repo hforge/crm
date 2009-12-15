@@ -30,6 +30,5 @@ __version__ = get_version()
 ###############################################################################
 
 # Register the itws domain
-#path = get_abspath('locale')
-#register_domain('crm', path)
-#
+path = get_abspath('locale')
+register_domain('crm', path)

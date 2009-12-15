@@ -1,0 +1,11 @@
+Makefile
+build
+dist
+version.txt
+MANIFEST
+*.swp
+*.swo
+*.patch
+*~
+*.xml.fr
+locale/*.mo
