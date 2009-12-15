@@ -17,47 +17,19 @@
 
 # Import from itools
 from itools.core import get_abspath, get_version
-from itools.datatypes import String
 from itools.gettext import register_domain
-from itools.relaxng import RelaxNGFile
-from itools.xml import XMLNamespace, register_namespace
 
-# Import from itws
-from root import Root
-import common
-import sitemap
-import tracker
-import turning_footer
-import ws_neutral
+# Import from crm
+import crm
 
 # Make the product version available to Python code
 __version__ = get_version()
-
-# Read the Relax NG schema of OPML and register its namespace
-rng_file = RelaxNGFile(get_abspath('OPML-schema.rng'))
-rng_file.auto_register()
-
-###############################################################################
-# SITEMAP
-###############################################################################
-# Required by the SiteMap
-xsins_uri = 'http://www.w3.org/2001/XMLSchema-instance'
-xsi_namespace = XMLNamespace(
-    xsins_uri, 'xsi',
-    free_attributes={'schemaLocation': String})
-register_namespace(xsi_namespace)
-
-# Read the Relax NG schema of SiteMap and register its namespace
-rng_file = RelaxNGFile(get_abspath('SiteMap-schema.rng'))
-for namespace in rng_file.namespaces.itervalues():
-    namespace.prefix = None
-rng_file.auto_register()
 
 ###############################################################################
 # DOMAIN
 ###############################################################################
 
 # Register the itws domain
-path = get_abspath('locale')
-register_domain('itws', path)
-
+#path = get_abspath('locale')
+#register_domain('crm', path)
+#
