@@ -279,6 +279,7 @@ class Prospect_NewInstance(NewInstance):
 
     def action(self, resource, context, form):
         crm = get_crm(resource)
+        prospects = crm.get_resource('prospects')
 
         # Get approximation of index of current prospect
         results = resource.get_root().search(format='prospect',
@@ -289,7 +290,7 @@ class Prospect_NewInstance(NewInstance):
 
         # Create the resource
         cls_prospect = get_resource_class('prospect')
-        child = cls_prospect.make_resource(cls_prospect, resource, name)
+        child = cls_prospect.make_resource(cls_prospect, prospects, name)
 
         # Prospect data
         prospect_data = {}
@@ -595,9 +596,9 @@ class Prospect_EditForm(DBResource_Edit):
 
 
     def _get_address_value(self, resource, context, name, datatype):
-        company_path = '../companies/%s' % resource.get_property('p_company')
+        company_path = '../../companies/%s' % resource.get_property('p_company')
         company = resource.get_resource(company_path)
-        addresses = resource.get_resource('../addresses')
+        addresses = resource.get_resource('../../addresses')
         id = company.get_property('c_address')
         if id:
             record = addresses.handler.get_record(id)
@@ -607,7 +608,7 @@ class Prospect_EditForm(DBResource_Edit):
 
     def _get_company_value(self, resource, context, name, datatype):
         get_value = DBResource_Edit.get_value
-        company_path = '../companies/%s' % resource.get_property('p_company')
+        company_path = '../../companies/%s' % resource.get_property('p_company')
         company = resource.get_resource(company_path)
         value = get_value(self, company, context, name, datatype)
         return value if value is not None else datatype.default
@@ -732,7 +733,8 @@ class Prospect_Main(CompositeForm):
         lastname = resource.get_property('p_lastname')
         firstname = resource.get_property('p_firstname')
         company = resource.get_property('p_company')
-        company = resource.get_resource('../companies/%s' % company, soft=True)
+        company = resource.get_resource('../../companies/%s' % company,
+                                        soft=True)
         if company is not None:
             company =  u'(%s)' % company.get_title()
         else:

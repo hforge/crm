@@ -198,7 +198,7 @@ class Prospect(Folder, RoleAware):
         document['p_lastname'] = self.get_property('p_lastname')
         # Index company name and index company title as text
         company_name = self.get_property('p_company')
-        company = self.get_resource('../companies/%s' % company_name)
+        company = self.get_resource('../../companies/%s' % company_name)
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
         c_title = company.get_property('c_title') or ''
@@ -381,6 +381,16 @@ class Companies(Folder):
 
 
 
+class Prospects(Folder):
+    """ Container of "prospect" resources. """
+    class_id = 'prospects'
+    class_title = MSG(u'Prospects')
+
+    class_views = ['browse_content']
+    class_document_types = [Prospect]
+
+
+
 class CRM(Folder):
     """ A CRM contains:
         - companies
@@ -388,7 +398,7 @@ class CRM(Folder):
         - addresses (companies and prospects)
     """
     class_id = 'crm'
-    class_version = '20091230'
+    class_version = '20100122'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
@@ -396,7 +406,8 @@ class CRM(Folder):
                    'new_resource?type=company', 'browse_content', 'edit']
     class_document_types = [Company, Prospect]
 
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['addresses']
+    __fixed_handlers__ = Folder.__fixed_handlers__ + ['addresses', 'companies',
+                                                      'prospects']
 
 
     @staticmethod
@@ -405,6 +416,12 @@ class CRM(Folder):
         # Addresses
         Addresses._make_resource(Addresses, folder, '%s/addresses' % name,
                                  title={'en': u'Addresses', 'fr': u'Adresses'})
+        # Companies
+        Companies._make_resource(Companies, folder, '%s/companies' % name,
+                                 title={'en': u'Companies', 'fr': u'Sociétés'})
+        # Prospects
+        Prospects._make_resource(Prospects, folder, '%s/prospects' % name,
+                                 title={'en': u'Prospects', 'fr': u'Prospects'})
 
 
     def add_company(self, company_data):
@@ -444,6 +461,17 @@ class CRM(Folder):
         for company in companies.get_documents():
             name = company.name
             self.move_resource(name, 'companies/%s' % name)
+
+
+    def update_20100122(self):
+        """ Move prospects into new folder "prospects". """
+        Prospects.make_resource(Prospects, self, 'prospects')
+
+        prospects = self.get_root().search(format='prospect',
+                                           parent_path=str(self.get_abspath()))
+        for prospect in prospects.get_documents():
+            name = prospect.name
+            self.move_resource(name, 'prospects/%s' % name)
 
 
     alerts = CRM_Alerts()
