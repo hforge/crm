@@ -593,8 +593,9 @@ class Prospect_EditForm(DBResource_Edit):
         widgets = prospect_widgets[:]
         return widgets
 
+
     def _get_address_value(self, resource, context, name, datatype):
-        company_path = '../%s' % resource.get_property('p_company')
+        company_path = '../companies/%s' % resource.get_property('p_company')
         company = resource.get_resource(company_path)
         addresses = resource.get_resource('../addresses')
         id = company.get_property('c_address')
@@ -606,7 +607,7 @@ class Prospect_EditForm(DBResource_Edit):
 
     def _get_company_value(self, resource, context, name, datatype):
         get_value = DBResource_Edit.get_value
-        company_path = '../%s' % resource.get_property('p_company')
+        company_path = '../companies/%s' % resource.get_property('p_company')
         company = resource.get_resource(company_path)
         value = get_value(self, company, context, name, datatype)
         return value if value is not None else datatype.default
@@ -617,7 +618,7 @@ class Prospect_EditForm(DBResource_Edit):
         if name in ('c_address_1', 'c_address_2', 'c_zipcode', 'c_town',
                     'c_country'):
             return self._get_address_value(resource, context, name, datatype)
-        if name[:2] == 'c_':
+        elif name[:2] == 'c_':
             return self._get_company_value(resource, context, name, datatype)
 
         value = get_value(self, resource, context, name, datatype)
@@ -697,7 +698,8 @@ class Prospect_EditForm(DBResource_Edit):
             company_name = crm.add_company(company_data)
             resource.set_property('p_company', company_name)
         elif action_on_company == 'edit':
-            company = crm.get_resource(prospect_data['p_company'])
+            path = 'companies/%s' % prospect_data['p_company']
+            company = crm.get_resource(path)
             company.update_company(company_data)
 
         goto = context.get_link(resource)
@@ -730,7 +732,7 @@ class Prospect_Main(CompositeForm):
         lastname = resource.get_property('p_lastname')
         firstname = resource.get_property('p_firstname')
         company = resource.get_property('p_company')
-        company = resource.get_resource('../%s' % company, soft=True)
+        company = resource.get_resource('../companies/%s' % company, soft=True)
         if company is not None:
             company =  u'(%s)' % company.get_title()
         else:
@@ -754,11 +756,12 @@ class Prospect_Main(CompositeForm):
                 return context.come_back(ERROR(u'Mission not found'), goto=';main')
             edit_mission = mission_resource.edit.GET(mission_resource, context)
 
-        return {
+        namespace = {
             'title': title,
             'edit': edit,
             'view_missions': view_missions,
-            'edit_mission': edit_mission}
+            'edit_mission': edit_mission }
+        return namespace
 
 
 
@@ -1095,8 +1098,8 @@ class CRM_SearchProspects(SearchForm):
             return path_to_icon
         elif column == 'p_company':
             company = item_resource.get_property(column)
-            company_resource = resource.get_resource(company)
-            href = '%s/%s' % (context.get_link(resource), company)
+            company_resource = resource.get_resource('companies/%s' % company)
+            href = context.get_link(company_resource)
             title = company_resource.get_title()
             return title, href
         elif column == 'p_lastname':
@@ -1199,7 +1202,7 @@ class CRM_ExportToCSV(BaseView):
         infos.append(get_property('p_lastname'))
         infos.append(get_property('p_firstname') or '')
         p_company = get_property('p_company')
-        company = resource.get_resource(p_company)
+        company = resource.get_resource('companies/%s' % p_company)
         infos.append(company.get_property('c_title'))
         infos.append(get_property('p_status'))
 
@@ -1353,8 +1356,8 @@ class CRM_Alerts(SearchForm):
                 icon_name = ALERT_ICON_ORANGE
             else:
                 icon_name = ALERT_ICON_GREEN
-            # icon
-            path_to_icon = '/ui/crm/images/%s' % icon_name#resource.get_resource_icon(16)
+            # icon #resource.get_resource_icon(16)
+            path_to_icon = '/ui/crm/images/%s' % icon_name
             if path_to_icon.startswith(';'):
                 name = resource.name
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
@@ -1369,7 +1372,7 @@ class CRM_Alerts(SearchForm):
         elif column == 'p_company':
             prospect = mission.parent
             company_name = prospect.get_property(column)
-            company = resource.get_resource(company_name)
+            company = resource.get_resource('companies/%s' % company_name)
             title = company.get_title()
             return title
         elif column == 'm_title':

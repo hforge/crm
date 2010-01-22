@@ -33,13 +33,14 @@ class CompanyName(Enumerate):
     @classmethod
     def get_options(cls):
         context = get_context()
+        site_root = context.resource.get_site_root()
         cls_crm = get_resource_class('crm')
         crm = context.resource
         while not isinstance(crm, cls_crm):
             crm = crm.parent
-
+        parent_path = '%s/companies' % crm.get_abspath()
         results = context.root.search(format='company',
-                                      parent_path=str(crm.get_abspath()))
+                                      parent_path=parent_path)
 
         options = []
         for brain in results.get_documents(sort_by='c_title'):

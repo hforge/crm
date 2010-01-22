@@ -159,7 +159,7 @@ class Mission(Folder):
 
 
 class Prospect(Folder, RoleAware):
-    """ A prospect is a contact within a company.
+    """ A prospect is a contact.
     """
     class_id = 'prospect'
     class_title = MSG(u'Prospect')
@@ -198,7 +198,7 @@ class Prospect(Folder, RoleAware):
         document['p_lastname'] = self.get_property('p_lastname')
         # Index company name and index company title as text
         company_name = self.get_property('p_company')
-        company = self.get_resource('../%s' % company_name)
+        company = self.get_resource('../companies/%s' % company_name)
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
         c_title = company.get_property('c_title') or ''
@@ -355,7 +355,7 @@ class Company(Folder):
         c_address_2 = company_data['c_address_2'] or None
         if self.get_property('c_address_1') != c_address_1 or \
            self.get_property('c_address_2') != c_address_2:
-            addresses = self.get_resource('../addresses')
+            addresses = self.get_resource('../../addresses')
             record = {}
             record['c_title'] = company_data['c_title']
             record['c_address_1'] = company_data['c_address_1']
@@ -371,6 +371,16 @@ class Company(Folder):
 
 
 
+class Companies(Folder):
+    """ Container of "company" resources. """
+    class_id = 'companies'
+    class_title = MSG(u'Companies')
+
+    class_views = ['browse_content']
+    class_document_types = [Company]
+
+
+
 class CRM(Folder):
     """ A CRM contains:
         - companies
@@ -378,13 +388,13 @@ class CRM(Folder):
         - addresses (companies and prospects)
     """
     class_id = 'crm'
-    class_version = '20090724'
+    class_version = '20091230'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
     class_views = ['search', 'alerts', 'new_resource?type=prospect',
-                   'browse_content', 'edit']
-    class_document_types = [Prospect]
+                   'new_resource?type=company', 'browse_content', 'edit']
+    class_document_types = [Company, Prospect]
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['addresses']
 
@@ -410,12 +420,11 @@ class CRM(Folder):
             metadata[name] = company_data[name]
         metadata['c_address'] = record.id
         # Get approximate index of new company
-        results = self.get_root().search(format='company',
-                                         parent_path=str(self.get_abspath()))
-        index = results.get_n_documents()
-        names = self.get_names()
-        name = generate_name(names, 'c%03d', index)
-        Company.make_resource(Company, self, name, **metadata)
+        companies = self.get_resource('companies')
+        companies_names = companies.get_names()
+        index = len(companies_names)
+        name = generate_name(companies_names, 'c%03d', index)
+        Company.make_resource(Company, companies, name, **metadata)
         return name
 
 
@@ -425,6 +434,16 @@ class CRM(Folder):
             addresses.metadata.format = 'crm_addresses'
             addresses.metadata.set_changed()
 
+
+    def update_20091230(self):
+        """ Move companies into new folder "companies". """
+        Companies.make_resource(Companies, self, 'companies')
+
+        companies = self.get_root().search(format='company',
+                                           parent_path=str(self.get_abspath()))
+        for company in companies.get_documents():
+            name = company.name
+            self.move_resource(name, 'companies/%s' % name)
 
 
     alerts = CRM_Alerts()
@@ -436,6 +455,7 @@ class CRM(Folder):
 register_resource_class(Addresses)
 register_resource_class(Comments)
 register_resource_class(Company)
+register_resource_class(Companies)
 register_resource_class(CRM)
 register_resource_class(Mission)
 register_resource_class(Prospect)
