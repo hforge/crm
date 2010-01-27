@@ -283,9 +283,9 @@ class Prospect_NewInstance(NewInstance):
 
         # Get approximation of index of current prospect
         results = resource.get_root().search(format='prospect',
-                      parent_path=str(resource.get_abspath()))
+                      parent_path=str(prospects.get_abspath()))
         index = len(results)
-        names = resource.get_names()
+        names = prospects.get_names()
         name = generate_name(names, 'p%04d', index)
 
         # Create the resource
@@ -317,7 +317,7 @@ class Prospect_NewInstance(NewInstance):
             mission_data[key] = form.get(key, None)
         child.add_mission(mission_data)
 
-        goto = './%s/' % name
+        goto = './prospects/%s/' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
