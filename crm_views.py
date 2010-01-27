@@ -564,8 +564,7 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
     def get_items(self, resource, context, *args):
         # Build the query
         args = list(args)
-        abspath = str(resource.get_canonical_path())
-        args.append(PhraseQuery('parent_path', abspath))
+        args.append(PhraseQuery('m_prospect', resource.name))
         if len(args) == 1:
             query = args[0]
         else:
@@ -751,10 +750,12 @@ class Prospect_Main(CompositeForm):
         edit_mission = None
         mission = context.query.get('mission', None)
         if mission is None:
-            mission = resource.get_first_mission()
+            mission = resource.get_first_mission(context)
         if mission:
-            mission_resource = resource.get_resource(mission, soft=True)
+            path_to_mission = '../../missions/%s' % mission
+            mission_resource = resource.get_resource(path_to_mission, soft=True)
             if mission_resource is None:
+                # FIXME infinite cycle
                 return context.come_back(ERROR(u'Mission not found'), goto=';main')
             edit_mission = mission_resource.edit.GET(mission_resource, context)
 
@@ -944,8 +945,9 @@ class Mission_EditForm(DBResource_Edit):
         # Reindex prospect to update p_assured and p_probable
         context.server.change_resource(resource.parent)
 
-        path_to_prospect = context.get_link(resource.parent)
-        goto = '%s/;main?mission=%s' % (path_to_prospect, resource.name)
+        prospect = resource.get_property('m_prospect')
+        mission = resource.name
+        goto = '../../prospects/%s/;main?mission=%s' % (prospect, mission)
         return context.come_back(MSG_CHANGES_SAVED, goto)
 
 

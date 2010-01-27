@@ -115,6 +115,8 @@ class Mission(Folder):
         schema = {
             'm_title': Unicode,
             'm_description': Unicode,
+            # Prospect name
+            'm_prospect': String,
             # How many € ?
             'm_amount': Decimal,
             # Probability ?
@@ -142,6 +144,8 @@ class Mission(Folder):
                 has_alerts = True
 
         document['text'] = u' '.join(values)
+        # Index prospect
+        document['m_prospect'] = self.get_property('m_prospect')
         # Index alerts
         document['m_has_alerts'] = has_alerts
         # Index status
@@ -165,7 +169,7 @@ class Prospect(Folder, RoleAware):
     class_title = MSG(u'Prospect')
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
-    class_document_types = [Mission]
+    class_document_types = []
 
 
     @classmethod
@@ -194,11 +198,12 @@ class Prospect(Folder, RoleAware):
 
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
+        crm = self.parent.parent
 
         document['p_lastname'] = self.get_property('p_lastname')
         # Index company name and index company title as text
         company_name = self.get_property('p_company')
-        company = self.get_resource('../../companies/%s' % company_name)
+        company = crm.get_resource('companies/%s' % company_name)
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
         c_title = company.get_property('c_title') or ''
@@ -215,11 +220,14 @@ class Prospect(Folder, RoleAware):
         # Index probable amount (average missions amount by probability)
         p_assured = p_probable = decimal('0.0')
         cent = decimal('100.0')
-        missions = self.search_resources(format='mission')
+        parent_path = str('%s/missions' % crm.get_abspath())
+        missions = self.get_root().search(format='mission',
+                                          parent_path=parent_path)
         document['p_opportunity'] = 0
         document['p_project'] = 0
         document['p_nogo'] = 0
-        for mission in missions:
+        for mission in missions.get_documents():
+            mission = self.get_resource(mission.abspath)
             status = mission.get_property('m_status')
             if status:
                 key = 'p_%s' % status
@@ -281,33 +289,34 @@ class Prospect(Folder, RoleAware):
         return False
 
 
-    def get_first_mission(self):
-        root = self.get_root()
-        results = root.search(format='mission',
-                              parent_path=str(self.get_abspath()))
+    def get_first_mission(self, context):
+        root = context.root
+        crm = self.parent.parent
+        parent_path = str('%s/missions' % crm.get_abspath())
+        results = root.search(format='mission', parent_path=parent_path)
         if not results.get_n_documents():
             return None
         mission = results.get_documents(sort_by='mtime', reverse=True)
         return mission[0].name
 
 
-    def add_mission(self, data):
-        names = self.get_names()
-        name = generate_name(names, 'm%03d')
-
-        # Create the resource
-        cls_mission = get_resource_class('mission')
-        child = cls_mission.make_resource(cls_mission, self, name)
-        # The metadata
-        metadata = child.metadata
-        for key, value in data.iteritems():
-            metadata.set_property(key, value)
-
-        # Add first comment
-        comments = child.get_resource('comments')
-        record = {'comment': data['m_description']}
-        comments.handler.add_record(record)
-
+## TODO
+##    def add_mission(self, data):
+##        names = self.get_names()
+##        name = generate_name(names, 'm%03d')
+##
+##        # Create the resource
+##        cls_mission = get_resource_class('mission')
+##        child = cls_mission.make_resource(cls_mission, self, name)
+##        # The metadata
+##        metadata = child.metadata
+##        for key, value in data.iteritems():
+##            metadata.set_property(key, value)
+##
+##        # Add first comment
+##        comments = child.get_resource('comments')
+##        record = {'comment': data['m_description']}
+##        comments.handler.add_record(record)
 
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
@@ -391,6 +400,16 @@ class Prospects(Folder):
 
 
 
+class Missions(Folder):
+    """ Container of "mission" resources. """
+    class_id = 'missions'
+    class_title = MSG(u'Missions')
+
+    class_views = ['browse_content']
+    class_document_types = [Mission]
+
+
+
 class CRM(Folder):
     """ A CRM contains:
         - companies
@@ -398,13 +417,14 @@ class CRM(Folder):
         - addresses (companies and prospects)
     """
     class_id = 'crm'
-    class_version = '20100122'
+    class_version = '20100123'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['search', 'alerts', 'new_resource?type=prospect',
-                   'new_resource?type=company', 'browse_content', 'edit']
-    class_document_types = [Company, Prospect]
+    class_views = ['search', 'alerts', 'new_resource?type=mission',
+                   'new_resource?type=prospect', 'new_resource?type=company',
+                   'browse_content', 'edit']
+    class_document_types = [Company, Prospect, Mission]
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['addresses', 'companies',
                                                       'prospects']
@@ -422,6 +442,9 @@ class CRM(Folder):
         # Prospects
         Prospects._make_resource(Prospects, folder, '%s/prospects' % name,
                                  title={'en': u'Prospects', 'fr': u'Prospects'})
+        # Missions
+        Missions._make_resource(Missions, folder, '%s/missions' % name,
+                                 title={'en': u'Missions', 'fr': u'Missions'})
 
 
     def add_company(self, company_data):
@@ -474,6 +497,28 @@ class CRM(Folder):
             self.move_resource(name, 'prospects/%s' % name)
 
 
+    def update_20100123(self):
+        """ Move missions into new folder "missions"
+            Save prospect as a property
+        """
+        Missions.make_resource(Missions, self, 'missions')
+
+        from itools.xapian import AndQuery, PhraseQuery, StartQuery
+        parent_path = str(self.get_abspath())
+        query = StartQuery('abspath', parent_path)
+        query = AndQuery(query, PhraseQuery('format', 'mission'))
+        missions = self.get_root().search(query)
+        print missions.get_documents(), parent_path
+        for mission in missions.get_documents():
+            name = mission.name
+            prospect = mission.abspath.rsplit('/', 2)[1]
+            mission = self.get_resource(mission.abspath)
+            # Save prospect as a property
+            mission.set_property('m_prospect', prospect)
+            self.move_resource('prospects/%s/%s' % (prospect, name),
+                               'missions/%s' % name)
+
+
     alerts = CRM_Alerts()
     search = CRM_SearchProspects()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
@@ -486,8 +531,11 @@ register_resource_class(Company)
 register_resource_class(Companies)
 register_resource_class(CRM)
 register_resource_class(Mission)
+register_resource_class(Missions)
 register_resource_class(Prospect)
+register_resource_class(Prospects)
 # Mission fields
+register_field('m_prospect', String(is_indexed=True))
 register_field('m_status', String(is_indexed=True))
 register_field('m_has_alerts', Boolean(is_indexed=True))
 # Prospect fields
