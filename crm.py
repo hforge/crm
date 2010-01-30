@@ -48,6 +48,7 @@ from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name
 
 
+# TODO REMOVE
 class CRMAddresses(TableFile):
 
     record_schema = {
@@ -59,6 +60,7 @@ class CRMAddresses(TableFile):
       'c_country': Unicode}
 
 
+# TODO REMOVE
 class Addresses(Table):
 
     class_id = 'crm_addresses'
@@ -419,7 +421,7 @@ class Company(Folder):
     """
     class_id = 'company'
     class_title = MSG(u'Company')
-    class_version = '20100129'
+    class_version = '20100130'
 
     class_views = ['view', 'edit', 'browse_content']
 
@@ -427,7 +429,9 @@ class Company(Folder):
     @classmethod
     def get_metadata_schema(cls):
         return merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
-                           c_address=Integer, c_phone=Unicode, c_fax=Unicode)
+            c_address_1=Unicode, c_address_2=Unicode, c_zipcode=String,
+            c_town=Unicode, c_country=Unicode, c_address=Integer,
+            c_phone=Unicode, c_fax=Unicode)
 
 
     def _get_catalog_values(self):
@@ -453,6 +457,7 @@ class Company(Folder):
         return self.get_property('c_title', language=language)
 
 
+    # FIXME
     def update_company(self, company_data):
         self.set_property('c_title', company_data['c_title'])
         self.set_property('c_phone', company_data['c_phone'])
@@ -482,6 +487,21 @@ class Company(Folder):
         CompanyTable.make_resource(CompanyTable, self, 'comments',
             title={'en': u'Comments', 'fr': u'Commentaires'})
 
+    def update_20100130(self):
+        addresses_handler = self.get_resource('../../addresses').handler
+        get_record_value = addresses_handler.get_record_value
+
+        address = self.get_property('c_address')
+        if address is None:
+            return
+        address = int(address)
+        record = addresses_handler.get_record(address)
+        for name in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
+                     'c_town', 'c_country']:
+            value = get_record_value(record, name)
+            if value:
+                self.set_property(name, value)
+        self.del_property('c_address')
 
 ###################################
 # Containers                      #
@@ -536,16 +556,13 @@ class CRM(Folder):
                    'browse_content', 'edit']
     class_document_types = [Company, Prospect, Mission]
 
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['addresses', 'companies',
-                                                      'prospects']
+    __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
+                                                      'missions']
 
 
     @staticmethod
     def _make_resource(cls, folder, name, *args, **kw):
         Folder._make_resource(cls, folder, name, **kw)
-        # Addresses
-        Addresses._make_resource(Addresses, folder, '%s/addresses' % name,
-                                 title={'en': u'Addresses', 'fr': u'Adresses'})
         # Companies
         Companies._make_resource(Companies, folder, '%s/companies' % name,
                                  title={'en': u'Companies', 'fr': u'Sociétés'})
@@ -557,6 +574,7 @@ class CRM(Folder):
                                  title={'en': u'Missions', 'fr': u'Missions'})
 
 
+    # FIXME
     def add_company(self, company_data):
         # Add address to /addresses
         addresses = self.get_resource('addresses')
