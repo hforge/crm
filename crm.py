@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import date
 from decimal import Decimal as decimal
 
 # Import from itools
@@ -81,6 +80,9 @@ class CommentsTableFile(TableFile):
                      'file': String}
 
 
+###################################
+# Mission                         #
+###################################
 
 class MissionTableFile(CommentsTableFile):
 
@@ -102,7 +104,6 @@ class MissionTable(Table):
     class_id = 'mission-comments'
     class_title = MSG(u'Mission comments')
     class_handler = MissionTableFile
-
 
 
 class Mission(Folder):
@@ -199,12 +200,24 @@ class Mission(Folder):
     view_comments = Mission_ViewComments()
 
 
+###################################
+# Prospect                        #
+###################################
+
+class ProspectTable(Table):
+
+    class_id = 'prospect-comments'
+    class_title = MSG(u'Prospect comments')
+    class_handler = CommentsTableFile
+
+
 
 class Prospect(Folder, RoleAware):
     """ A prospect is a contact.
     """
     class_id = 'prospect'
     class_title = MSG(u'Prospect')
+    class_version = '20100129'
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
     class_document_types = []
@@ -227,11 +240,16 @@ class Prospect(Folder, RoleAware):
 
 
     @classmethod
-    def _make_resource(cls, container, name, *args, **kw):
+    def _make_resource(cls, folder, name, *args, **kw):
         # Add current user as admin
         username = get_context().user.name
         kw['admins'] = kw.get('admins', []) + [username]
-        Folder._make_resource(container, name, *args, **kw)
+        Folder._make_resource(folder, name, *args, **kw)
+
+        # ProspectTable (Comments)
+        ProspectTable._make_resource(ProspectTable, folder,
+            '%s/comments' % name, title={'en': u'Comments',
+                                         'fr': u'Commentaires'})
 
 
     def _get_catalog_values(self):
@@ -377,6 +395,23 @@ class Prospect(Folder, RoleAware):
     view_missions = Prospect_ViewMissions()
 
 
+    def update_20100129(self):
+        # ProspectTable (Comments)
+        ProspectTable.make_resource(ProspectTable, self, 'comments',
+            title={'en': u'Comments', 'fr': u'Commentaires'})
+
+
+###################################
+# Company                         #
+###################################
+
+class CompanyTable(Table):
+
+    class_id = 'prospect-comments'
+    class_title = MSG(u'Company comments')
+    class_handler = CommentsTableFile
+
+
 
 class Company(Folder):
     """ A Company is a folder with metadata containing files related to it such
@@ -384,6 +419,7 @@ class Company(Folder):
     """
     class_id = 'company'
     class_title = MSG(u'Company')
+    class_version = '20100129'
 
     class_views = ['view', 'edit', 'browse_content']
 
@@ -398,6 +434,19 @@ class Company(Folder):
         document = Folder._get_catalog_values(self)
         document['c_title'] = self.get_property('c_title')
         return document
+
+
+    @classmethod
+    def _make_resource(cls, folder, name, *args, **kw):
+        # Add current user as admin
+        username = get_context().user.name
+        kw['admins'] = kw.get('admins', []) + [username]
+        Folder._make_resource(folder, name, *args, **kw)
+
+        # CompanyTable (Comments)
+        CompanyTable._make_resource(CompanyTable, folder,
+            '%s/comments' % name, title={'en': u'Comments',
+                                         'fr': u'Commentaires'})
 
 
     def get_title(self, language=None):
@@ -428,7 +477,15 @@ class Company(Folder):
 
     view = Company_View()
 
+    def update_20100129(self):
+        # CompanyTable (Comments)
+        CompanyTable.make_resource(CompanyTable, self, 'comments',
+            title={'en': u'Comments', 'fr': u'Commentaires'})
 
+
+###################################
+# Containers                      #
+###################################
 
 class Companies(Folder):
     """ Container of "company" resources. """
@@ -459,6 +516,9 @@ class Missions(Folder):
     class_document_types = [Mission]
 
 
+###################################
+# CRM                             #
+###################################
 
 class CRM(Folder):
     """ A CRM contains:
@@ -589,6 +649,7 @@ register_resource_class(CRM)
 register_resource_class(MissionTable)
 register_resource_class(Mission)
 register_resource_class(Missions)
+register_resource_class(ProspectTable)
 register_resource_class(Prospect)
 register_resource_class(Prospects)
 # Mission fields
