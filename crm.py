@@ -135,25 +135,27 @@ class Mission(Folder):
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
 
-        # Index all comments as 'text'
         comments_handler = self.get_resource('comments').handler
-        get_value = comments_handler.get_record_value
+        get_record_value = comments_handler.get_record_value
+        # Index all comments as 'text', and check any alert
         values = []
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
-            values.append(get_value(record, 'comment'))
+            values.append(get_record_value(record, 'comment'))
             # alert
-            if has_alerts is False and get_value(record, 'alert_datetime'):
+            if has_alerts is False and \
+              get_record_value(record, 'alert_datetime'):
                 has_alerts = True
-
         document['text'] = u' '.join(values)
+
+        last_record = comments_handler.get_record(-1)
         # Index prospect
-        document['m_prospect'] = self.get_property('m_prospect')
+        document['m_prospect'] = get_record_value(last_record, 'm_prospect')
         # Index alerts
         document['m_has_alerts'] = has_alerts
         # Index status
-        document['m_status'] = self.get_property('m_status')
+        document['m_status'] = get_record_value(last_record, 'm_status')
         return document
 
 
