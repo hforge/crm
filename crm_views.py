@@ -1101,30 +1101,32 @@ class CRM_SearchProspects(SearchForm):
                 name = item_brain.name
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
             return path_to_icon
-        elif column == 'p_company':
-            company = item_resource.get_property(column)
+        get_value = item_resource.get_value
+        if column == 'p_company':
+            company = get_value(column, context)
+            print resource, item, item_resource, 'COLUMN', column, ':', repr(company)
             company_resource = resource.get_resource('companies/%s' % company)
             href = context.get_link(company_resource)
             title = company_resource.get_title()
             return title, href
         elif column == 'p_lastname':
             href = '%s/' % context.get_link(item_resource)
-            return item_resource.get_property(column), href
+            return get_value(column, context), href
         elif column == 'p_firstname':
             href = '%s/' % context.get_link(item_resource)
-            return item_resource.get_property(column), href
+            return get_value(column, context), href
         elif column == 'p_phone':
-            return item_resource.get_property(column)
+            return get_value(column, context)
         elif column == 'p_mobile':
-            return item_resource.get_property(column)
+            return get_value(column, context)
         elif column == 'p_email':
-            email = item_resource.get_property(column)
-            href = 'mailto:%s' % email
-            return email, href
+            value = get_value(column, context)
+            href = 'mailto:%s' % value
+            return value, href
         elif column == 'p_status':
             # Status
-            p_status = item_resource.get_property('p_status')
-            return ProspectStatus.get_value(p_status)
+            value = get_value(column, context)
+            return ProspectStatus.get_value(value)
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language

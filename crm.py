@@ -388,6 +388,13 @@ class Prospect(Folder, RoleAware):
         return False
 
 
+    def get_value(self, name, context, record=None):
+        comments_handler = self.get_resource('comments').handler
+        if record is None:
+            record = comments_handler.get_record(-1)
+        return comments_handler.get_record_value(record, name)
+
+
     def get_first_mission(self, context):
         root = context.root
         crm = self.parent.parent
