@@ -184,6 +184,7 @@ class Company_View(STLView):
     title = MSG(u'View company')
     template = '/ui/crm/Company_view.xml'
 
+    # TODO
     def get_namespace(self, resource, context):
         c_title = resource.get_property('c_title')
         c_address = resource.get_property('c_address')

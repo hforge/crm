@@ -206,11 +206,21 @@ class Mission(Folder):
 # Prospect                        #
 ###################################
 
+class ProspectTableFile(CommentsTableFile):
+
+    record_schema = merge_dicts(CommentsTableFile.record_schema,
+        p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
+        p_phone=Unicode, p_mobile=Unicode, p_email=Email,
+        # Lead/Client/Dead
+        p_status=ProspectStatus)
+
+
+
 class ProspectTable(Table):
 
     class_id = 'prospect-comments'
     class_title = MSG(u'Prospect comments')
-    class_handler = CommentsTableFile
+    class_handler = ProspectTableFile
 
 
 
@@ -219,7 +229,7 @@ class Prospect(Folder, RoleAware):
     """
     class_id = 'prospect'
     class_title = MSG(u'Prospect')
-    class_version = '20100129'
+    class_version = '20100202'
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
     class_document_types = []
@@ -228,17 +238,7 @@ class Prospect(Folder, RoleAware):
     @classmethod
     def get_metadata_schema(cls):
         schema = RoleAware.get_metadata_schema()
-        prospect_schema = {
-            'p_company': CompanyName,
-            'p_lastname': Unicode,
-            'p_firstname': Unicode,
-            'p_phone': Unicode,
-            'p_mobile': Unicode,
-            'p_email': Email,
-            'p_comment': Unicode,
-            # Lead/Client/Dead
-            'p_status': ProspectStatus}
-        return merge_dicts(schema, prospect_schema)
+        return merge_dicts(Folder.get_metadata_schema(), schema)
 
 
     @classmethod
@@ -260,21 +260,37 @@ class Prospect(Folder, RoleAware):
         if not isinstance(crm, CRM):
             crm = crm.parent
 
-        document['p_lastname'] = self.get_property('p_lastname')
+        comments_handler = self.get_resource('comments').handler
+        get_record_value = comments_handler.get_record_value
+        record = comments_handler.get_record(-1)
+
+        document['p_lastname'] = get_record_value(record, 'p_lastname')
         # Index company name and index company title as text
-        company_name = self.get_property('p_company')
+        company_name = get_record_value(record, 'p_company')
         company = crm.get_resource('companies/%s' % company_name)
+        company_comments_handler = company.get_resource('comments').handler
+        get_record_value = company_comments_handler.get_record_value
+        company = company_comments_handler.get_record(-1)
+        # Index all comments as 'text', and check any alert
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
-        c_title = company.get_property('c_title') or ''
-        values = [c_title]
-        values.append(self.get_property('p_lastname'))
-        values.append(self.get_property('p_firstname'))
-        values.append(self.get_property('p_email'))
-        values.append(self.get_property('p_comment'))
+        c_title = company_comments_handler.get_record_value(company, 'c_title')
+        values = [c_title or '']
+        values.append(get_record_value(record, 'p_lastname'))
+        values.append(get_record_value(record, 'p_firstname'))
+        values.append(get_record_value(record, 'p_email'))
+        values.append(get_record_value(record, 'p_comment'))
+        has_alerts = False
+        for record in comments_handler.get_records():
+            # comment
+            values.append(get_record_value(record, 'comment'))
+            # alert
+            if has_alerts is False and \
+              get_record_value(record, 'alert_datetime'):
+                has_alerts = True
         document['text'] = u' '.join(values)
         # Index status
-        document['p_status'] = self.get_property('p_status')
+        document['p_status'] = get_record_value(record, 'p_status')
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
@@ -403,9 +419,49 @@ class Prospect(Folder, RoleAware):
             title={'en': u'Comments', 'fr': u'Commentaires'})
 
 
+    def update_20100202(self):
+        schema = {
+            'p_company': CompanyName,
+            'p_lastname': Unicode,
+            'p_firstname': Unicode,
+            'p_phone': Unicode,
+            'p_mobile': Unicode,
+            'p_email': Email,
+            'p_comment': Unicode,
+            # Lead/Client/Dead
+            'p_status': ProspectStatus}
+        # Get properties set
+        data = {}
+        for name, datatype in schema.iteritems():
+            value = self.get_property(name)
+            if value:
+                data[name] = datatype.decode(value)
+        # Put properties set into the table
+        if data != {}:
+            table_handler = self.get_resource('comments').handler
+            nb_records = table_handler.get_n_records()
+            if nb_records > 0:
+                table_handler.update_record(nb_records-1, **data)
+            else:
+                table_handler.add_record(data)
+        # Delete properties now into table
+        for key in schema:
+            self.del_property(key)
+
+
+
 ###################################
 # Company                         #
 ###################################
+
+class CompanyTableFile(CommentsTableFile):
+
+    record_schema = merge_dicts(CommentsTableFile.record_schema,
+        c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
+        c_zipcode=String, c_town=Unicode, c_country=Unicode,
+        c_phone=Unicode, c_fax=Unicode)
+
+
 
 class CompanyTable(Table):
 
@@ -421,22 +477,14 @@ class Company(Folder):
     """
     class_id = 'company'
     class_title = MSG(u'Company')
-    class_version = '20100130'
+    class_version = '20100203'
 
     class_views = ['view', 'edit', 'browse_content']
 
 
-    @classmethod
-    def get_metadata_schema(cls):
-        return merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
-            c_address_1=Unicode, c_address_2=Unicode, c_zipcode=String,
-            c_town=Unicode, c_country=Unicode, c_address=Integer,
-            c_phone=Unicode, c_fax=Unicode)
-
-
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
-        document['c_title'] = self.get_property('c_title')
+        document['c_title'] = self.get_title()
         return document
 
 
@@ -454,7 +502,10 @@ class Company(Folder):
 
 
     def get_title(self, language=None):
-        return self.get_property('c_title', language=language)
+        comments_handler = self.get_resource('comments').handler
+        get_record_value = comments_handler.get_record_value
+        last_record = comments_handler.get_record(-1)
+        return get_record_value(last_record, 'c_title', language)
 
 
     # FIXME
@@ -482,10 +533,12 @@ class Company(Folder):
 
     view = Company_View()
 
+
     def update_20100129(self):
         # CompanyTable (Comments)
         CompanyTable.make_resource(CompanyTable, self, 'comments',
             title={'en': u'Comments', 'fr': u'Commentaires'})
+
 
     def update_20100130(self):
         addresses_handler = self.get_resource('../../addresses').handler
@@ -502,6 +555,31 @@ class Company(Folder):
             if value:
                 self.set_property(name, value)
         self.del_property('c_address')
+
+
+    def update_20100203(self):
+        schema = merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
+            c_address_1=Unicode, c_address_2=Unicode, c_zipcode=String,
+            c_town=Unicode, c_country=Unicode, c_address=Integer,
+            c_phone=Unicode, c_fax=Unicode)
+        # Get properties set
+        data = {}
+        for name, datatype in schema.iteritems():
+            value = self.get_property(name)
+            if value:
+                data[name] = datatype.decode(value)
+        # Put properties set into the table
+        if data != {}:
+            table_handler = self.get_resource('comments').handler
+            nb_records = table_handler.get_n_records()
+            if nb_records > 0:
+                table_handler.update_record(nb_records-1, **data)
+            else:
+                table_handler.add_record(data)
+        # Delete properties now into table
+        for key in schema:
+            self.del_property(key)
+
 
 ###################################
 # Containers                      #
