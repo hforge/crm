@@ -130,11 +130,6 @@ class Mission(Folder):
                                            'fr': u'Commentaires'})
 
 
-    @classmethod
-    def get_metadata_schema(cls):
-       return {}
-
-
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
 
@@ -145,7 +140,7 @@ class Mission(Folder):
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
-            values.append(get_record_value(record, 'comment'))
+            values.append(u' '.join(get_record_value(record, 'comment')))
             # alert
             if has_alerts is False and \
               get_record_value(record, 'alert_datetime'):
@@ -162,7 +157,8 @@ class Mission(Folder):
         return document
 
 
-    def update_20100127(self):
+    def update_20100204(self):
+        print '*'*30, 'MISSION', '*'*30
         schema = {
             'm_title': Unicode,
             'm_description': Unicode,
@@ -229,7 +225,7 @@ class Prospect(Folder, RoleAware):
     """
     class_id = 'prospect'
     class_title = MSG(u'Prospect')
-    class_version = '20100202'
+    class_version = '20100204'
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
     class_document_types = []
@@ -260,7 +256,21 @@ class Prospect(Folder, RoleAware):
         if not isinstance(crm, CRM):
             crm = crm.parent
 
-        comments_handler = self.get_resource('comments').handler
+        # TO REMOVE after update_20100204
+        try:
+            comments_handler = self.get_resource('comments').handler
+        except LookupError:
+            p_lastname = Unicode.decode(self.get_property('p_lastname'))
+            document['p_lastname'] = p_lastname
+            p_company = self.get_property('p_company')
+            document['p_company'] = p_company
+            document['p_opportunity'] = 0
+            document['p_project'] = 0
+            document['p_nogo'] = 0
+            document['p_assured'] = 0
+            document['p_probable'] = 0
+            return document
+
         get_record_value = comments_handler.get_record_value
         record = comments_handler.get_record(-1)
 
@@ -269,21 +279,25 @@ class Prospect(Folder, RoleAware):
         company_name = get_record_value(record, 'p_company')
         company = crm.get_resource('companies/%s' % company_name)
         company_comments_handler = company.get_resource('comments').handler
-        get_record_value = company_comments_handler.get_record_value
-        company = company_comments_handler.get_record(-1)
+        company_record = company_comments_handler.get_record(-1)
         # Index all comments as 'text', and check any alert
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
-        c_title = company_comments_handler.get_record_value(company, 'c_title')
+        try:
+            c_title = company_comments_handler.get_record_value(company_record, 'c_title')
+        except AttributeError:
+            c_title = u''
         values = [c_title or '']
-        values.append(get_record_value(record, 'p_lastname'))
-        values.append(get_record_value(record, 'p_firstname'))
-        values.append(get_record_value(record, 'p_email'))
-        values.append(get_record_value(record, 'p_comment'))
+        values.append(get_record_value(record, 'p_lastname') or '')
+        values.append(get_record_value(record, 'p_firstname') or '')
+        values.append(get_record_value(record, 'p_email') or '')
+        values.append(get_record_value(record, 'p_comment') or '')
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
-            values.append(get_record_value(record, 'comment'))
+            value = get_record_value(record, 'comment')
+            if value:
+                values.append(value)
             # alert
             if has_alerts is False and \
               get_record_value(record, 'alert_datetime'):
@@ -413,13 +427,13 @@ class Prospect(Folder, RoleAware):
     view_missions = Prospect_ViewMissions()
 
 
-    def update_20100129(self):
+    def update_20100204(self):
+        print '*'*30, 'PROSPECT', '*'*30
         # ProspectTable (Comments)
-        ProspectTable.make_resource(ProspectTable, self, 'comments',
+        table = ProspectTable.make_resource(ProspectTable, self, 'comments',
             title={'en': u'Comments', 'fr': u'Commentaires'})
+        table_handler = table.handler
 
-
-    def update_20100202(self):
         schema = {
             'p_company': CompanyName,
             'p_lastname': Unicode,
@@ -435,19 +449,16 @@ class Prospect(Folder, RoleAware):
         for name, datatype in schema.iteritems():
             value = self.get_property(name)
             if value:
-                data[name] = datatype.decode(value)
+                value = datatype.decode(value)
+                if name == 'p_comment':
+                    name = 'comment'
+                data[name] = value
         # Put properties set into the table
         if data != {}:
-            table_handler = self.get_resource('comments').handler
-            nb_records = table_handler.get_n_records()
-            if nb_records > 0:
-                table_handler.update_record(nb_records-1, **data)
-            else:
-                table_handler.add_record(data)
+            table_handler.add_record(data)
         # Delete properties now into table
         for key in schema:
             self.del_property(key)
-
 
 
 ###################################
@@ -465,9 +476,9 @@ class CompanyTableFile(CommentsTableFile):
 
 class CompanyTable(Table):
 
-    class_id = 'prospect-comments'
+    class_id = 'company-comments'
     class_title = MSG(u'Company comments')
-    class_handler = CommentsTableFile
+    class_handler = CompanyTableFile
 
 
 
@@ -477,7 +488,7 @@ class Company(Folder):
     """
     class_id = 'company'
     class_title = MSG(u'Company')
-    class_version = '20100203'
+    class_version = '20100204'
 
     class_views = ['view', 'edit', 'browse_content']
 
@@ -502,7 +513,11 @@ class Company(Folder):
 
 
     def get_title(self, language=None):
-        comments_handler = self.get_resource('comments').handler
+        # TO REMOVE after update_20100204
+        try:
+            comments_handler = self.get_resource('comments').handler
+        except LookupError:
+            return Unicode.decode(self.get_property('c_title'))
         get_record_value = comments_handler.get_record_value
         last_record = comments_handler.get_record(-1)
         return get_record_value(last_record, 'c_title', language)
@@ -534,51 +549,48 @@ class Company(Folder):
     view = Company_View()
 
 
-    def update_20100129(self):
+    def update_20100204(self):
+        print '*'*30, 'COMPANY', '*'*30
         # CompanyTable (Comments)
-        CompanyTable.make_resource(CompanyTable, self, 'comments',
+        table = CompanyTable.make_resource(CompanyTable, self, 'comments',
             title={'en': u'Comments', 'fr': u'Commentaires'})
+        table_handler = table.handler
 
-
-    def update_20100130(self):
+        schema = merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
+                             c_address=Integer)
         addresses_handler = self.get_resource('../../addresses').handler
         get_record_value = addresses_handler.get_record_value
 
-        address = self.get_property('c_address')
-        if address is None:
-            return
-        address = int(address)
-        record = addresses_handler.get_record(address)
-        for name in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
-                     'c_town', 'c_country']:
-            value = get_record_value(record, name)
-            if value:
-                self.set_property(name, value)
-        self.del_property('c_address')
-
-
-    def update_20100203(self):
-        schema = merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
-            c_address_1=Unicode, c_address_2=Unicode, c_zipcode=String,
-            c_town=Unicode, c_country=Unicode, c_address=Integer,
-            c_phone=Unicode, c_fax=Unicode)
         # Get properties set
         data = {}
         for name, datatype in schema.iteritems():
             value = self.get_property(name)
-            if value:
-                data[name] = datatype.decode(value)
+            if value is None:
+                continue
+            if name == 'c_address':
+                record = addresses_handler.get_record(int(value))
+                for c_name in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
+                             'c_town', 'c_country']:
+                    c_value = get_record_value(record, c_name)
+                    if c_value:
+                        data[c_name] = c_value
+            elif name in ['title', 'description', 'subject', 'c_address_1',
+                          'c_address_2', 'c_zipcode', 'c_town', 'c_country']:
+                continue
+            else:
+                try:
+                    value = datatype.decode(value)
+                except TypeError:
+                    pass
+                data[name] = value
         # Put properties set into the table
         if data != {}:
-            table_handler = self.get_resource('comments').handler
-            nb_records = table_handler.get_n_records()
-            if nb_records > 0:
-                table_handler.update_record(nb_records-1, **data)
-            else:
-                table_handler.add_record(data)
+            table_handler.add_record(data)
+
         # Delete properties now into table
         for key in schema:
             self.del_property(key)
+        self.del_property('c_address')
 
 
 ###################################
@@ -696,10 +708,10 @@ class CRM(Folder):
         """ Move prospects into new folder "prospects". """
         Prospects.make_resource(Prospects, self, 'prospects')
 
-        prospects = self.get_root().search(format='prospect',
-                                           parent_path=str(self.get_abspath()))
         names = []
-        for prospect in prospects.get_documents():
+        for prospect in self.get_resources():
+            if not isinstance(prospect, Prospect):
+                continue
             name = prospect.name
             new_name = generate_name(names, 'p%06d')
             self.move_resource(name, 'prospects/%s' % new_name)
@@ -739,6 +751,7 @@ class CRM(Folder):
 
 
 register_resource_class(Addresses)
+register_resource_class(CompanyTable)
 register_resource_class(Company)
 register_resource_class(Companies)
 register_resource_class(CRM)
