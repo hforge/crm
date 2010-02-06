@@ -83,11 +83,11 @@
               </tr>
               <tr>
                 <td>
-                  <label for="${p_comment/name}" class="${p_comment/class}">
-                    ${p_comment/title}
+                  <label for="${p_description/name}" class="${p_description/class}">
+                    ${p_description/title}
                   </label>
                 </td>
-                <td>${p_comment/widget}</td>
+                <td>${p_description/widget}</td>
               </tr>
             </tbody>
           </table>

@@ -64,7 +64,7 @@ prospect_schema = {
     'p_phone': Unicode,
     'p_mobile': Unicode,
     'p_email': Email,
-    'p_comment': Unicode,
+    'p_description': Unicode,
     'p_status': ProspectStatus(mandatory=True)}
 
 company_schema = {
@@ -86,7 +86,7 @@ prospect_widgets = [
     TextWidget('p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
     TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
-    MultilineWidget('p_comment', title=MSG(u'Comment'), default='',
+    MultilineWidget('p_description', title=MSG(u'Comment'), default='',
                     rows=3),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
@@ -296,7 +296,7 @@ class Prospect_NewInstance(NewInstance):
         # Prospect data
         prospect_data = {}
         for key in ['p_company', 'p_lastname', 'p_firstname', 'p_phone',
-                    'p_mobile', 'p_email', 'p_comment', 'p_status']:
+                    'p_mobile', 'p_email', 'p_description', 'p_status']:
             prospect_data[key] = form.get(key, '')
             child.metadata.set_property(key, prospect_data[key])
         # Company data
@@ -461,7 +461,10 @@ class Prospect_SearchMissions(SearchForm):
 
         # Build the query
         args = list(args)
-        abspath = str(resource.get_canonical_path())
+        args.append(PhraseQuery('format', 'mission'))
+        args.append(PhraseQuery('m_prospect', resource.name))
+        missions = resource.parent.parent.get_resource('missions')
+        abspath = str(missions.get_canonical_path())
         args.append(PhraseQuery('parent_path', abspath))
         if search_term:
             args.append(PhraseQuery(field, search_term))
@@ -494,28 +497,30 @@ class Prospect_SearchMissions(SearchForm):
                 name = item_brain.name
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
             return path_to_icon
-        elif column == 'title':
+        # FIXME
+        get_value = item_resource.get_value
+        if column == 'title':
             # Title
             href = '%s/;main?mission=%s' % (context.get_link(resource),
                                             item_brain.name)
-            return item_resource.get_property('m_title'), href
+            return get_value('m_title', context), href
         elif column == 'status':
             # Status
-            return MissionStatus.get_value(item_resource.get_property('m_status'))
+            return MissionStatus.get_value(get_value('m_status', context))
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
         elif column == 'amount':
-            value = item_resource.get_property('m_amount')
+            value = get_value('m_amount', context)
             if value:
                 value = u'%02.02f €' % value
             return value
         elif column == 'probability':
-            value = item_resource.get_property('m_probability')
+            value = get_value('m_probability', context)
             return value
         elif column == 'deadline':
-            deadline = item_resource.get_property('m_deadline')
+            deadline = get_value('m_deadline', context)
             return deadline
 
 
@@ -595,34 +600,8 @@ class Prospect_EditForm(DBResource_Edit):
         return widgets
 
 
-    def _get_address_value(self, resource, context, name, datatype):
-        company_path = '../../companies/%s' % resource.get_property('p_company')
-        company = resource.get_resource(company_path)
-        addresses = resource.get_resource('../../addresses')
-        id = company.get_property('c_address')
-        if id:
-            record = addresses.handler.get_record(id)
-            return addresses.handler.get_record_value(record, name)
-        return datatype.default
-
-
-    def _get_company_value(self, resource, context, name, datatype):
-        get_value = DBResource_Edit.get_value
-        company_path = '../../companies/%s' % resource.get_property('p_company')
-        company = resource.get_resource(company_path)
-        value = get_value(self, company, context, name, datatype)
-        return value if value is not None else datatype.default
-
-
     def get_value(self, resource, context, name, datatype):
-        get_value = DBResource_Edit.get_value
-        if name in ('c_address_1', 'c_address_2', 'c_zipcode', 'c_town',
-                    'c_country'):
-            return self._get_address_value(resource, context, name, datatype)
-        elif name[:2] == 'c_':
-            return self._get_company_value(resource, context, name, datatype)
-
-        value = get_value(self, resource, context, name, datatype)
+        value = resource.get_value(name, context)
         return value if value is not None else datatype.default
 
 
@@ -682,17 +661,19 @@ class Prospect_EditForm(DBResource_Edit):
         # Prospect data
         prospect_data = {}
         for key in ['p_company', 'p_lastname', 'p_firstname', 'p_phone',
-                    'p_mobile', 'p_email', 'p_comment', 'p_status']:
+                    'p_mobile', 'p_email', 'p_description', 'p_status']:
             prospect_data[key] = form.get(key, '')
             # Update prospect
             resource.set_property(key, prospect_data[key])
 
+        # FIXME
         # Company data
         company_data = {}
         for key in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
                     'c_town', 'c_country', 'c_phone', 'c_fax']:
             company_data[key] = form.get(key, None)
 
+        # FIXME
         # Add/Update company
         action_on_company = form.get('action_on_company', None)
         if action_on_company == 'new':
@@ -840,6 +821,14 @@ class Mission_EditForm(DBResource_Edit):
         TimeWidget('alert_time', title=MSG(u'at'))]
 
 
+    def get_value(self, resource, context, name, datatype):
+        # Always reset m_comment
+        if name == 'm_comment':
+            return ''
+        value = resource.get_value(name, context)
+        return value if value is not None else datatype.default
+
+
     def _get_form(self, resource, context):
         """ Alert is valid only if date AND time are filled.
         """
@@ -861,17 +850,6 @@ class Mission_EditForm(DBResource_Edit):
         path_to_prospect = context.get_link(resource.parent)
         goto = '%s/;main?mission=%s' % (path_to_prospect, resource.name)
         return context.come_back(message, goto)
-
-
-    def get_value(self, resource, context, name, datatype):
-        value = DBResource_Edit.get_value(self, resource, context, name,
-                                          datatype)
-        # Always reset m_comment
-        if name == 'm_comment':
-            return ''
-        if value is None:
-            return datatype.default
-        return value
 
 
     def get_namespace(self, resource, context):
@@ -926,6 +904,7 @@ class Mission_EditForm(DBResource_Edit):
             alert_time = alert_time or time(9,0)
             alert_datetime = datetime.combine(alert_date, alert_time)
 
+        # FIXME
         # Save metadata
         resource.set_property('m_title', title)
         resource.set_property('m_description', description)
@@ -934,6 +913,7 @@ class Mission_EditForm(DBResource_Edit):
         resource.set_property('m_deadline', deadline)
         resource.set_property('m_status', status)
 
+        # FIXME
         # Add first comment
         comments = resource.get_resource('comments')
         record = {'comment': comment}
@@ -943,6 +923,7 @@ class Mission_EditForm(DBResource_Edit):
             record['alert_datetime'] = alert_datetime
         comments.handler.add_record(record)
 
+        # FIXME
         # Reindex prospect to update p_assured and p_probable
         context.server.change_resource(resource.parent)
 
@@ -1104,7 +1085,6 @@ class CRM_SearchProspects(SearchForm):
         get_value = item_resource.get_value
         if column == 'p_company':
             company = get_value(column, context)
-            print resource, item, item_resource, 'COLUMN', column, ':', repr(company)
             company_resource = resource.get_resource('companies/%s' % company)
             href = context.get_link(company_resource)
             title = company_resource.get_title()

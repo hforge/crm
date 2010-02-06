@@ -115,7 +115,7 @@ class Mission(Folder):
     """
     class_id = 'mission'
     class_title = MSG(u'Mission')
-    class_version = '20100127'
+    class_version = '20100204'
     class_views = []
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['comments']
@@ -155,6 +155,20 @@ class Mission(Folder):
         # Index status
         document['m_status'] = get_record_value(last_record, 'm_status')
         return document
+
+
+    def get_value(self, name, context, record=None):
+        comments_handler = self.get_resource('comments').handler
+        if record is None:
+            record = comments_handler.get_record(-1)
+        if name == 'alert_date':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.date() if value else None
+        elif name == 'alert_time':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.time() if value else None
+        value = comments_handler.get_record_value(record, name)
+        return value
 
 
     def update_20100204(self):
@@ -207,6 +221,7 @@ class ProspectTableFile(CommentsTableFile):
     record_schema = merge_dicts(CommentsTableFile.record_schema,
         p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
         p_phone=Unicode, p_mobile=Unicode, p_email=Email,
+        p_description=Unicode,
         # Lead/Client/Dead
         p_status=ProspectStatus)
 
@@ -392,7 +407,20 @@ class Prospect(Folder, RoleAware):
         comments_handler = self.get_resource('comments').handler
         if record is None:
             record = comments_handler.get_record(-1)
-        return comments_handler.get_record_value(record, name)
+        # Get company value
+        if name[:2] == 'c_':
+            company = comments_handler.get_record_value(record, 'p_company')
+            company = self.get_resource('../../companies/%s' % company)
+            value = company.get_value(name, context)
+            return value
+        elif name == 'alert_date':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.date() if value else None
+        elif name == 'alert_time':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.time() if value else None
+        value = comments_handler.get_record_value(record, name)
+        return value
 
 
     def get_first_mission(self, context):
@@ -458,7 +486,7 @@ class Prospect(Folder, RoleAware):
             if value:
                 value = datatype.decode(value)
                 if name == 'p_comment':
-                    name = 'comment'
+                    name = 'p_description'
                 data[name] = value
         # Put properties set into the table
         if data != {}:
@@ -517,6 +545,20 @@ class Company(Folder):
         CompanyTable._make_resource(CompanyTable, folder,
             '%s/comments' % name, title={'en': u'Comments',
                                          'fr': u'Commentaires'})
+
+
+    def get_value(self, name, context, record=None):
+        comments_handler = self.get_resource('comments').handler
+        if record is None:
+            record = comments_handler.get_record(-1)
+        if name == 'alert_date':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.date() if value else None
+        elif name == 'alert_time':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.time() if value else None
+        value = comments_handler.get_record_value(record, name)
+        return value
 
 
     def get_title(self, language=None):
@@ -737,7 +779,6 @@ class CRM(Folder):
         query = StartQuery('abspath', parent_path)
         query = AndQuery(query, PhraseQuery('format', 'mission'))
         missions = self.get_root().search(query)
-        print missions.get_documents(), parent_path
         names = []
         for mission in missions.get_documents():
             name = mission.name
