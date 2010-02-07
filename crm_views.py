@@ -503,24 +503,24 @@ class Prospect_SearchMissions(SearchForm):
             # Title
             href = '%s/;main?mission=%s' % (context.get_link(resource),
                                             item_brain.name)
-            return get_value('m_title', context), href
+            return get_value('m_title'), href
         elif column == 'status':
             # Status
-            return MissionStatus.get_value(get_value('m_status', context))
+            return MissionStatus.get_value(get_value('m_status'))
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
         elif column == 'amount':
-            value = get_value('m_amount', context)
+            value = get_value('m_amount')
             if value:
                 value = u'%02.02f €' % value
             return value
         elif column == 'probability':
-            value = get_value('m_probability', context)
+            value = get_value('m_probability')
             return value
         elif column == 'deadline':
-            deadline = get_value('m_deadline', context)
+            deadline = get_value('m_deadline')
             return deadline
 
 
@@ -601,7 +601,7 @@ class Prospect_EditForm(DBResource_Edit):
 
 
     def get_value(self, resource, context, name, datatype):
-        value = resource.get_value(name, context)
+        value = resource.get_value(name)
         return value if value is not None else datatype.default
 
 
@@ -825,7 +825,7 @@ class Mission_EditForm(DBResource_Edit):
         # Always reset m_comment
         if name == 'm_comment':
             return ''
-        value = resource.get_value(name, context)
+        value = resource.get_value(name)
         return value if value is not None else datatype.default
 
 
@@ -1084,28 +1084,28 @@ class CRM_SearchProspects(SearchForm):
             return path_to_icon
         get_value = item_resource.get_value
         if column == 'p_company':
-            company = get_value(column, context)
+            company = get_value(column)
             company_resource = resource.get_resource('companies/%s' % company)
             href = context.get_link(company_resource)
             title = company_resource.get_title()
             return title, href
         elif column == 'p_lastname':
             href = '%s/' % context.get_link(item_resource)
-            return get_value(column, context), href
+            return get_value(column), href
         elif column == 'p_firstname':
             href = '%s/' % context.get_link(item_resource)
-            return get_value(column, context), href
+            return get_value(column), href
         elif column == 'p_phone':
-            return get_value(column, context)
+            return get_value(column)
         elif column == 'p_mobile':
-            return get_value(column, context)
+            return get_value(column)
         elif column == 'p_email':
-            value = get_value(column, context)
+            value = get_value(column)
             href = 'mailto:%s' % value
             return value, href
         elif column == 'p_status':
             # Status
-            value = get_value(column, context)
+            value = get_value(column)
             return ProspectStatus.get_value(value)
         elif column == 'mtime':
             # Last Modified

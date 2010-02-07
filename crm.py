@@ -157,7 +157,7 @@ class Mission(Folder):
         return document
 
 
-    def get_value(self, name, context, record=None):
+    def get_value(self, name, record=None, context=None):
         comments_handler = self.get_resource('comments').handler
         if record is None:
             record = comments_handler.get_record(-1)
@@ -286,40 +286,38 @@ class Prospect(Folder, RoleAware):
             document['p_probable'] = 0
             return document
 
-        get_record_value = comments_handler.get_record_value
-        record = comments_handler.get_record(-1)
+        get_value = self.get_value
 
-        document['p_lastname'] = get_record_value(record, 'p_lastname')
+        document['p_lastname'] = get_value('p_lastname')
         # Index company name and index company title as text
-        company_name = get_record_value(record, 'p_company')
+        company_name = get_value('p_company')
         company = crm.get_resource('companies/%s' % company_name)
-        company_comments_handler = company.get_resource('comments').handler
-        company_record = company_comments_handler.get_record(-1)
+        get_c_value = company.get_value
         # Index all comments as 'text', and check any alert
         document['p_company'] = company_name
         # Index lastname, firstname, email and comment as text
         try:
-            c_title = company_comments_handler.get_record_value(company_record, 'c_title')
+            c_title = get_c_value('c_title')
         except AttributeError:
             c_title = u''
         values = [c_title or '']
-        values.append(get_record_value(record, 'p_lastname') or '')
-        values.append(get_record_value(record, 'p_firstname') or '')
-        values.append(get_record_value(record, 'p_email') or '')
-        values.append(get_record_value(record, 'p_comment') or '')
+        values.append(get_value('p_lastname') or '')
+        values.append(get_value('p_firstname') or '')
+        values.append(get_value('p_email') or '')
+        values.append(get_value('p_comment') or '')
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
-            value = get_record_value(record, 'comment')
+            value = get_value('comment', record)
             if value:
                 values.append(value)
             # alert
             if has_alerts is False and \
-              get_record_value(record, 'alert_datetime'):
+              get_value('alert_datetime', record):
                 has_alerts = True
         document['text'] = u' '.join(values)
         # Index status
-        document['p_status'] = get_record_value(record, 'p_status')
+        document['p_status'] = get_value('p_status')
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
@@ -339,22 +337,20 @@ class Prospect(Folder, RoleAware):
         document['p_nogo'] = 0
         for mission in missions.get_documents():
             mission = self.get_resource(mission.abspath)
-            mission_table_handler = mission.get_resource('comments').handler
-            get_record_value = mission_table_handler.get_record_value
-            record = mission_table_handler.get_record(-1)
-            status = get_record_value(record, 'm_status')
+            get_value = mission.get_value
+            status = get_value('m_status')
             if status:
                 key = 'p_%s' % status
                 document[key] += 1
             if status == 'nogo':
                 continue
             # Get mission amount
-            m_amount = (get_record_value(record, 'm_amount') or 0)
+            m_amount = (get_value('m_amount') or 0)
             if status == 'project':
                 p_assured += m_amount
             else:
                 # Get mission probability
-                m_probability = (get_record_value(record, 'm_probability')or 0)
+                m_probability = (get_value('m_probability')or 0)
                 value = (m_probability * m_amount) / cent
                 p_probable += value
 
@@ -403,7 +399,7 @@ class Prospect(Folder, RoleAware):
         return False
 
 
-    def get_value(self, name, context, record=None):
+    def get_value(self, name, record=None, context=None):
         comments_handler = self.get_resource('comments').handler
         if record is None:
             record = comments_handler.get_record(-1)
@@ -411,7 +407,7 @@ class Prospect(Folder, RoleAware):
         if name[:2] == 'c_':
             company = comments_handler.get_record_value(record, 'p_company')
             company = self.get_resource('../../companies/%s' % company)
-            value = company.get_value(name, context)
+            value = company.get_value(name, record, context)
             return value
         elif name == 'alert_date':
             value = comments_handler.get_record_value(record, 'alert_datetime')
@@ -547,7 +543,7 @@ class Company(Folder):
                                          'fr': u'Commentaires'})
 
 
-    def get_value(self, name, context, record=None):
+    def get_value(self, name, record=None, context=None):
         comments_handler = self.get_resource('comments').handler
         if record is None:
             record = comments_handler.get_record(-1)
