@@ -76,11 +76,52 @@ class Addresses(Table):
 
 
 class CommentsTableFile(TableFile):
-
+    """ Base comments table used by Company, Prospect and Mission.
+    """
     record_schema = {'comment': Unicode(mandatory=True),
                      'alert_datetime': DateTime,
                      'file': PathDataType}
 
+
+
+class CRMFolder(Folder):
+    """ Base folder for Company, Prospect and Mission.
+    """
+    class_document_types = []
+    __fixed_handlers__ = Folder.__fixed_handlers__ + ['comments']
+
+
+    def get_value(self, name, record=None, context=None):
+        comments_handler = self.get_resource('comments').handler
+        if record is None:
+            record = comments_handler.get_record(-1)
+        # Get company values from current prospect
+        if isinstance(self, Prospect) and name[:2] == 'c_':
+            company = comments_handler.get_record_value(record, 'p_company')
+            company = self.get_resource('../../companies/%s' % company)
+            value = company.get_value(name, record, context)
+            return value
+        if name == 'alert_date':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.date() if value else None
+        elif name == 'alert_time':
+            value = comments_handler.get_record_value(record, 'alert_datetime')
+            return value.time() if value else None
+        value = comments_handler.get_record_value(record, name)
+        return value
+
+
+    def update(self, values):
+        """ Add a new record with new comment or update the last record."""
+        comments_handler = self.get_resource('comments').handler
+        comment = values.get('comment') or None
+        # If no comment, only update fields
+        if comment is None:
+            last_record = comments_handler.get_record(-1)
+            comments_handler.update_record(last_record.id, **values)
+        # Add a new comment
+        else:
+            comments_handler.add_record(values)
 
 ###################################
 # Mission                         #
@@ -108,7 +149,8 @@ class MissionTable(Table):
     class_handler = MissionTableFile
 
 
-class Mission(Folder):
+
+class Mission(CRMFolder):
     """ A mission is a folder containing:
         - a table of comments
         - documents related to comments
@@ -117,8 +159,6 @@ class Mission(Folder):
     class_title = MSG(u'Mission')
     class_version = '20100204'
     class_views = []
-
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['comments']
 
 
     @staticmethod
@@ -155,20 +195,6 @@ class Mission(Folder):
         # Index status
         document['m_status'] = get_record_value(last_record, 'm_status')
         return document
-
-
-    def get_value(self, name, record=None, context=None):
-        comments_handler = self.get_resource('comments').handler
-        if record is None:
-            record = comments_handler.get_record(-1)
-        if name == 'alert_date':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.date() if value else None
-        elif name == 'alert_time':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.time() if value else None
-        value = comments_handler.get_record_value(record, name)
-        return value
 
 
     def update_20100204(self):
@@ -235,7 +261,7 @@ class ProspectTable(Table):
 
 
 
-class Prospect(Folder, RoleAware):
+class Prospect(CRMFolder, RoleAware):
     """ A prospect is a contact.
     """
     class_id = 'prospect'
@@ -243,7 +269,6 @@ class Prospect(Folder, RoleAware):
     class_version = '20100204'
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
-    class_document_types = []
 
 
     @classmethod
@@ -399,26 +424,6 @@ class Prospect(Folder, RoleAware):
         return False
 
 
-    def get_value(self, name, record=None, context=None):
-        comments_handler = self.get_resource('comments').handler
-        if record is None:
-            record = comments_handler.get_record(-1)
-        # Get company value
-        if name[:2] == 'c_':
-            company = comments_handler.get_record_value(record, 'p_company')
-            company = self.get_resource('../../companies/%s' % company)
-            value = company.get_value(name, record, context)
-            return value
-        elif name == 'alert_date':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.date() if value else None
-        elif name == 'alert_time':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.time() if value else None
-        value = comments_handler.get_record_value(record, name)
-        return value
-
-
     def get_first_mission(self, context):
         root = context.root
         crm = self.parent.parent
@@ -513,7 +518,7 @@ class CompanyTable(Table):
 
 
 
-class Company(Folder):
+class Company(CRMFolder):
     """ A Company is a folder with metadata containing files related to it such
         as logo, images, ...
     """
@@ -543,20 +548,6 @@ class Company(Folder):
                                          'fr': u'Commentaires'})
 
 
-    def get_value(self, name, record=None, context=None):
-        comments_handler = self.get_resource('comments').handler
-        if record is None:
-            record = comments_handler.get_record(-1)
-        if name == 'alert_date':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.date() if value else None
-        elif name == 'alert_time':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
-            return value.time() if value else None
-        value = comments_handler.get_record_value(record, name)
-        return value
-
-
     def get_title(self, language=None):
         # TO REMOVE after update_20100204
         try:
@@ -566,19 +557,6 @@ class Company(Folder):
         get_record_value = comments_handler.get_record_value
         last_record = comments_handler.get_record(-1)
         return get_record_value(last_record, 'c_title', language)
-
-
-    def update(self, values):
-        """ Add a new record with new comment or update the last record."""
-        comments_handler = self.get_resource('comments').handler
-        comment = values.get('comment') or None
-        # If no comment, only update fields
-        if comment is None:
-            last_record = comments_handler.get_record(-1)
-            comments_handler.update_record(last_record.id, **values)
-        # Add a new comment
-        else:
-            comments_handler.add_record(values)
 
 
     edit = Company_EditForm()
