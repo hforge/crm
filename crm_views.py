@@ -540,7 +540,7 @@ class Prospect_SearchMissions(SearchForm):
         search_namespace = SearchForm.get_search_namespace(self, resource,
                                                            context)
         # Add status
-        default_status = ['opportunity', 'project']
+        default_status = ['p_opportunity', 'p_project']
         m_status = context.query['m_status']
         if not m_status:
             m_status = default_status
@@ -1023,9 +1023,9 @@ class CRM_SearchProspects(SearchForm):
         ('p_phone', MSG(u'Phone'), False),
         ('p_mobile', MSG(u'mobile'), False),
         ('p_status', MSG(u'Status'), False),
-        ('opportunity', MSG(u'Opp.'), True),
-        ('project', MSG(u'Proj.'), True),
-        ('nogo', MSG(u'NoGo'), True),
+        ('p_opportunity', MSG(u'Opp.'), True),
+        ('p_project', MSG(u'Proj.'), True),
+        ('p_nogo', MSG(u'NoGo'), True),
         ('mtime', MSG(u'Last Modified'), True),
         ('assured', MSG(u'Assured'), True),
         ('probable', MSG(u'In pipe'), True)]
@@ -1111,19 +1111,15 @@ class CRM_SearchProspects(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('opportunity', 'project', 'nogo'):
-            # Missions
-            root = context.root
-            results= root.search(parent_path=item_brain.abspath,
-                                 m_status=column)
-            return len(results)
+        elif column in ('p_opportunity', 'p_project', 'p_nogo'):
+            return getattr(item_brain, column)
 
 
     def sort_and_batch(self, resource, context, results):
         start = context.query['batch_start']
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
-        if sort_by in ('opportunity', 'project', 'nogo', 'assured',
+        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'assured',
                        'probable'):
             sort_by = 'p_%s' % sort_by
         reverse = context.query['reverse']
