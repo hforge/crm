@@ -173,6 +173,52 @@ def format_error_message(context, widgets):
     return ERROR(message)
 
 
+############
+# Comments #
+###########################################################################
+
+class Comments_View(STLView):
+
+    access = 'is_allowed_to_view'
+    title = MSG(u'Comments')
+    template = '/ui/crm/Comments_view.xml'
+
+
+    def get_namespace(self, resource, context):
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+        # Load tracker css
+        context.add_style('/ui/tracker/style.css')
+
+        comments_handler = resource.get_resource('comments').handler
+        get_record_value = comments_handler.get_record_value
+
+        ns_comments = []
+        for record in comments_handler.get_records():
+            id = record.id
+            comment = get_record_value(record, 'comment')
+            comment_datetime = get_record_value(record, 'ts')
+            file = get_record_value(record, 'file') or ''
+            alert_datetime = get_record_value(record, 'alert_datetime')
+            if alert_datetime:
+                alert_datetime = format_datetime(alert_datetime)
+            ns_comment = {
+                'id': id,
+                'datetime': format_datetime(comment_datetime),
+                'file': str(file),
+                'alert_datetime': alert_datetime,
+                'comment': indent(comment)}
+            ns_comments.append((id, ns_comment))
+        # Sort comments
+        ns_comments.sort(reverse=True)
+        ns_comments = [y for x, y in ns_comments]
+
+        path_to_resource = context.get_link(resource)
+        namespace = {'comments': ns_comments,
+                     'path_to_resource': path_to_resource}
+        return namespace
+
+
 
 ###########
 # Company #
@@ -183,7 +229,7 @@ class Company_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit company')
 
-    schema = {
+    query_schema = schema = {
         'comment': Unicode, 'file': PathDataType,
         'alert_date': Date, 'alert_time': Time,
         'c_title': Unicode(mandatory=True),
@@ -207,13 +253,23 @@ class Company_EditForm(AutoForm):
         TimeWidget('alert_time', title=MSG(u'Alert time'))]
 
 
+    def get_query_schema(self):
+        # c_title mandatory only into form
+        return merge_dicts(self.query_schema, c_title=Unicode)
+
+
     def get_value(self, resource, context, name, datatype):
+        # TODO Make alert_date&time empty if we want to use it more than 1 time
         if name == 'alert_date':
             value = resource.get_value('alert_datetime')
             return value.date() if value is not None else datatype.default
-        if name == 'alert_time':
+        elif name == 'alert_time':
             value = resource.get_value('alert_datetime')
             return value.time() if value is not None else datatype.default
+        elif name == 'comment':
+            return context.query.get('comment') or u''
+        elif name == 'file':
+            return context.query.get('file') or ''
         value = resource.get_value(name)
         return value if value is not None else datatype.default
 
@@ -222,6 +278,8 @@ class Company_EditForm(AutoForm):
         values = {}
         for key, value in form.iteritems():
             if value is None:
+                continue
+            if key == 'file' and str(value) == '.':
                 continue
             if key == 'alert_date':
                 value_time = form.get('alert_time', None) or time(9, 0)
@@ -236,28 +294,14 @@ class Company_EditForm(AutoForm):
 class Company_ViewProspects(STLView):
     pass
 
+
 class Company_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
-    template = '/ui/crm/Company_view.xml'
+#    template = '/ui/crm/Company_view.xml'
 
-    subviews = [Company_EditForm(), Company_ViewProspects()]
-
-    # TODO
-    def get_namespace(self, resource, context):
-        c_title = resource.get_property('c_title')
-        c_address = resource.get_property('c_address')
-        c_phone = resource.get_property('c_phone')
-        c_fax = resource.get_property('c_fax')
-
-        namespace = {
-            'c_title': c_title,
-            'c_address': c_address,
-            'c_phone': c_phone,
-            'c_fax': c_fax}
-
-        return namespace
+    subviews = [Company_EditForm(), Comments_View()]#Company_ViewProspects()]
 
 
 #############
@@ -994,46 +1038,6 @@ class Mission_EditForm(DBResource_Edit):
 
 
 
-class Mission_ViewComments(STLView):
-
-    access = 'is_allowed_to_view'
-    title = MSG(u'Comments')
-    template = '/ui/crm/Mission_view_comments.xml'
-
-
-    def get_namespace(self, resource, context):
-        context.add_style('/ui/tracker/style.css')
-
-        comments_handler = resource.get_resource('comments').handler
-        get_record_value = comments_handler.get_record_value
-
-        ns_comments = []
-        for record in comments_handler.get_records():
-            id = record.id
-            comment = get_record_value(record, 'comment')
-            comment_datetime = get_record_value(record, 'ts')
-            file = get_record_value(record, 'file')
-            alert_datetime = get_record_value(record, 'alert_datetime')
-            if alert_datetime:
-                alert_datetime = format_datetime(alert_datetime)
-            ns_comment = {
-                'id': id,
-                'datetime': format_datetime(comment_datetime),
-                'file': file,
-                'alert_datetime': alert_datetime,
-                'comment': indent(comment)}
-            ns_comments.append((id, ns_comment))
-        # Sort comments
-        ns_comments.sort(reverse=True)
-        ns_comments = [y for x, y in ns_comments]
-
-        path_to_resource = context.get_link(resource)
-        namespace = {'comments': ns_comments,
-                     'path_to_resource': path_to_resource}
-        return namespace
-
-
-
 class Mission_Edit(CompositeForm):
     """ Display edit form and comments below of it.
     """
@@ -1041,7 +1045,7 @@ class Mission_Edit(CompositeForm):
     title = MSG(u'Edit mission')
     template = '/ui/crm/Mission_edit.xml'
 
-    subviews = [Mission_EditForm(), Mission_ViewComments()]
+    subviews = [Mission_EditForm(), Comments_View()]
 
     def get_action_method(self, resource, context):
         return Mission_EditForm.action
@@ -1050,7 +1054,7 @@ class Mission_Edit(CompositeForm):
     def get_namespace(self, resource, context):
         title = resource.get_property('m_title')
         edit = Mission_EditForm().GET(resource, context)
-        view_comments = Mission_ViewComments().GET(resource, context)
+        view_comments = Comments_View().GET(resource, context)
         return {
             'title': title,
             'edit': edit,

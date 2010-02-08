@@ -42,7 +42,7 @@ from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Company_EditForm, Company_View, Prospect_Main
 from crm_views import Mission_Edit, Mission_EditForm, Mission_NewInstance
 from crm_views import Mission_NewInstanceForm
-from crm_views import Mission_ViewComments, CRM_Alerts, CRM_SearchProspects
+from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_ExportToCSV
 from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name
@@ -209,7 +209,7 @@ class Mission(Folder):
     edit_form = Mission_EditForm()
     new_instance = Mission_NewInstance()
     preview_content = None
-    view_comments = Mission_ViewComments()
+    view_comments = Comments_View()
 
 
 ###################################
@@ -569,9 +569,16 @@ class Company(Folder):
 
 
     def update(self, values):
+        """ Add a new record with new comment or update the last record."""
         comments_handler = self.get_resource('comments').handler
-        last_record = comments_handler.get_record(-1)
-        comments_handler.update_record(last_record.id, **values)
+        comment = values.get('comment') or None
+        # If no comment, only update fields
+        if comment is None:
+            last_record = comments_handler.get_record(-1)
+            comments_handler.update_record(last_record.id, **values)
+        # Add a new comment
+        else:
+            comments_handler.add_record(values)
 
 
     edit = Company_EditForm()

@@ -78,23 +78,29 @@ fieldset#company legend a {
   vertical-align:top;
 }
 
+#comments-list tr.comment-header,
 #view-comments tr.comment-header {
   background-color: #ADA0D9; /*66BB66;*/
   font-weight: bold;
 }
+#comments-list td#view-comments,
 #edit-mission table td#view-comments {
   padding-left: 10px;
   border-left: 1px solid #ADA0D9;
 }
+#comments-list tr td a,
 #view-comments tr td a {
   color: #000;
 }
+#comments-list tr.comment-file td,
 #view-comments tr.comment-file td {
   font-style: italic;
 }
+#comments-list tr.comment-text,
 #view-comments tr.comment-text {
   background-color: #f0f0ff;
 }
+#comments-list tr.comment-alert,
 #view-comments tr.comment-alert {
   background-color: #e9e0ff;
 }

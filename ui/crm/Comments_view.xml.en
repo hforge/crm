@@ -5,7 +5,7 @@
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 <br/>
 <table cellspacing="0" cellpadding="0" border="0" width="100%"
-  stl:repeat="comment comments">
+  stl:repeat="comment comments" id="comments-list">
   <tbody>
     <tr class="comment-header">
       <td><a name="c${comment/id}" /></td>
