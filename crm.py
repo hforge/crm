@@ -20,8 +20,8 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.core import get_abspath, merge_dicts
 from itools.csv import Table as TableFile
-from itools.datatypes import Date, DateTime, Decimal, Email, Integer, String
-from itools.datatypes import Unicode, Boolean
+from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
+from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 from itools.web import get_context
 
@@ -39,7 +39,7 @@ from ikaaro.table import Table
 from datatypes import CompanyName
 from crm_views import Prospect_EditForm, Prospect_NewInstance
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
-from crm_views import Company_View, Prospect_Main
+from crm_views import Company_EditForm, Company_View, Prospect_Main
 from crm_views import Mission_Edit, Mission_EditForm, Mission_NewInstance
 from crm_views import Mission_NewInstanceForm
 from crm_views import Mission_ViewComments, CRM_Alerts, CRM_SearchProspects
@@ -79,7 +79,7 @@ class CommentsTableFile(TableFile):
 
     record_schema = {'comment': Unicode(mandatory=True),
                      'alert_datetime': DateTime,
-                     'file': String}
+                     'file': PathDataType}
 
 
 ###################################
@@ -568,29 +568,13 @@ class Company(Folder):
         return get_record_value(last_record, 'c_title', language)
 
 
-    # FIXME
-    def update_company(self, company_data):
-        self.set_property('c_title', company_data['c_title'])
-        self.set_property('c_phone', company_data['c_phone'])
-        self.set_property('c_fax', company_data['c_fax'])
-
-        # Update address
-        c_address_1 = company_data['c_address_1'] or None
-        c_address_2 = company_data['c_address_2'] or None
-        if self.get_property('c_address_1') != c_address_1 or \
-           self.get_property('c_address_2') != c_address_2:
-            addresses = self.get_resource('../../addresses')
-            record = {}
-            record['c_title'] = company_data['c_title']
-            record['c_address_1'] = company_data['c_address_1']
-            record['c_address_2'] = company_data['c_address_2']
-            record['c_zipcode'] = company_data['c_zipcode']
-            record['c_town'] = company_data['c_town']
-            record['c_country'] = company_data['c_country']
-            record = addresses.handler.add_record(record)
-            self.set_property('c_address', record.id)
+    def update(self, values):
+        comments_handler = self.get_resource('comments').handler
+        last_record = comments_handler.get_record(-1)
+        comments_handler.update_record(last_record.id, **values)
 
 
+    edit = Company_EditForm()
     view = Company_View()
 
 

@@ -21,8 +21,8 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import CSVFile
-from itools.datatypes import Date, Decimal, Email, Integer, String
-from itools.datatypes import Unicode
+from itools.datatypes import Date, Decimal, Email, Integer
+from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 from itools.handlers import checkid
 from itools.i18n import format_datetime, format_date
@@ -35,7 +35,7 @@ from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
-from ikaaro.forms import DateWidget, MultilineWidget
+from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
 from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
@@ -178,11 +178,71 @@ def format_error_message(context, widgets):
 # Company #
 ###########################################################################
 
-class Company_View(STLView):
+class Company_EditForm(AutoForm):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit company')
+
+    schema = {
+        'comment': Unicode, 'file': PathDataType,
+        'alert_date': Date, 'alert_time': Time,
+        'c_title': Unicode(mandatory=True),
+        'c_address_1': Unicode, 'c_address_2': Unicode,
+        'c_zipcode': String, 'c_town': Unicode,
+        'c_country': Unicode,
+        'c_phone': Unicode, 'c_fax': Unicode }
+
+    widgets = [
+        TextWidget('c_title', title=MSG(u'Title')),
+        TextWidget('c_address_1', title=MSG(u'Address')),
+        TextWidget('c_address_2', title=MSG(u'Address (next)')),
+        TextWidget('c_zipcode', title=MSG(u'Zip Code'), size=10),
+        TextWidget('c_town', title=MSG(u'Town')),
+        TextWidget('c_country', title=MSG(u'Country')),
+        TextWidget('c_phone', title=MSG(u'Phone'), size=15),
+        TextWidget('c_fax', title=MSG(u'Fax'), size=15),
+        MultilineWidget('comment', title=MSG(u'Comment')) ,
+        PathSelectorWidget('file', title=MSG(u'Attachement')),
+        DateWidget('alert_date', title=MSG(u'Alert date'), size=10),
+        TimeWidget('alert_time', title=MSG(u'Alert time'))]
+
+
+    def get_value(self, resource, context, name, datatype):
+        if name == 'alert_date':
+            value = resource.get_value('alert_datetime')
+            return value.date() if value is not None else datatype.default
+        if name == 'alert_time':
+            value = resource.get_value('alert_datetime')
+            return value.time() if value is not None else datatype.default
+        value = resource.get_value(name)
+        return value if value is not None else datatype.default
+
+
+    def action(self, resource, context, form):
+        values = {}
+        for key, value in form.iteritems():
+            if value is None:
+                continue
+            if key == 'alert_date':
+                value_time = form.get('alert_time', None) or time(9, 0)
+                value = datetime.combine(value, value_time)
+                values['alert_datetime'] = value
+            elif key != 'alert_time':
+                values[key] = value
+        resource.update(values)
+
+
+
+class Company_ViewProspects(STLView):
+    pass
+
+class Company_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
     template = '/ui/crm/Company_view.xml'
+
+    subviews = [Company_EditForm(), Company_ViewProspects()]
 
     # TODO
     def get_namespace(self, resource, context):
