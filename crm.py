@@ -40,8 +40,9 @@ from datatypes import CompanyName
 from crm_views import Prospect_EditForm, Prospect_NewInstance
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Company_EditForm, Company_View, Prospect_Main
-from crm_views import Mission_Edit, Mission_EditForm, Mission_NewInstance
-from crm_views import Mission_NewInstanceForm
+#from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
+from crm_views import Mission_EditForm, Mission_View
+from crm_views import PMission_NewInstance, PMission_NewInstanceForm
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_ExportToCSV
 from datatypes import MissionStatus, ProspectStatus
@@ -83,6 +84,19 @@ class CommentsTableFile(TableFile):
                      'file': PathDataType}
 
 
+    def _add_record(self, values):
+        """ Get non set data from previous record.
+        """
+        last_record = self.get_record(-1)
+        values_keys = values.keys()
+        for key in self.record_schema.keys():
+            if key in ('file', 'alert_datetime'):
+                continue
+            if key not in values_keys:
+                values[key] = self.get_record_value(last_record, key)
+        self.add_record(values)
+
+
 
 class CRMFolder(Folder):
     """ Base folder for Company, Prospect and Mission.
@@ -121,7 +135,7 @@ class CRMFolder(Folder):
             comments_handler.update_record(last_record.id, **values)
         # Add a new comment
         else:
-            comments_handler.add_record(values)
+            comments_handler._add_record(values)
 
 ###################################
 # Mission                         #
@@ -133,13 +147,14 @@ class MissionTableFile(CommentsTableFile):
             # Mission title and description
             m_title=Unicode, m_description=Unicode,
             # Prospect name
-            m_prospect=String,
+            m_prospect=String(multiple=True),
             # How many € ?
             m_amount=Decimal,
             m_probability=Integer,
             m_deadline=Date,
             # Opportunity/Project/NoGo
             m_status=MissionStatus)
+
 
 
 class MissionTable(Table):
@@ -231,11 +246,12 @@ class Mission(CRMFolder):
             self.del_property(key)
 
     browse_content = Folder_BrowseContent(access=False)
-    edit = Mission_Edit()
+#    edit = Mission_Edit()
     edit_form = Mission_EditForm()
-    new_instance = Mission_NewInstance()
+    new_instance = PMission_NewInstance()
     preview_content = None
     view_comments = Comments_View()
+    view = Mission_View()
 
 
 ###################################
@@ -458,7 +474,7 @@ class Prospect(CRMFolder, RoleAware):
     edit_form = Prospect_EditForm()
     main = Prospect_Main()
     new_instance = Prospect_NewInstance()
-    new_mission = Mission_NewInstanceForm()
+#    new_mission = Mission_NewInstanceForm()
     search_missions = Prospect_SearchMissions()
     view_missions = Prospect_ViewMissions()
 
@@ -775,7 +791,7 @@ register_resource_class(ProspectTable)
 register_resource_class(Prospect)
 register_resource_class(Prospects)
 # Mission fields
-register_field('m_prospect', String(is_indexed=True))
+register_field('m_prospect', String(is_indexed=True, multiple=True))
 register_field('m_status', String(is_indexed=True))
 register_field('m_has_alerts', Boolean(is_indexed=True))
 # Prospect fields

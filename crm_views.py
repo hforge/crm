@@ -619,7 +619,7 @@ class Prospect_NewInstance(NewInstance):
 
 
 
-class Mission_NewInstanceForm(NewInstance):
+class PMission_NewInstanceForm(NewInstance):
 
     access = 'is_allowed_to_add'
     title = MSG(u'New mission')
@@ -1046,7 +1046,7 @@ class Prospect_Main(CompositeForm):
 
 
 
-class Mission_NewInstance(Prospect_Main):
+class PMission_NewInstance(Prospect_Main):
     """ Display edit form and missions below of it in addition to mission form.
     """
     title = MSG(u'New mission')
@@ -1054,7 +1054,7 @@ class Mission_NewInstance(Prospect_Main):
 
     subviews = [Prospect_EditForm(),
                 Prospect_ViewMissions(),
-                Mission_NewInstanceForm()]
+                PMission_NewInstanceForm()]
 
     query_schema = {}
 
@@ -1063,7 +1063,7 @@ class Mission_NewInstance(Prospect_Main):
         title = self.get_prospect_title(resource, context)
         edit = Prospect_EditForm().GET(resource, context)
         view_missions = Prospect_ViewMissions().GET(resource, context)
-        new_mission = Mission_NewInstanceForm().GET(resource, context)
+        new_mission = PMission_NewInstanceForm().GET(resource, context)
 
         return {
             'title': title,
@@ -1073,10 +1073,169 @@ class Mission_NewInstance(Prospect_Main):
 
 
 ############
-# Missions #
+# Mission #
 ###########################################################################
 
-class Mission_EditForm(DBResource_Edit):
+class Mission_EditForm(AutoForm):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit mission')
+#    template = '/ui/crm/Mission_edit_form.xml'
+    required_msg = None
+
+    query_schema = {
+        'm_title': Unicode, 'm_description': Unicode,
+        'm_amount': Decimal, 'm_probability': Integer,
+        'm_deadline': Date, 'm_status': MissionStatus,
+        'comment': Unicode, 'file': PathDataType,
+        'alert_date': Date, 'alert_time': Time}
+
+    widgets = [
+        TextWidget('m_title', title=MSG(u'Title')),
+        MultilineWidget('m_description', title=MSG(u'Description'), rows=3),
+        TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
+        TextWidget('m_probability', title=MSG(u'Probability'), default='',
+                   size=2),
+        DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
+        SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
+            has_empty_option=False),
+        MultilineWidget('comment', title=MSG(u'New comment'), default='',
+                        rows=3),
+        PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
+        DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
+        TimeWidget('alert_time', title=MSG(u'at'))]
+
+
+    def get_schema(self, resource, context):
+        # m_title is mandatory
+        return merge_dicts(self.query_schema, m_title=Unicode(mandatory=True))
+
+
+    def get_value(self, resource, context, name, datatype):
+        # TODO Make alert_date&time empty if we want to use it more than 1 time
+        if name == 'alert_date':
+            value = resource.get_value('alert_datetime')
+            return value.date() if value is not None else datatype.default
+        elif name == 'alert_time':
+            value = resource.get_value('alert_datetime')
+            return value.time() if value is not None else datatype.default
+        elif name == 'comment':
+            return context.query.get('comment') or u''
+        elif name == 'file':
+            return context.query.get('file') or ''
+        value = resource.get_value(name)
+        return value if value is not None else datatype.default
+
+
+    # TO CHECK
+    ##def _get_form(self, resource, context):
+    ##    """ Alert is valid only if date AND time are filled.
+    ##    """
+    ##    form = STLForm._get_form(self, resource, context)
+    ##    alert_date = form.get('alert_date', None)
+    ##    alert_time = form.get('alert_time', None)
+    ##    # Alerts with time but without date are forbidden
+    ##    if alert_time and not alert_date:
+    ##        raise FormError, MSG_MISSING_OR_INVALID
+    ##    return form
+
+
+    # TO CHECK
+    ##def on_form_error(self, resource, context):
+    ##    """ Get back to prospect main view on current mission with error
+    ##        message.
+    ##    """
+    ##    message = format_error_message(context, self.get_widgets(resource,
+    ##                                                             context))
+    ##    path_to_prospect = context.get_link(resource.parent)
+    ##    goto = '%s/;main?mission=%s' % (path_to_prospect, resource.name)
+    ##    return context.come_back(message, goto)
+
+
+    # TO CHECK
+    ##def get_namespace(self, resource, context):
+    ##    """ Force reinitialization of comment field to '' after a POST.
+    ##    """
+    ##    namespace = DBResource_Edit.get_namespace(self, resource, context)
+    ##    submit = (context.request.method == 'POST')
+
+    ##    # Modify widgets namespace to change template
+    ##    for index, widget in enumerate(namespace['widgets']):
+    ##        name = self.get_widgets(resource, context)[index].name
+    ##        # Reset comment
+    ##        if submit and name == 'm_comment':
+    ##            widget['value'] = ''
+    ##            comment_widget = MultilineWidget('m_comment',
+    ##                                 title=MSG(u'Comment'), rows=3)
+    ##            widget['widget'] = comment_widget.to_html(Unicode, u'')
+    ##        namespace[name] = widget
+    ##    namespace['action'] = '%s/;edit_form' % context.get_link(resource)
+    ##    return namespace
+
+
+    def action(self, resource, context, form):
+        values = {}
+        for key, value in form.iteritems():
+            if not value:
+                continue
+            if key == 'file' and str(value) == '.':
+                continue
+            if key == 'alert_date':
+                value_time = form.get('alert_time', None) or time(9, 0)
+                value = datetime.combine(value, value_time)
+                values['alert_datetime'] = value
+            elif key != 'alert_time':
+                values[key] = value
+        resource.update(values)
+
+        # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
+        changed_keys = values.keys()
+        if ('m_status' in changed_keys or 'm_probability' in changed_keys \
+            or 'm_amount' in changed_keys):
+            crm = get_crm(resource)
+            prospects = resource.get_value('m_prospect')
+            for prospect in prospects:
+                prospect = crm.get_resource('prospects/%s' % prospect)
+                context.server.change_resource(prospect)
+
+
+
+class Mission_ViewProspects(CRM_SearchProspects):
+
+    search_template = None
+
+    def get_items(self, resource, context, *args):
+        args = list(args)
+        prospects = resource.get_value('m_prospect')
+        if len(prospects) == 1:
+            args.append(PhraseQuery('name', prospects[0]))
+        elif len(prospects) > 1:
+            args.append(OrQuery(*[PhraseQuery('name', x) for x in prospects]))
+        return CRM_SearchProspects.get_items(self, resource, context, *args)
+
+
+    def get_namespace(self, resource, context):
+        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace['crm-infos'] = False
+        namespace['export-csv'] = False
+        return namespace
+
+
+
+class Mission_View(CompositeForm):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'View mission')
+#    template = '/ui/crm/Mission_view.xml'
+
+    subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
+
+
+############
+# PMission #
+###########################################################################
+
+class PMission_EditForm(DBResource_Edit):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
@@ -1110,7 +1269,7 @@ class Mission_EditForm(DBResource_Edit):
         DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
         SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
             has_empty_option=False),
-        MultilineWidget('m_comment', title=MSG(u'Commentaire'), default='',
+        MultilineWidget('m_comment', title=MSG(u'Comment'), default='',
                         rows=3),
         TextWidget('file', title=MSG(u'Attachement'), default=''),
         DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
@@ -1161,7 +1320,7 @@ class Mission_EditForm(DBResource_Edit):
             if submit and name == 'm_comment':
                 widget['value'] = ''
                 comment_widget = MultilineWidget('m_comment',
-                                     title=MSG(u'Commentaire'), rows=3)
+                                     title=MSG(u'Comment'), rows=3)
                 widget['widget'] = comment_widget.to_html(Unicode, u'')
             namespace[name] = widget
         namespace['action'] = '%s/;edit_form' % context.get_link(resource)
@@ -1230,22 +1389,22 @@ class Mission_EditForm(DBResource_Edit):
 
 
 
-class Mission_Edit(CompositeForm):
+class PMission_Edit(CompositeForm):
     """ Display edit form and comments below of it.
     """
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
     template = '/ui/crm/Mission_edit.xml'
 
-    subviews = [Mission_EditForm(), Comments_View()]
+    subviews = [PMission_EditForm(), Comments_View()]
 
     def get_action_method(self, resource, context):
-        return Mission_EditForm.action
+        return PMission_EditForm.action
 
 
     def get_namespace(self, resource, context):
         title = resource.get_property('m_title')
-        edit = Mission_EditForm().GET(resource, context)
+        edit = PMission_EditForm().GET(resource, context)
         view_comments = Comments_View().GET(resource, context)
         return {
             'title': title,
