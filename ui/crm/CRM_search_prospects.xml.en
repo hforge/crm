@@ -10,7 +10,7 @@
   ${table}
 </div>
 <!-- Aggregate information -->
-<table cellpadding="0" cellspacing="0" id="crm-infos">
+<table cellpadding="0" cellspacing="0" id="crm-infos" stl:if="crm-infos">
   <tbody>
   <tr>
     <td>Assured:</td>
@@ -26,7 +26,7 @@
   </tr>
   </tbody>
 </table>
-  <form action=";export_to_csv" method="GET" id="form-table">
+  <form action=";export_to_csv" method="GET" id="form-table" stl:if="export-csv">
     <fieldset>
       <legend>Export <em>all data</em> to CSV</legend>
       Please select encoding:<br/><br/>

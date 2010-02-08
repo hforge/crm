@@ -220,6 +220,184 @@ class Comments_View(STLView):
 
 
 
+#######
+# CRM #
+###########################################################################
+class CRM_SearchProspects(SearchForm):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Search')
+    search_template = '/ui/crm/CRM_search.xml'
+    template = '/ui/crm/CRM_search_prospects.xml'
+
+    search_schema = {
+        'search_field': String,
+        'search_term': Unicode,
+        'p_status': ProspectStatus(multiple=True),
+    }
+    search_fields =  [
+        ('text', MSG(u'Text')),
+    ]
+
+    table_columns = [
+        ('icon', None, False),
+        ('p_lastname', MSG(u'Lastname'), True),
+        ('p_firstname', MSG(u'Firstname'), False),
+        ('p_company', MSG(u'Company'), False),
+        ('p_email', MSG(u'Email'), False),
+        ('p_phone', MSG(u'Phone'), False),
+        ('p_mobile', MSG(u'mobile'), False),
+        ('p_status', MSG(u'Status'), False),
+        ('p_opportunity', MSG(u'Opp.'), True),
+        ('p_project', MSG(u'Proj.'), True),
+        ('p_nogo', MSG(u'NoGo'), True),
+        ('mtime', MSG(u'Last Modified'), True),
+        ('assured', MSG(u'Assured'), True),
+        ('probable', MSG(u'In pipe'), True)]
+
+    batch_msg1 = MSG(u'1 prospect.')
+    batch_msg2 = MSG(u'{n} prospects.')
+
+
+    def get_items(self, resource, context, *args):
+        crm = get_crm(resource)
+        crm_path = str(crm.get_abspath())
+        # Get the parameters from the query
+        query = context.query
+        search_term = query['search_term'].strip()
+        p_status = query['p_status']
+
+        # Build the query
+        args = list(args)
+        abspath = str(resource.get_canonical_path())
+        args.append(PhraseQuery('format', 'prospect'))
+        args.append(get_crm_path_query(crm))
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
+        # Insert status filter
+        if p_status:
+            status_query = []
+            for s in p_status:
+                status_query.append(PhraseQuery('p_status', s))
+            args.append(OrQuery(*status_query))
+        if len(args) == 1:
+            query = args[0]
+        else:
+            query = AndQuery(*args)
+
+        # Ok
+        return context.root.search(query)
+
+
+    def get_item_value(self, resource, context, item, column):
+        item_brain, item_resource = item
+        if column == 'checkbox':
+            # checkbox
+            return item_brain.name, False
+        elif column == 'assured':
+            value = item_brain.p_assured
+            return format_amount(value)
+        elif column == 'probable':
+            value = item_brain.p_probable
+            return format_amount(value)
+        if column == 'icon':
+            # icon
+            path_to_icon = item_resource.get_resource_icon(16)
+            if path_to_icon.startswith(';'):
+                name = item_brain.name
+                path_to_icon = resolve_uri('%s/' % name, path_to_icon)
+            return path_to_icon
+        get_value = item_resource.get_value
+        crm = get_crm(resource)
+        if column == 'p_company':
+            company = get_value(column)
+            company_resource = crm.get_resource('companies/%s' % company)
+            href = context.get_link(company_resource)
+            title = company_resource.get_title()
+            return title, href
+        elif column == 'p_lastname':
+            href = '%s/' % context.get_link(item_resource)
+            return get_value(column), href
+        elif column == 'p_firstname':
+            href = '%s/' % context.get_link(item_resource)
+            return get_value(column), href
+        elif column == 'p_phone':
+            return get_value(column)
+        elif column == 'p_mobile':
+            return get_value(column)
+        elif column == 'p_email':
+            value = get_value(column)
+            href = 'mailto:%s' % value
+            return value, href
+        elif column == 'p_status':
+            # Status
+            value = get_value(column)
+            return ProspectStatus.get_value(value)
+        elif column == 'mtime':
+            # Last Modified
+            accept = context.accept_language
+            return format_datetime(item_brain.mtime, accept=accept)
+        elif column in ('p_opportunity', 'p_project', 'p_nogo'):
+            return getattr(item_brain, column)
+
+
+    def sort_and_batch(self, resource, context, results):
+        start = context.query['batch_start']
+        size = context.query['batch_size']
+        sort_by = context.query['sort_by']
+        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'assured',
+                       'probable'):
+            sort_by = 'p_%s' % sort_by
+        reverse = context.query['reverse']
+
+        # Calculate the probable and assured amount
+        for brain in results.get_documents():
+            self.assured += Decimal.decode(brain.p_assured)
+            self.probable += Decimal.decode(brain.p_probable)
+
+        items = results.get_documents(sort_by=sort_by, reverse=reverse,
+                                      start=start, size=size)
+        return [(x, resource.get_resource(x.abspath)) for x in items]
+
+
+    #######################################################################
+    # The Search Form
+    def get_search_namespace(self, resource, context):
+        search_namespace = SearchForm.get_search_namespace(self, resource,
+                                                           context)
+        # Add status
+        default_status = ['lead', 'client']
+        p_status = context.query['p_status']
+        if not p_status:
+            p_status = default_status
+        widget = MultipleCheckBoxWidget('p_status', title=MSG(u'Status'))
+        ns_status = widget.to_html(ProspectStatus, p_status)
+        search_namespace['p_status'] = ns_status
+
+        return search_namespace
+
+
+    def get_namespace(self, resource, context):
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+
+        self.assured = decimal('0.0')
+        self.probable = decimal('0.0')
+        namespace = SearchForm.get_namespace(self, resource, context)
+
+        # Add infos about assured and probable amount
+        # TODO Filter by year or semester
+        total = self.assured + self.probable
+
+        namespace['assured'] = format_amount(self.assured)
+        namespace['probable'] = format_amount(self.probable)
+        namespace['total'] = format_amount(total)
+        namespace['crm-infos'] = True
+        namespace['export-csv'] = True
+        return namespace
+
+
+
 ###########
 # Company #
 ###########################################################################
@@ -291,8 +469,22 @@ class Company_EditForm(AutoForm):
 
 
 
-class Company_ViewProspects(STLView):
-    pass
+class Company_ViewProspects(CRM_SearchProspects):
+
+    search_template = None
+
+    def get_items(self, resource, context, *args):
+        args = list(args)
+        args.append(PhraseQuery('p_company', resource.name))
+        return CRM_SearchProspects.get_items(self, resource, context, *args)
+
+
+    def get_namespace(self, resource, context):
+        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace['crm-infos'] = False
+        namespace['export-csv'] = False
+        return namespace
+
 
 
 class Company_View(CompositeForm):
@@ -301,7 +493,7 @@ class Company_View(CompositeForm):
     title = MSG(u'View company')
 #    template = '/ui/crm/Company_view.xml'
 
-    subviews = [Company_EditForm(), Comments_View()]#Company_ViewProspects()]
+    subviews = [Company_EditForm(), Company_ViewProspects(), Comments_View()]
 
 
 #############
@@ -1059,178 +1251,6 @@ class Mission_Edit(CompositeForm):
             'title': title,
             'edit': edit,
             'view_comments': view_comments}
-
-
-
-class CRM_SearchProspects(SearchForm):
-
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Search')
-    search_template = '/ui/crm/CRM_search.xml'
-    template = '/ui/crm/CRM_search_prospects.xml'
-
-    search_schema = {
-        'search_field': String,
-        'search_term': Unicode,
-        'p_status': ProspectStatus(multiple=True),
-    }
-    search_fields =  [
-        ('text', MSG(u'Text')),
-    ]
-
-    table_columns = [
-        ('icon', None, False),
-        ('p_lastname', MSG(u'Lastname'), True),
-        ('p_firstname', MSG(u'Firstname'), False),
-        ('p_company', MSG(u'Company'), False),
-        ('p_email', MSG(u'Email'), False),
-        ('p_phone', MSG(u'Phone'), False),
-        ('p_mobile', MSG(u'mobile'), False),
-        ('p_status', MSG(u'Status'), False),
-        ('p_opportunity', MSG(u'Opp.'), True),
-        ('p_project', MSG(u'Proj.'), True),
-        ('p_nogo', MSG(u'NoGo'), True),
-        ('mtime', MSG(u'Last Modified'), True),
-        ('assured', MSG(u'Assured'), True),
-        ('probable', MSG(u'In pipe'), True)]
-
-    batch_msg1 = MSG(u'1 prospect.')
-    batch_msg2 = MSG(u'{n} prospects.')
-
-
-    def get_items(self, resource, context, *args):
-        crm = get_crm(resource)
-        crm_path = str(crm.get_abspath())
-        # Get the parameters from the query
-        query = context.query
-        search_term = query['search_term'].strip()
-        p_status = query['p_status']
-
-        # Build the query
-        args = list(args)
-        abspath = str(resource.get_canonical_path())
-        args.append(PhraseQuery('format', 'prospect'))
-        args.append(get_crm_path_query(crm))
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
-        # Insert status filter
-        if p_status:
-            status_query = []
-            for s in p_status:
-                status_query.append(PhraseQuery('p_status', s))
-            args.append(OrQuery(*status_query))
-        if len(args) == 1:
-            query = args[0]
-        else:
-            query = AndQuery(*args)
-
-        # Ok
-        return context.root.search(query)
-
-
-    def get_item_value(self, resource, context, item, column):
-        item_brain, item_resource = item
-        if column == 'checkbox':
-            # checkbox
-            return item_brain.name, False
-        elif column == 'assured':
-            value = item_brain.p_assured
-            return format_amount(value)
-        elif column == 'probable':
-            value = item_brain.p_probable
-            return format_amount(value)
-        if column == 'icon':
-            # icon
-            path_to_icon = item_resource.get_resource_icon(16)
-            if path_to_icon.startswith(';'):
-                name = item_brain.name
-                path_to_icon = resolve_uri('%s/' % name, path_to_icon)
-            return path_to_icon
-        get_value = item_resource.get_value
-        if column == 'p_company':
-            company = get_value(column)
-            company_resource = resource.get_resource('companies/%s' % company)
-            href = context.get_link(company_resource)
-            title = company_resource.get_title()
-            return title, href
-        elif column == 'p_lastname':
-            href = '%s/' % context.get_link(item_resource)
-            return get_value(column), href
-        elif column == 'p_firstname':
-            href = '%s/' % context.get_link(item_resource)
-            return get_value(column), href
-        elif column == 'p_phone':
-            return get_value(column)
-        elif column == 'p_mobile':
-            return get_value(column)
-        elif column == 'p_email':
-            value = get_value(column)
-            href = 'mailto:%s' % value
-            return value, href
-        elif column == 'p_status':
-            # Status
-            value = get_value(column)
-            return ProspectStatus.get_value(value)
-        elif column == 'mtime':
-            # Last Modified
-            accept = context.accept_language
-            return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('p_opportunity', 'p_project', 'p_nogo'):
-            return getattr(item_brain, column)
-
-
-    def sort_and_batch(self, resource, context, results):
-        start = context.query['batch_start']
-        size = context.query['batch_size']
-        sort_by = context.query['sort_by']
-        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'assured',
-                       'probable'):
-            sort_by = 'p_%s' % sort_by
-        reverse = context.query['reverse']
-
-        # Calculate the probable and assured amount
-        for brain in results.get_documents():
-            self.assured += Decimal.decode(brain.p_assured)
-            self.probable += Decimal.decode(brain.p_probable)
-
-        items = results.get_documents(sort_by=sort_by, reverse=reverse,
-                                      start=start, size=size)
-        return [(x, resource.get_resource(x.abspath)) for x in items]
-
-
-    #######################################################################
-    # The Search Form
-    def get_search_namespace(self, resource, context):
-        search_namespace = SearchForm.get_search_namespace(self, resource,
-                                                           context)
-        # Add status
-        default_status = ['lead', 'client']
-        p_status = context.query['p_status']
-        if not p_status:
-            p_status = default_status
-        widget = MultipleCheckBoxWidget('p_status', title=MSG(u'Status'))
-        ns_status = widget.to_html(ProspectStatus, p_status)
-        search_namespace['p_status'] = ns_status
-
-        return search_namespace
-
-
-    def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
-        self.assured = decimal('0.0')
-        self.probable = decimal('0.0')
-        namespace = SearchForm.get_namespace(self, resource, context)
-
-        # Add infos about assured and probable amount
-        # TODO Filter by year or semester
-        total = self.assured + self.probable
-
-        namespace['assured'] = format_amount(self.assured)
-        namespace['probable'] = format_amount(self.probable)
-        namespace['total'] = format_amount(total)
-        return namespace
 
 
 
