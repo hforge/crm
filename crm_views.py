@@ -428,7 +428,7 @@ class Company_EditForm(AutoForm):
         MultilineWidget('comment', title=MSG(u'Comment')) ,
         PathSelectorWidget('file', title=MSG(u'Attachement')),
         DateWidget('alert_date', title=MSG(u'Alert date'), size=10),
-        TimeWidget('alert_time', title=MSG(u'Alert time'))]
+        TimeWidget('alert_time', title=MSG(u'Alert time')) ]
 
 
     def get_query_schema(self):
@@ -723,21 +723,20 @@ class Prospect_SearchMissions(SearchForm):
     search_schema = {
         'search_field': String,
         'search_term': Unicode,
-        'm_status': MissionStatus(multiple=True),
-    }
+        'm_status': MissionStatus(multiple=True) }
     search_fields =  [
         ('title', MSG(u'Title')),
-        ('text', MSG(u'Text')),
-    ]
+        ('text', MSG(u'Text')) ]
 
     table_columns = [
         ('icon', None, False),
         ('title', MSG(u'Title'), True),
         ('status', MSG(u'Status'), False),
+        ('next_action', MSG(u'Next action'), False),
         ('mtime', MSG(u'Last Modified'), True),
         ('amount', MSG(u'Amount'), False),
         ('probability', MSG(u'Probability'), False),
-        ('deadline', MSG(u'Deadline'), False)]
+        ('deadline', MSG(u'Deadline'), False) ]
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -818,6 +817,9 @@ class Prospect_SearchMissions(SearchForm):
         elif column == 'deadline':
             deadline = get_value('m_deadline')
             return deadline
+        elif column == 'next_action':
+            value = get_value('next_action')
+            return value
 
 
     def sort_and_batch(self, resource, context, results):
@@ -1088,7 +1090,8 @@ class Mission_EditForm(AutoForm):
         'm_amount': Decimal, 'm_probability': Integer,
         'm_deadline': Date, 'm_status': MissionStatus,
         'comment': Unicode, 'file': PathDataType,
-        'alert_date': Date, 'alert_time': Time}
+        'alert_date': Date, 'alert_time': Time,
+        'm_nextaction': Unicode}
 
     widgets = [
         TextWidget('m_title', title=MSG(u'Title')),
@@ -1103,7 +1106,8 @@ class Mission_EditForm(AutoForm):
                         rows=3),
         PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
         DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
-        TimeWidget('alert_time', title=MSG(u'at'))]
+        TimeWidget('alert_time', title=MSG(u'at')),
+        TextWidget('m_nextaction', title=MSG(u'Next action')) ]
 
 
     def get_schema(self, resource, context):

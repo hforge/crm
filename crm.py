@@ -81,7 +81,7 @@ class CommentsTableFile(TableFile):
     """
     record_schema = {'comment': Unicode(mandatory=True),
                      'alert_datetime': DateTime,
-                     'file': PathDataType}
+                     'file': PathDataType }
 
 
     def _add_record(self, values):
@@ -153,7 +153,9 @@ class MissionTableFile(CommentsTableFile):
             m_probability=Integer,
             m_deadline=Date,
             # Opportunity/Project/NoGo
-            m_status=MissionStatus)
+            m_status=MissionStatus,
+            # Next action
+            m_nextaction=Unicode)
 
 
 
@@ -542,7 +544,7 @@ class Company(CRMFolder):
     class_title = MSG(u'Company')
     class_version = '20100204'
 
-    class_views = ['view', 'edit', 'browse_content']
+    class_views = ['view', 'browse_content']
 
 
     def _get_catalog_values(self):
