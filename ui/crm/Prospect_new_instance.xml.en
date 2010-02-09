@@ -19,7 +19,7 @@
               <tr>
                 <td>
                   <label for="${p_company/name}"><!--class="${p_company/class}">-->
-                    ${p_company/title} *</label>
+                    ${p_company/title}</label>
                 </td>
                 <td id="company_widget">${p_company/widget}
                   <a id="new-company" onclick="crm_show_new();">New</a>
@@ -90,75 +90,6 @@
             </tbody>
           </table>
         </td>
-        <!-- RIGHT COLUMN -->
-        <td>
-          <fieldset id="company">
-            <legend>Company</legend>
-            <input id="action_on_company" name="action_on_company" type="hidden"
-                   value=""/>
-            <table cellpadding="0" cellspacing="0" width="100%">
-              <tbody>
-                <tr>
-                  <td>
-                    <label for="${c_title/name}" class="${c_title/class}">
-                      ${c_title/title}</label>
-                  </td>
-                  <td>${c_title/widget}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label for="${c_address_1/name}" class="${c_address_1/class}">
-                      ${c_address_1/title}</label>
-                  </td>
-                  <td>${c_address_1/widget}</td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td>${c_address_2/widget}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label for="${c_zipcode/name}"
-                      class="${c_zipcode/class}">${c_zipcode/title}</label>
-                  </td>
-                  <td>${c_zipcode/widget}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label for="${c_town/name}"
-                      class="${c_town/class}">${c_town/title}</label>
-                  </td>
-                  <td>${c_town/widget}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label for="${c_country/name}"
-                      class="${c_country/class}">${c_country/title}</label>
-                  </td>
-                  <td>${c_country/widget}</td>
-                </tr>
-                <tr>
-                  <td colspan="2">
-                    <table cellpadding="0" cellspacing="0" width="100%">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <label for="${c_phone/name}" class="${c_phone/class}">
-                              Phone</label></td>
-                          <td>${c_phone/widget}</td>
-                          <td>
-                            <label for="${c_fax/name}" class="${c_fax/class}">
-                              Fax</label></td>
-                          <td>${c_fax/widget}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </fieldset>
-        </td>
       </tr>
     </tbody>
   </table>
@@ -177,7 +108,7 @@
         <tr>
           <td>
             <label for="${m_description/name}"><!--class="${m_description/class}">-->
-              ${m_description/title} *</label>
+              ${m_description/title}</label>
           </td>
           <td>${m_description/widget}</td>
         </tr>

@@ -37,9 +37,9 @@ from ikaaro.table import Table
 
 # Import from here
 from datatypes import CompanyName
-from crm_views import Prospect_EditForm, Prospect_NewInstance
+from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
-from crm_views import Company_EditForm, Company_View, Prospect_Main
+from crm_views import Company_AddForm, Company_EditForm, Company_View, Prospect_Main
 #from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
 from crm_views import Mission_EditForm, Mission_View, PMission_Edit
 from crm_views import PMission_NewInstance, PMission_NewInstanceForm
@@ -98,11 +98,46 @@ class CommentsTableFile(TableFile):
 
 
 
-class CRMFolder(Folder):
+class CRMFolder(Folder, RoleAware):
     """ Base folder for Company, Prospect and Mission.
     """
     class_document_types = []
+    class_comments = None
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['comments']
+
+
+    @staticmethod
+    def make_resource(cls, container, name, *args, **kw):
+        if cls.class_comments is None:
+            raise NotImplementedError
+        # Split kw data into metadata and record data
+        values = {}
+        metadata = {}
+        record_keys = cls.class_comments.class_handler.record_schema.keys()
+        for key, value in kw.iteritems():
+            if key in record_keys:
+                values[key] = value
+            else:
+                metadata[key] = value
+
+        # Add current user as admin
+        username = get_context().user.name
+        metadata['admins'] = kw.get('admins', []) + [username]
+        resource = Folder.make_resource(cls, container, name, *args,
+                                           **metadata)
+        # Comments and data table
+        cls_comments = cls.class_comments
+        comments = cls_comments.make_resource(cls_comments, resource,
+            'comments', title={'en': u'Comments', 'fr': u'Commentaires'})
+        comments.handler.add_record(values)
+
+        return name
+
+
+    @classmethod
+    def get_metadata_schema(cls):
+        schema = RoleAware.get_metadata_schema()
+        return merge_dicts(Folder.get_metadata_schema(), schema)
 
 
     def get_value(self, name, record=None, context=None):
@@ -136,6 +171,46 @@ class CRMFolder(Folder):
         # Add a new comment
         else:
             comments_handler._add_record(values)
+
+
+    def is_allowed_to_edit(self, user, resource):
+        # Anonymous can touch nothing
+        if user is None:
+            return False
+
+        site_root = self.get_site_root()
+        # Any one who can edit parent, can edit any child
+        if site_root.is_allowed_to_edit(user, site_root):
+            return True
+
+        # Current prospect reviewers and admins can edit it
+        if self.has_user_role(user.name, 'admins'):
+            return True
+        if self.has_user_role(user.name, 'reviewers'):
+            return True
+
+        return False
+
+
+    def is_allowed_to_add(self, user, resource):
+        return self.is_allowed_to_edit(user, resource)
+
+
+    def is_allowed_to_view(self, user, resource):
+        # Anonymous can touch nothing
+        if user is None:
+            return False
+
+        # Any one who can edit, can view as well
+        if self.is_allowed_to_edit(user, resource):
+            return True
+
+        # Current prospect reviewers and admins can edit it
+        if self.has_user_role(user.name, 'members'):
+            return True
+
+        return False
+
 
 ###################################
 # Mission                         #
@@ -175,16 +250,8 @@ class Mission(CRMFolder):
     class_id = 'mission'
     class_title = MSG(u'Mission')
     class_version = '20100204'
-    class_views = []
-
-
-    @staticmethod
-    def _make_resource(cls, folder, name, *args, **kw):
-        Folder._make_resource(cls, folder, name, **kw)
-        # MissionTable (Comments)
-        MissionTable._make_resource(MissionTable, folder, '%s/comments' % name,
-                                    title={'en': u'Comments',
-                                           'fr': u'Commentaires'})
+    class_views = ['view']
+    class_comments = MissionTable
 
 
     def _get_catalog_values(self):
@@ -279,7 +346,7 @@ class ProspectTable(Table):
 
 
 
-class Prospect(CRMFolder, RoleAware):
+class Prospect(CRMFolder):
     """ A prospect is a contact.
     """
     class_id = 'prospect'
@@ -287,25 +354,7 @@ class Prospect(CRMFolder, RoleAware):
     class_version = '20100204'
 
     class_views = ['main', 'search_missions', 'browse_users', 'add_user']
-
-
-    @classmethod
-    def get_metadata_schema(cls):
-        schema = RoleAware.get_metadata_schema()
-        return merge_dicts(Folder.get_metadata_schema(), schema)
-
-
-    @staticmethod
-    def _make_resource(cls, folder, name, *args, **kw):
-        # Add current user as admin
-        username = get_context().user.name
-        kw['admins'] = kw.get('admins', []) + [username]
-        Folder._make_resource(folder, name, *args, **kw)
-
-        # ProspectTable (Comments)
-        ProspectTable._make_resource(ProspectTable, folder,
-            '%s/comments' % name, title={'en': u'Comments',
-                                         'fr': u'Commentaires'})
+    class_comments = ProspectTable
 
 
     def _get_catalog_values(self):
@@ -403,45 +452,6 @@ class Prospect(CRMFolder, RoleAware):
         return document
 
 
-    def is_allowed_to_edit(self, user, resource):
-        # Anonymous can touch nothing
-        if user is None:
-            return False
-
-        site_root = self.get_site_root()
-        # Any one who can edit parent, can edit any child
-        if site_root.is_allowed_to_edit(user, site_root):
-            return True
-
-        # Current prospect reviewers and admins can edit it
-        if self.has_user_role(user.name, 'admins'):
-            return True
-        if self.has_user_role(user.name, 'reviewers'):
-            return True
-
-        return False
-
-
-    def is_allowed_to_add(self, user, resource):
-        return self.is_allowed_to_edit(user, resource)
-
-
-    def is_allowed_to_view(self, user, resource):
-        # Anonymous can touch nothing
-        if user is None:
-            return False
-
-        # Any one who can edit, can view as well
-        if self.is_allowed_to_edit(user, resource):
-            return True
-
-        # Current prospect reviewers and admins can edit it
-        if self.has_user_role(user.name, 'members'):
-            return True
-
-        return False
-
-
     def get_first_mission(self, context):
         root = context.root
         crm = self.parent.parent
@@ -475,7 +485,7 @@ class Prospect(CRMFolder, RoleAware):
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
     main = Prospect_Main()
-    new_instance = Prospect_NewInstance()
+#    new_instance = Prospect_NewInstance()
 #    new_mission = Mission_NewInstanceForm()
     search_missions = Prospect_SearchMissions()
     view_missions = Prospect_ViewMissions()
@@ -545,32 +555,13 @@ class Company(CRMFolder):
     class_version = '20100204'
 
     class_views = ['view', 'browse_content']
+    class_comments = CompanyTable
 
 
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
         document['c_title'] = self.get_title()
         return document
-
-
-    @staticmethod
-    def make_resource(cls, container, name, *args, **kw):
-        # Split kw data into metadata and record data
-        values = {}
-        metadata = {}
-        record_keys = CompanyTableFile.record_schema.keys()
-        for key, value in kw.iteritems():
-            if key in record_keys:
-                values[key] = value
-            else:
-                metadata[key] = value
-
-        company = CRMFolder.make_resource(cls, container, name, *args,
-                                          **metadata)
-        # CompanyTable
-        comments = CompanyTable.make_resource(CompanyTable, company, 'comments',
-            title={'en': u'Comments', 'fr': u'Commentaires'})
-        comments.handler.add_record(values)
 
 
     def get_title(self, language=None):
@@ -635,7 +626,6 @@ class Company(CRMFolder):
 ###################################
 # Containers                      #
 ###################################
-from crm_views import Company_AddForm
 class Companies(Folder):
     """ Container of "company" resources. """
     class_id = 'companies'
@@ -661,9 +651,17 @@ class Prospects(Folder):
     class_id = 'prospects'
     class_title = MSG(u'Prospects')
 
-    class_views = ['browse_content']
+    class_views = ['new_prospect', 'browse_content']
     class_document_types = [Prospect]
 
+    def add_prospect(self, values):
+        names = self.get_names()
+        index = len(names)
+        name = generate_name(names, 'p%06d', index)
+        Prospect.make_resource(Prospect, self, name, **values)
+        return name
+
+    new_prospect = Prospect_AddForm()
 
 
 class Missions(Folder):
@@ -673,6 +671,13 @@ class Missions(Folder):
 
     class_views = ['browse_content']
     class_document_types = [Mission]
+
+    def add_mission(self, values):
+        names = self.get_names()
+        index = len(names)
+        name = generate_name(names, 'm%06d', index)
+        Mission.make_resource(Mission, self, name, **values)
+        return name
 
 
 ###################################

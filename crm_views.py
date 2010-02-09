@@ -105,7 +105,7 @@ prospect_widgets = [
 mission_schema = {
     # First mission
     'm_title': Unicode(mandatory=True),
-    'm_description': Unicode(mandatory=True),
+    'm_description': Unicode,
     'm_amount': Decimal,
     'm_probability': Integer,
     'm_deadline': Date,
@@ -536,7 +536,7 @@ class Company_View(CompositeForm):
 # Prospects #
 ###########################################################################
 
-class Prospect_NewInstance(NewInstance):
+class Prospect_AddForm(AutoForm):
 
     access = 'is_allowed_to_add'
     title = MSG(u'New prospect')
@@ -546,7 +546,13 @@ class Prospect_NewInstance(NewInstance):
 
     def get_schema(self, resource, context):
         return merge_dicts(prospect_schema, company_schema, mission_schema,
-                           action_on_company=String, c_title=Unicode)
+            c_title=Unicode)
+
+
+    def get_query_schema(self):
+        return merge_dicts(prospect_schema, mission_schema,
+            c_title=Unicode, p_lastname=Unicode, p_status=ProspectStatus,
+            m_title=Unicode, m_description=Unicode, m_status=MissionStatus)
 
 
     def get_widgets(self, resource, context):
@@ -559,31 +565,18 @@ class Prospect_NewInstance(NewInstance):
 
 
     def get_value(self, resource, context, name, datatype):
-        value = NewInstance.get_value(self, resource, context, name,
-                                          datatype)
+        if name in self.get_query_schema():
+            value = context.query[name]
+            if value is not None:
+                return context.query[name]
+        value = AutoForm.get_value(self, resource, context, name, datatype)
+
         if name == 'm_deadline' and value is None:
             year = date.today().year
             return date(year, 12, 31)
         if value is None:
             return datatype.default
         return value
-
-
-    def _get_form(self, resource, context):
-        """ Use the STLForm method to avoid the call of get_new_resource_name
-            in NewInstance._get_form
-        """
-        form = STLForm._get_form(self, resource, context)
-        action_on_company = form.get('action_on_company', None)
-        p_company = form.get('p_company')
-        c_title = form.get('c_title')
-        # The company has been selected and already exists
-        if not action_on_company and not p_company:
-            raise FormError(missing='p_company')
-        # This is a new company
-        if action_on_company == 'new' and not c_title:
-            raise FormError(missing='p_company')
-        return form
 
 
     def on_form_error(self, resource, context):
@@ -600,7 +593,7 @@ class Prospect_NewInstance(NewInstance):
         # Load crm css
         context.add_style('/ui/crm/style.css')
 
-        namespace = NewInstance.get_namespace(self, resource, context)
+        namespace = AutoForm.get_namespace(self, resource, context)
 
         # Modify widgets namespace to change template
         for index, widget in enumerate(namespace['widgets']):
@@ -613,44 +606,22 @@ class Prospect_NewInstance(NewInstance):
     def action(self, resource, context, form):
         crm = get_crm(resource)
         prospects = crm.get_resource('prospects')
-
-        # Get approximation of index of current prospect
-        results = resource.get_root().search(format='prospect',
-                      parent_path=str(prospects.get_abspath()))
-        index = len(results)
-        names = prospects.get_names()
-        name = generate_name(names, 'p%04d', index)
-
-        # Create the resource
-        cls_prospect = get_resource_class('prospect')
-        child = cls_prospect.make_resource(cls_prospect, prospects, name)
-
-        # Prospect data
-        prospect_data = {}
-        for key in ['p_company', 'p_lastname', 'p_firstname', 'p_phone',
-                    'p_mobile', 'p_email', 'p_description', 'p_status']:
-            prospect_data[key] = form.get(key, '')
-            child.metadata.set_property(key, prospect_data[key])
-        # Company data
-        company_data = {}
-        for key in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
-                    'c_town', 'c_country', 'c_phone', 'c_fax']:
-            company_data[key] = form.get(key, None)
-
-        # Add/Update company
-        action_on_company = form.get('action_on_company', '')
-        if action_on_company == 'new':
-            company_name = crm.add_company(company_data)
-            child.set_property('p_company', company_name)
-
+        missions = crm.get_resource('missions')
+        # Split values prospect/mission
+        p_values = {}
+        m_values = {}
+        for key, value in form.iteritems():
+            if key[:2] == 'p_':
+                p_values[key] = value
+            elif key[:2] == 'm_':
+                m_values[key] = value
+        # Add prospect
+        name = prospects.add_prospect(p_values)
         # Add mission
-        mission_data = {}
-        for key in ['m_title', 'm_description', 'm_amount', 'm_probability',
-                    'm_deadline', 'm_status']:
-            mission_data[key] = form.get(key, None)
-        child.add_mission(mission_data)
+        m_values['m_prospect'] = name
+        name = missions.add_mission(m_values)
 
-        goto = './prospects/%s/' % name
+        goto = '../missions/%s/' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
