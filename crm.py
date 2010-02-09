@@ -295,7 +295,7 @@ class Prospect(CRMFolder, RoleAware):
         return merge_dicts(Folder.get_metadata_schema(), schema)
 
 
-    @classmethod
+    @staticmethod
     def _make_resource(cls, folder, name, *args, **kw):
         # Add current user as admin
         username = get_context().user.name
@@ -553,17 +553,24 @@ class Company(CRMFolder):
         return document
 
 
-    @classmethod
-    def _make_resource(cls, folder, name, *args, **kw):
-        # Add current user as admin
-        username = get_context().user.name
-        kw['admins'] = kw.get('admins', []) + [username]
-        Folder._make_resource(folder, name, *args, **kw)
+    @staticmethod
+    def make_resource(cls, container, name, *args, **kw):
+        # Split kw data into metadata and record data
+        values = {}
+        metadata = {}
+        record_keys = CompanyTableFile.record_schema.keys()
+        for key, value in kw.iteritems():
+            if key in record_keys:
+                values[key] = value
+            else:
+                metadata[key] = value
 
-        # CompanyTable (Comments)
-        CompanyTable._make_resource(CompanyTable, folder,
-            '%s/comments' % name, title={'en': u'Comments',
-                                         'fr': u'Commentaires'})
+        company = CRMFolder.make_resource(cls, container, name, *args,
+                                          **metadata)
+        # CompanyTable
+        comments = CompanyTable.make_resource(CompanyTable, company, 'comments',
+            title={'en': u'Comments', 'fr': u'Commentaires'})
+        comments.handler.add_record(values)
 
 
     def get_title(self, language=None):
@@ -628,14 +635,24 @@ class Company(CRMFolder):
 ###################################
 # Containers                      #
 ###################################
-
+from crm_views import Company_AddForm
 class Companies(Folder):
     """ Container of "company" resources. """
     class_id = 'companies'
     class_title = MSG(u'Companies')
 
-    class_views = ['browse_content']
+    class_views = ['new_company', 'browse_content']
     class_document_types = [Company]
+
+    def add_company(self, values):
+        names = self.get_names()
+        index = len(names)
+        name = generate_name(names, 'c%03d', index)
+        Company.make_resource(Company, self, name, **values)
+        return name
+
+
+    new_company = Company_AddForm()
 
 
 

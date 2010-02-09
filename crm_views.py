@@ -452,7 +452,7 @@ class Company_EditForm(AutoForm):
         return value if value is not None else datatype.default
 
 
-    def action(self, resource, context, form):
+    def get_values(self, resource, context, form):
         values = {}
         for key, value in form.iteritems():
             if value is None:
@@ -465,7 +465,31 @@ class Company_EditForm(AutoForm):
                 values['alert_datetime'] = value
             elif key != 'alert_time':
                 values[key] = value
+        return values
+
+
+    def action(self, resource, context, form):
+        values = self.get_values(self, resource, context, form)
         resource.update(values)
+        context.message = MSG_CHANGES_SAVED
+
+
+
+class Company_AddForm(Company_EditForm):
+
+    access = 'is_allowed_to_add'
+    title = MSG(u'New company')
+    context_menus = []
+
+    def get_value(self, resource, context, name, datatype):
+        return datatype.default
+
+
+    def action(self, resource, context, form):
+        values = self.get_values(resource, context, form)
+        name = resource.add_company(values)
+        goto = '../;new_resource?type=prospect&p_company=%s' % name
+        return context.come_back(MSG_NEW_RESOURCE, goto)
 
 
 
