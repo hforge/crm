@@ -41,7 +41,7 @@ from crm_views import Prospect_EditForm, Prospect_NewInstance
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Company_EditForm, Company_View, Prospect_Main
 #from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
-from crm_views import Mission_EditForm, Mission_View
+from crm_views import Mission_EditForm, Mission_View, PMission_Edit
 from crm_views import PMission_NewInstance, PMission_NewInstanceForm
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_ExportToCSV
@@ -246,7 +246,7 @@ class Mission(CRMFolder):
             self.del_property(key)
 
     browse_content = Folder_BrowseContent(access=False)
-#    edit = Mission_Edit()
+    edit = PMission_Edit()
     edit_form = Mission_EditForm()
     new_instance = PMission_NewInstance()
     preview_content = None
