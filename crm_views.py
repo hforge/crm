@@ -473,6 +473,18 @@ class Company_ViewProspects(CRM_SearchProspects):
 
     search_template = None
 
+    def get_table_columns(self, resource, context):
+        columns = []
+        for column in self.table_columns:
+            name, title, sort = column
+            if name == 'p_company':
+                continue
+            if name not in ('p_email', 'p_phone', 'p_mobile'):
+                columns.append(column)
+
+        return columns
+
+
     def get_items(self, resource, context, *args):
         args = list(args)
         args.append(PhraseQuery('p_company', resource.name))
@@ -1207,6 +1219,15 @@ class Mission_EditForm(AutoForm):
 class Mission_ViewProspects(CRM_SearchProspects):
 
     search_template = None
+
+    def get_table_columns(self, resource, context):
+        columns = []
+        for column in self.table_columns:
+            name, title, sort = column
+            if name not in ('p_email', 'p_phone', 'p_mobile'):
+                columns.append(column)
+        return columns
+
 
     def get_items(self, resource, context, *args):
         args = list(args)
