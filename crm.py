@@ -42,6 +42,7 @@ from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Company_AddForm, Company_EditForm, Company_View, Prospect_Main
 #from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
 from crm_views import Mission_EditForm, Mission_View, PMission_Edit
+from crm_views import Mission_ViewProspects
 from crm_views import PMission_NewInstance, PMission_NewInstanceForm
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_ExportToCSV
@@ -320,6 +321,7 @@ class Mission(CRMFolder):
     new_instance = PMission_NewInstance()
     preview_content = None
     view_comments = Comments_View()
+    view_prospects = Mission_ViewProspects()
     view = Mission_View()
 
 

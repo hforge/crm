@@ -102,6 +102,13 @@ fieldset#company legend a {
   vertical-align:top;
 }
 
+#mission-edit {
+  width: 500px;
+}
+#mission-edit,
+#comments-view {
+  vertical-align: top;
+}
 #comments-list tr.comment-header,
 #view-comments tr.comment-header {
   background-color: #ADA0D9; /*66BB66;*/
@@ -124,6 +131,8 @@ fieldset#company legend a {
 #view-comments tr.comment-text {
   background-color: #f0f0ff;
 }
+#comments-list tr.comment-file,
+#view-comments tr.comment-file,
 #comments-list tr.comment-alert,
 #view-comments tr.comment-alert {
   background-color: #e9e0ff;

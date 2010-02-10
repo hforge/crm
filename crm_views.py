@@ -87,7 +87,7 @@ prospect_widgets = [
     TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
     TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
     MultilineWidget('p_description', title=MSG(u'Comment'), default='',
-                    rows=3),
+                    rows=2),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
     # New Company
@@ -114,7 +114,7 @@ mission_schema = {
 mission_widgets = [
     # First mission
     TextWidget('m_title', title=MSG(u'Title')),
-    MultilineWidget('m_description', title=MSG(u'Description'), rows=3),
+    MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
     TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
     TextWidget('m_probability', title=MSG(u'Probability'), default='',
                size=2),
@@ -202,6 +202,7 @@ class Comments_View(STLView):
             alert_datetime = get_record_value(record, 'alert_datetime')
             if alert_datetime:
                 alert_datetime = format_datetime(alert_datetime)
+            # TODO Add diff (useful at creation without any comment)
             ns_comment = {
                 'id': id,
                 'datetime': format_datetime(comment_datetime),
@@ -649,7 +650,7 @@ class PMission_NewInstanceForm(NewInstance):
 
     widgets = [
         TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=3),
+        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
         TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
         TextWidget('m_probability', title=MSG(u'Probability'), default='',
                    size=2),
@@ -1102,7 +1103,7 @@ class Mission_EditForm(AutoForm):
 
     widgets = [
         TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=3),
+        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
         TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
         TextWidget('m_probability', title=MSG(u'Probability'), default='',
                    size=2),
@@ -1214,12 +1215,15 @@ class Mission_EditForm(AutoForm):
 class Mission_ViewProspects(CRM_SearchProspects):
 
     search_template = None
+    batch_msg1 = MSG(' ')
+    batch_msg2 = MSG(' ')
 
     def get_table_columns(self, resource, context):
         columns = []
         for column in self.table_columns:
             name, title, sort = column
-            if name not in ('p_email', 'p_phone', 'p_mobile'):
+            if name in ('icon', 'p_lastname', 'p_firstname', 'p_company',
+                        'p_status', 'mtime'):
                 columns.append(column)
         return columns
 
@@ -1246,10 +1250,22 @@ class Mission_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View mission')
-#    template = '/ui/crm/Mission_view.xml'
+    template = '/ui/crm/Mission_view.xml'
 
     subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
 
+    def get_namespace(self, resource, context):
+        title = resource.get_value('m_title')
+        #edit = Prospect_EditForm().GET(resource, context)
+        edit = resource.edit_form.GET(resource, context)
+        view_comments = resource.view_comments.GET(resource, context)
+        view_prospects = resource.view_prospects.GET(resource, context)
+        namespace = {
+            'title': title,
+            'edit': edit,
+            'view_comments': view_comments,
+            'view_prospects': view_prospects }
+        return namespace
 
 ############
 # PMission #
@@ -1282,7 +1298,7 @@ class PMission_EditForm(DBResource_Edit):
 
     widgets = [
         TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=3),
+        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
         TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
         TextWidget('m_probability', title=MSG(u'Probability'), default='',
                    size=2),
