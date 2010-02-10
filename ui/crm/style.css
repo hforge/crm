@@ -1,10 +1,12 @@
 
 /**************************************************************************
  * Company is pinky purple ; Prospect is purple ; Mission is blue
- * blue light: #EEEEFF
- * blue extra light: #F0F0FF
+ * blue : #D0DAFF
+ * blue extra light: #F3F7FF
+ * old blue extra light: #F0F0FF
  * purple: #ADA0D9
  * purple light: #CFCAEA
+ * purple extra light: #EEEEFF
  * pinky purple: #DFBADD
  * pinky purple light: #e9e0ff
  **************************************************************************/
@@ -46,7 +48,10 @@
 }
 
 #page-prospect-view #browse-list tr th {
-  background-color: #EEEEFF;
+  background-color: #D0DAFF;
+}
+#page-prospect-view #browse-list tr.odd td {
+  background-color: #F3F7FF;
 }
 
 /* PREVIOUSLY *************************************************************/

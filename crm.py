@@ -30,18 +30,16 @@ from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 from ikaaro.forms import TextWidget
-from ikaaro.registry import get_resource_class, register_resource_class
-from ikaaro.registry import register_field
+from ikaaro.registry import register_field, register_resource_class
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
 
 # Import from here
 from datatypes import CompanyName
+from crm_views import Company_AddForm, Company_EditForm, Company_View
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
-from crm_views import Company_AddForm, Company_EditForm, Company_View, Prospect_Main
 from crm_views import Prospect_View
-#from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
 from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from crm_views import Mission_View, Mission_ViewProspects
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
@@ -463,32 +461,20 @@ class Prospect(CRMFolder):
         return mission[0].name
 
 
-    # TODO
-    def add_mission(self, data):
-        missions = self.get_resource('../../missions')
-        names = missions.get_names()
-        name = generate_name(names, 'm%03d')
-
-        # Create the resource
-        cls_mission = get_resource_class('mission')
-        child = cls_mission.make_resource(cls_mission, missions, name)
-        # The metadata
-
-        # Add first comment
-        comments = child.get_resource('comments')
-        record = {'comment': data['m_description']}
-        for key, value in data.iteritems():
-            if value:
-                record[key] = value
-        comments.handler.add_record(record)
+    def get_title(self):
+        lastname = self.get_value('p_lastname')
+        firstname = self.get_value('p_firstname')
+        company = self.get_value('p_company') or ''
+        if company:
+            company = self.get_resource('../../companies/%s' % company,
+                                            soft=True)
+            company =  u' (%s)' % company.get_title() if company else ''
+        return '%s %s%s' % (lastname, firstname, company)
 
 
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
-    main = Prospect_Main()
     view = Prospect_View()
-#    new_instance = Prospect_NewInstance()
-#    new_mission = Mission_NewInstanceForm()
     search_missions = Prospect_SearchMissions()
     view_missions = Prospect_ViewMissions()
 

@@ -791,9 +791,7 @@ class Prospect_SearchMissions(SearchForm):
         get_value = item_resource.get_value
         if column == 'title':
             # Title
-            href = '%s/;main?mission=%s' % (context.get_link(resource),
-                                            item_brain.name)
-            return get_value('m_title'), href
+            return get_value('m_title'), context.get_link(item_resource)
         elif column == 'status':
             # Status
             return MissionStatus.get_value(get_value('m_status'))
@@ -947,9 +945,21 @@ class Prospect_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View prospect')
+    template = '/ui/crm/Prospect_view.xml'
 
     subviews = [Prospect_EditForm(), Prospect_ViewMissions()]
 
+    def get_namespace(self, resource, context):
+        title = resource.get_title()
+        edit = resource.edit_form.GET(resource, context)
+        view_missions = resource.view_missions.GET(resource, context)
+        new_url = '../../missions/;new_mission?m_prospect=%s' % resource.name
+        namespace = {
+            'title': title,
+            'edit': edit,
+            'new_url': new_url,
+            'view_missions': view_missions }
+        return namespace
 
 
 class Prospect_Main(CompositeForm):
