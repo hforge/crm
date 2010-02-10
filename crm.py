@@ -40,6 +40,7 @@ from datatypes import CompanyName
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Company_AddForm, Company_EditForm, Company_View, Prospect_Main
+from crm_views import Prospect_View
 #from crm_views import Mission_Edit, Mission_EditForm, Mission_View, PMission_NewInstance
 from crm_views import Mission_EditForm, Mission_View, PMission_Edit
 from crm_views import Mission_ViewProspects
@@ -355,7 +356,7 @@ class Prospect(CRMFolder):
     class_title = MSG(u'Prospect')
     class_version = '20100204'
 
-    class_views = ['main', 'search_missions', 'browse_users', 'add_user']
+    class_views = ['view', 'main', 'search_missions', 'browse_users', 'add_user']
     class_comments = ProspectTable
 
 
@@ -487,6 +488,7 @@ class Prospect(CRMFolder):
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
     main = Prospect_Main()
+    view = Prospect_View()
 #    new_instance = Prospect_NewInstance()
 #    new_mission = Mission_NewInstanceForm()
     search_missions = Prospect_SearchMissions()

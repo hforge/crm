@@ -1,5 +1,6 @@
 
 /**************************************************************************
+ * Company is pinky purple ; Prospect is purple ; Mission is blue
  * blue light: #EEEEFF
  * blue extra light: #F0F0FF
  * purple: #ADA0D9
@@ -11,20 +12,32 @@
 /**************************************************************************
  * Mission *
  **************************************************************************/
-#page-mission-view FORM {
+#page-mission-view FORM fieldset legend,
+#page-mission-view FORM fieldset {
   background-color: #EEEEFF;
 }
 
 /**************************************************************************
  * Company *
  **************************************************************************/
-#page-company-view FORM {
+#page-company-view FORM fieldset legend,
+#page-company-view FORM fieldset {
   background-color: #DFBADD;
 }
 
 /**************************************************************************
- * Prospect form *
+ * Prospect *
  **************************************************************************/
+#page-prospect-view FORM fieldset legend,
+#page-prospect-view FORM fieldset {
+  background-color: #CFCAEA;
+}
+
+#page-prospect-view #browse-list tr th {
+  background-color: #EEEEFF;
+}
+
+/* PREVIOUSLY *************************************************************/
 
 #prospect-main{
   background-color: #EEEEFF;

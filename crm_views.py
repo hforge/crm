@@ -68,6 +68,7 @@ prospect_schema = {
     'p_status': ProspectStatus(mandatory=True)}
 
 company_schema = {
+    # TODO Append a link to company aside select list
     'c_title': Unicode(mandatory=True),
     'c_address_1': Unicode,
     'c_address_2': Unicode,
@@ -86,20 +87,10 @@ prospect_widgets = [
     TextWidget('p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
     TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
-    MultilineWidget('p_description', title=MSG(u'Comment'), default='',
+    MultilineWidget('p_description', title=MSG(u'Observations'), default='',
                     rows=2),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
-                is_inline=True),
-    # New Company
-    TextWidget('c_title', title=MSG(u'Company Name'), size=30),
-    TextWidget('c_address_1', title=MSG(u'Address')),
-    TextWidget('c_address_2', title=MSG(u'Address')),
-    TextWidget('c_zipcode', title=MSG(u'Zip code'), size=10),
-    TextWidget('c_town', title=MSG(u'Town'), size=30),
-    # XXX Country should be listed
-    TextWidget('c_country', title=MSG(u'Country'), size=30),
-    TextWidget('c_phone', title=MSG(u'Phone'), size='15'),
-    TextWidget('c_fax', title=MSG(u'Fax'), size='15')]
+                is_inline=True) ]
 
 
 mission_schema = {
@@ -888,17 +879,15 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
 
 
 
-class Prospect_EditForm(DBResource_Edit):
+class Prospect_EditForm(AutoForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit prospect')
-    template = '/ui/crm/Prospect_edit.xml'
     submit_value = MSG(u'Update prospect')
 
 
     def get_schema(self, resource, context):
-        return merge_dicts(prospect_schema, company_schema,
-                           action_on_company=String)
+        return merge_dicts(prospect_schema)
 
 
     def get_widgets(self, resource, context):
@@ -907,91 +896,62 @@ class Prospect_EditForm(DBResource_Edit):
 
 
     def get_value(self, resource, context, name, datatype):
+        if name in self.get_query_schema():
+            value = context.query[name]
+            if value is not None:
+                return context.query[name]
         value = resource.get_value(name)
         return value if value is not None else datatype.default
 
 
-    def _get_form(self, resource, context):
-        form = DBResource_Edit._get_form(self, resource, context)
-        action_on_company = form.get('action_on_company', None)
-        p_company = form.get('p_company')
-        c_title = form.get('c_title')
-        # Maybe the company has changed, the value mustn't be empty
-        if not action_on_company and not p_company:
-            raise FormError(missing='p_company')
-        # Edit or New company
-        if action_on_company in ('edit', 'new') and not c_title:
-            raise FormError(missing='p_company')
-        return form
-
-
-    def on_form_error(self, resource, context):
-        """ Go to main view instead of staying on edit_form.
-        """
-        # FIXME hack to get default query values for view_missions
-        query = context.query
-        query['batch_start'] = query.get('batch_start', 0)
-        query['batch_size'] = query.get('batch_size', 10)
-        query['sort_by'] = query.get('sort_by', 'mtime')
-        query['reverse'] = query.get('reverse', False)
-
-        message = format_error_message(context, self.get_widgets(resource,
-                                                                 context))
-        context.message = message
-        return resource.main.GET
-
-
+##    def on_form_error(self, resource, context):
+##        """ Go to main view instead of staying on edit_form.
+##        """
+##        # FIXME hack to get default query values for view_missions
+##        query = context.query
+##        query['batch_start'] = query.get('batch_start', 0)
+##        query['batch_size'] = query.get('batch_size', 10)
+##        query['sort_by'] = query.get('sort_by', 'mtime')
+##        query['reverse'] = query.get('reverse', False)
+##
+##        message = format_error_message(context, self.get_widgets(resource,
+##                                                                 context))
+##        context.message = message
+##        return resource.main.GET
+##
+##
     def get_namespace(self, resource, context):
-        # Inject specific javascript functions for CRM
-        scripts = get_context().scripts
-        scripts.append('/ui/crm/javascript.js')
-
         # Load crm css
         context.add_style('/ui/crm/style.css')
 
-        namespace = DBResource_Edit.get_namespace(self, resource, context)
-
-        # Modify widgets namespace to change template
-        for index, widget in enumerate(namespace['widgets']):
-            name = self.get_widgets(resource, context)[index].name
-            namespace[name] = widget
-
-        namespace['action'] = '%s/;edit_form' % context.get_link(resource)
-
+        namespace = AutoForm.get_namespace(self, resource, context)
         return namespace
 
 
     def action(self, resource, context, form):
-        crm = get_crm(resource)
+        values = {}
+        for key, value in form.iteritems():
+            if not value:
+                continue
+            if key == 'file' and str(value) == '.':
+                continue
+            if key == 'alert_date':
+                value_time = form.get('alert_time', None) or time(9, 0)
+                value = datetime.combine(value, value_time)
+                values['alert_datetime'] = value
+            elif key != 'alert_time':
+                values[key] = value
+        resource.update(values)
+        context.message = MSG_CHANGES_SAVED
 
-        # Prospect data
-        prospect_data = {}
-        for key in ['p_company', 'p_lastname', 'p_firstname', 'p_phone',
-                    'p_mobile', 'p_email', 'p_description', 'p_status']:
-            prospect_data[key] = form.get(key, '')
-            # Update prospect
-            resource.set_property(key, prospect_data[key])
 
-        # FIXME
-        # Company data
-        company_data = {}
-        for key in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
-                    'c_town', 'c_country', 'c_phone', 'c_fax']:
-            company_data[key] = form.get(key, None)
 
-        # FIXME
-        # Add/Update company
-        action_on_company = form.get('action_on_company', None)
-        if action_on_company == 'new':
-            company_name = crm.add_company(company_data)
-            resource.set_property('p_company', company_name)
-        elif action_on_company == 'edit':
-            path = 'companies/%s' % prospect_data['p_company']
-            company = crm.get_resource(path)
-            company.update_company(company_data)
+class Prospect_View(CompositeForm):
 
-        goto = context.get_link(resource)
-        return context.come_back(MSG_CHANGES_SAVED, goto)
+    access = 'is_allowed_to_edit'
+    title = MSG(u'View prospect')
+
+    subviews = [Prospect_EditForm(), Prospect_ViewMissions()]
 
 
 
@@ -1256,7 +1216,6 @@ class Mission_View(CompositeForm):
 
     def get_namespace(self, resource, context):
         title = resource.get_value('m_title')
-        #edit = Prospect_EditForm().GET(resource, context)
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_prospects = resource.view_prospects.GET(resource, context)
