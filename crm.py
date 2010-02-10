@@ -335,7 +335,7 @@ class ProspectTableFile(CommentsTableFile):
     record_schema = merge_dicts(CommentsTableFile.record_schema,
         p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
         p_phone=Unicode, p_mobile=Unicode, p_email=Email,
-        p_description=Unicode,
+        p_position=Unicode, p_description=Unicode,
         # Lead/Client/Dead
         p_status=ProspectStatus)
 

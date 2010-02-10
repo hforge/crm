@@ -65,6 +65,7 @@ prospect_schema = {
     'p_mobile': Unicode,
     'p_email': Email,
     'p_description': Unicode,
+    'p_position': Unicode,
     'p_status': ProspectStatus(mandatory=True)}
 
 company_schema = {
@@ -87,6 +88,7 @@ prospect_widgets = [
     TextWidget('p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
     TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
+    TextWidget('p_position', title=MSG(u'Position'), default='', size=15),
     MultilineWidget('p_description', title=MSG(u'Observations'), default='',
                     rows=2),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
@@ -239,6 +241,7 @@ class CRM_SearchProspects(SearchForm):
         ('p_email', MSG(u'Email'), False),
         ('p_phone', MSG(u'Phone'), False),
         ('p_mobile', MSG(u'mobile'), False),
+        ('p_position', MSG(u'Position'), False),
         ('p_status', MSG(u'Status'), False),
         ('p_opportunity', MSG(u'Opp.'), True),
         ('p_project', MSG(u'Proj.'), True),
@@ -1183,7 +1186,7 @@ class Mission_ViewProspects(CRM_SearchProspects):
         for column in self.table_columns:
             name, title, sort = column
             if name in ('icon', 'p_lastname', 'p_firstname', 'p_company',
-                        'p_status', 'mtime'):
+                        'p_position', 'mtime'):
                 columns.append(column)
         return columns
 
