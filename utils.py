@@ -20,8 +20,8 @@ from itools.web import get_context
 from itools.xml import XMLParser
 
 # Import from ikaaro
-from ikaaro.forms import CheckBoxWidget, TextWidget, stl_namespaces
-
+from ikaaro.forms import CheckBoxWidget, SelectWidget, TextWidget
+from ikaaro.forms import stl_namespaces
 
 
 def generate_name(names, strformat='%03d', index=None):
@@ -61,6 +61,20 @@ class MultipleCheckBoxWidget(CheckBoxWidget):
                 'value': option['value'],
                 'selected': name in value})
         return {'name': self.name, 'items': items}
+
+
+class SelectCompanyWidget(SelectWidget):
+
+    template = list(XMLParser("""
+        <select id="${id}" name="${name}" multiple="${multiple}" size="${size}"
+            class="${css}">
+          <option value="" stl:if="has_empty_option"></option>
+          <option stl:repeat="option options" value="${option/name}"
+            selected="${option/selected}">${option/value}</option>
+        </select>
+        <a href="../companies/;new_company" target="_blank">New (Refresh the page after adding
+          it)</a>
+        """, stl_namespaces))
 
 
 class TimeWidget(TextWidget):

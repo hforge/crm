@@ -20,9 +20,7 @@
                   <label for="${p_company/name}"><!--class="${p_company/class}">-->
                     ${p_company/title}</label>
                 </td>
-                <td id="company_widget">${p_company/widget}
-                  <a id="new-company" onclick="crm_show_new();">New</a>
-                </td>
+                <td id="company_widget">${p_company/widget}</td>
               </tr>
               <tr>
                 <td>

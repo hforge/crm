@@ -36,7 +36,7 @@ from itools.xapian import AndQuery, OrQuery, PhraseQuery
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
 from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
-from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
+from ikaaro.forms import SelectRadio, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
@@ -47,7 +47,8 @@ from ikaaro.tracker.issue_views import indent
 
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectStatus
-from utils import generate_name, MultipleCheckBoxWidget, TimeWidget
+from utils import MultipleCheckBoxWidget
+from utils import SelectCompanyWidget, TimeWidget
 
 
 ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
@@ -81,7 +82,7 @@ company_schema = {
     'c_fax': Unicode}
 
 prospect_widgets = [
-    SelectWidget('p_company', title=MSG(u'Company')),
+    SelectCompanyWidget('p_company', title=MSG(u'Company')),
     TextWidget('p_lastname', title=MSG(u'Last name'), default='', size=30),
     TextWidget('p_firstname', title=MSG(u'First name'), default='',
                size=30),
@@ -476,7 +477,7 @@ class Company_AddForm(Company_EditForm):
     def action(self, resource, context, form):
         values = self.get_values(resource, context, form)
         name = resource.add_company(values)
-        goto = '../;new_resource?type=prospect&p_company=%s' % name
+        goto = '../prospects/;new_prospect?p_company=%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto)
 
 
