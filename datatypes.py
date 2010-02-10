@@ -72,3 +72,28 @@ class ProspectStatus(Enumerate):
         {'name': 'client', 'value': u'Client'},
         {'name': 'dead', 'value': u'Dead'}]
 
+
+
+class ProspectName(Enumerate):
+
+    @classmethod
+    def get_options(cls):
+        context = get_context()
+        site_root = context.resource.get_site_root()
+        cls_crm = get_resource_class('crm')
+        crm = context.resource
+        while not isinstance(crm, cls_crm):
+            crm = crm.parent
+        parent_path = '%s/prospects' % crm.get_abspath()
+        results = context.root.search(format='prospect',
+                                      parent_path=parent_path)
+
+        options = []
+        for brain in results.get_documents(sort_by='p_lastname'):
+            name = brain.name
+            value = brain.p_lastname
+            option = {'name': name, 'value': value}
+            options.append(option)
+
+        return options
+

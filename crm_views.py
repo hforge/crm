@@ -36,7 +36,7 @@ from itools.xapian import AndQuery, OrQuery, PhraseQuery
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
 from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
-from ikaaro.forms import SelectRadio, TextWidget
+from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
@@ -46,7 +46,7 @@ from ikaaro.views_new import NewInstance
 from ikaaro.tracker.issue_views import indent
 
 # Import from here
-from datatypes import CompanyName, MissionStatus, ProspectStatus
+from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
 from utils import MultipleCheckBoxWidget
 from utils import SelectCompanyWidget, TimeWidget
 
@@ -212,7 +212,6 @@ class Comments_View(STLView):
         namespace = {'comments': ns_comments,
                      'path_to_resource': path_to_resource}
         return namespace
-
 
 
 #######
@@ -463,7 +462,7 @@ class Company_AddForm(Company_EditForm):
     context_menus = []
 
     def get_value(self, resource, context, name, datatype):
-        return datatype.default
+        return context.query.get(name) or datatype.default
 
 
     def get_namespace(self, resource, context):
@@ -1143,7 +1142,7 @@ class Mission_EditForm(AutoForm):
     ##    return namespace
 
 
-    def action(self, resource, context, form):
+    def get_values(self, form):
         values = {}
         for key, value in form.iteritems():
             if not value:
@@ -1156,6 +1155,11 @@ class Mission_EditForm(AutoForm):
                 values['alert_datetime'] = value
             elif key != 'alert_time':
                 values[key] = value
+        return values
+
+
+    def action(self, resource, context, form):
+        values = self.get_values(form)
         resource.update(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
@@ -1167,6 +1171,39 @@ class Mission_EditForm(AutoForm):
             for prospect in prospects:
                 prospect = crm.get_resource('prospects/%s' % prospect)
                 context.server.change_resource(prospect)
+
+
+
+class Mission_AddForm(Mission_EditForm):
+
+    title = MSG(u'New mission')
+
+    query_schema = merge_dicts(Mission_EditForm.query_schema,
+        m_prospect=ProspectName)
+
+    widgets = [SelectWidget('m_prospect', title=MSG(u'Prospect'),
+        mandatory=True)] + Mission_EditForm.widgets[:]
+
+
+    def get_value(self, resource, context, name, datatype):
+        return context.query.get(name) or datatype.default
+
+
+    def action(self, resource, context, form):
+        values = self.get_values(form)
+        name = resource.add_mission(values)
+
+        # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
+        changed_keys = values.keys()
+        if ('m_status' in changed_keys or 'm_probability' in changed_keys \
+            or 'm_amount' in changed_keys):
+            crm = get_crm(resource)
+            prospect = values.get('m_prospect')
+            prospect = crm.get_resource('prospects/%s' % prospect)
+            context.server.change_resource(prospect)
+
+        goto = './%s' % name
+        return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
 
@@ -1223,6 +1260,27 @@ class Mission_View(CompositeForm):
             'view_comments': view_comments,
             'view_prospects': view_prospects }
         return namespace
+
+
+
+class Mission_Add(Mission_View):
+
+    title = MSG(u'New mission')
+
+    subviews = [Mission_AddForm(), Comments_View()]
+
+    def get_namespace(self, resource, context):
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+
+        add = resource.add_form.GET(resource, context)
+        namespace = {
+            'title': MSG(u'New mission'),
+            'edit': add,
+            'view_comments': None,
+            'view_prospects': None }
+        return namespace
+
 
 ############
 # PMission #
