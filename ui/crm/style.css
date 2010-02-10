@@ -9,11 +9,19 @@
  * pinky purple light: #e9e0ff
  **************************************************************************/
 
+#content fieldset legend,
+#content fieldset legend {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
 /**************************************************************************
  * Mission *
  **************************************************************************/
 #page-mission-view FORM fieldset legend,
-#page-mission-view FORM fieldset {
+#page-mission-view FORM fieldset,
+#page-missions-new-mission FORM fieldset legend,
+#page-missions-new-mission FORM fieldset {
   background-color: #EEEEFF;
 }
 
@@ -21,7 +29,9 @@
  * Company *
  **************************************************************************/
 #page-company-view FORM fieldset legend,
-#page-company-view FORM fieldset {
+#page-company-view FORM fieldset,
+#page-companies-new-company FORM fieldset legend,
+#page-companies-new-company FORM fieldset {
   background-color: #DFBADD;
 }
 
@@ -29,7 +39,9 @@
  * Prospect *
  **************************************************************************/
 #page-prospect-view FORM fieldset legend,
-#page-prospect-view FORM fieldset {
+#page-prospect-view FORM fieldset,
+#page-prospects-new-prospect fieldset FORM legend,
+#page-missions-new-prospect fieldset FORM {
   background-color: #CFCAEA;
 }
 

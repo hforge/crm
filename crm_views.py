@@ -401,10 +401,9 @@ class Company_EditForm(AutoForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit company')
+    required_msg = MSG(u' ')
 
     query_schema = schema = {
-        'comment': Unicode, 'file': PathDataType,
-        'alert_date': Date, 'alert_time': Time,
         'c_title': Unicode(mandatory=True),
         'c_address_1': Unicode, 'c_address_2': Unicode,
         'c_zipcode': String, 'c_town': Unicode,
@@ -419,11 +418,7 @@ class Company_EditForm(AutoForm):
         TextWidget('c_town', title=MSG(u'Town')),
         TextWidget('c_country', title=MSG(u'Country')),
         TextWidget('c_phone', title=MSG(u'Phone'), size=15),
-        TextWidget('c_fax', title=MSG(u'Fax'), size=15),
-        MultilineWidget('comment', title=MSG(u'Comment')) ,
-        PathSelectorWidget('file', title=MSG(u'Attachement')),
-        DateWidget('alert_date', title=MSG(u'Alert date'), size=10),
-        TimeWidget('alert_time', title=MSG(u'Alert time')) ]
+        TextWidget('c_fax', title=MSG(u'Fax'), size=15) ]
 
 
     def get_query_schema(self):
@@ -432,17 +427,6 @@ class Company_EditForm(AutoForm):
 
 
     def get_value(self, resource, context, name, datatype):
-        # TODO Make alert_date&time empty if we want to use it more than 1 time
-        if name == 'alert_date':
-            value = resource.get_value('alert_datetime')
-            return value.date() if value is not None else datatype.default
-        elif name == 'alert_time':
-            value = resource.get_value('alert_datetime')
-            return value.time() if value is not None else datatype.default
-        elif name == 'comment':
-            return context.query.get('comment') or u''
-        elif name == 'file':
-            return context.query.get('file') or ''
         value = resource.get_value(name)
         return value if value is not None else datatype.default
 
@@ -452,15 +436,16 @@ class Company_EditForm(AutoForm):
         for key, value in form.iteritems():
             if value is None:
                 continue
-            if key == 'file' and str(value) == '.':
-                continue
-            if key == 'alert_date':
-                value_time = form.get('alert_time', None) or time(9, 0)
-                value = datetime.combine(value, value_time)
-                values['alert_datetime'] = value
-            elif key != 'alert_time':
-                values[key] = value
+            values[key] = value
         return values
+
+
+    def get_namespace(self, resource, context):
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+
+        namespace = AutoForm.get_namespace(self, resource, context)
+        return namespace
 
 
     def action(self, resource, context, form):
@@ -478,6 +463,14 @@ class Company_AddForm(Company_EditForm):
 
     def get_value(self, resource, context, name, datatype):
         return datatype.default
+
+
+    def get_namespace(self, resource, context):
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+
+        namespace = AutoForm.get_namespace(self, resource, context)
+        return namespace
 
 
     def action(self, resource, context, form):
@@ -522,9 +515,8 @@ class Company_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
-#    template = '/ui/crm/Company_view.xml'
 
-    subviews = [Company_EditForm(), Company_ViewProspects(), Comments_View()]
+    subviews = [Company_EditForm(), Company_ViewProspects()]
 
 
 #############
@@ -537,6 +529,7 @@ class Prospect_AddForm(AutoForm):
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
     context_menus = []
+    required_msg = MSG(u' ')
 
 
     def get_schema(self, resource, context):
@@ -887,6 +880,7 @@ class Prospect_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit prospect')
     submit_value = MSG(u'Update prospect')
+    required_msg = MSG(u' ')
 
 
     def get_schema(self, resource, context):
@@ -1054,7 +1048,7 @@ class Mission_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
 #    template = '/ui/crm/Mission_edit_form.xml'
-    required_msg = None
+    required_msg = MSG(u' ')
 
     query_schema = {
         'm_title': Unicode, 'm_description': Unicode,
@@ -1238,7 +1232,7 @@ class PMission_EditForm(DBResource_Edit):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
     template = '/ui/crm/Mission_edit_form.xml'
-    required_msg = None
+    required_msg = MSG(u' ')
 
     query_schema = {
         'm_title': Unicode,
