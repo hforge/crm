@@ -26,6 +26,14 @@
 #page-missions-new-mission FORM fieldset {
   background-color: #EEEEFF;
 }
+#page-mission-view FORM fieldset fieldset {
+  background-color: #CFCAEA;
+}
+
+#page-mission-view FORM fieldset {
+  padding: 2px;
+  margin: 1px;
+}
 
 /**************************************************************************
  * Company *

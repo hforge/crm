@@ -37,7 +37,6 @@ from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidg
 from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
-from ikaaro.resource_views import DBResource_Edit
 from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
 from ikaaro.views_new import NewInstance
@@ -133,6 +132,7 @@ m_status_icons = {
     'opportunity': '/ui/crm/images/status_yellow.gif',
     'project': '/ui/crm/images/status_green.gif',
     'nogo': '/ui/crm/images/status_gray.gif' }
+
 
 def get_crm(resource):
     cls_crm = get_resource_class('crm')
@@ -532,7 +532,6 @@ class Prospect_AddForm(AutoForm):
     access = 'is_allowed_to_add'
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
-    context_menus = []
     required_msg = MSG(u' ')
 
 
@@ -555,10 +554,6 @@ class Prospect_AddForm(AutoForm):
         return widgets
 
 
-    def get_page_title(self, resource, context):
-        return None
-
-
     def get_value(self, resource, context, name, datatype):
         if name in self.get_query_schema():
             value = context.query[name]
@@ -569,6 +564,9 @@ class Prospect_AddForm(AutoForm):
         if name == 'm_deadline' and value is None:
             year = date.today().year
             return date(year, 12, 31)
+        elif name == 'm_status':
+            print 'STATUS', repr(value)
+            return value
         if value is None:
             return datatype.default
         return value
@@ -621,99 +619,63 @@ class Prospect_AddForm(AutoForm):
 
 
 
-# XXX TO REMOVE
-class PMission_NewInstanceForm(NewInstance):
+class Prospect_EditForm(AutoForm):
 
-    access = 'is_allowed_to_add'
-    title = MSG(u'New mission')
-    template = '/ui/crm/Mission_new_instance.xml'
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit prospect')
+    submit_value = MSG(u'Update prospect')
+    required_msg = MSG(u' ')
 
-    query_schema = {
-        'm_title': Unicode,
-        'm_description': Unicode,
-        'm_amount': Decimal,
-        'm_probability': Integer,
-        'm_deadline': Date,
-        'm_status': MissionStatus}
+
+    def get_query_schema(self):
+        return prospect_schema.copy()
+
 
     def get_schema(self, resource, context):
-        # m_title, m_description et m_status are mandatory
-        return merge_dicts(self.query_schema,
-                           m_title=Unicode(mandatory=True),
-                           m_description=Unicode(mandatory=True),
-                           m_status=MissionStatus(mandatory=True))
-
-    widgets = [
-        TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
-        TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
-        TextWidget('m_probability', title=MSG(u'Probability'), default='',
-                   size=2),
-        DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
-        SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
-                    has_empty_option=False)]
+        # p_lastname, p_status, are mandatory
+        schema = {
+            'p_lastname': Unicode(mandatory=True),
+            'p_status': ProspectStatus(mandatory=True) }
+        return merge_dicts(prospect_schema, schema)
 
 
-    # XXX TODO should go on main or new mission depending on referrer if any
-    def on_form_error(self, resource, context):
-        """ Go to main view instead of staying on edit_form.
-        """
-        # FIXME hack to get default query values for view_missions
-        query = context.query
-        query['batch_start'] = query.get('batch_start', 0)
-        query['batch_size'] = query.get('batch_size', 10)
-        query['sort_by'] = query.get('sort_by', 'mtime')
-        query['reverse'] = query.get('reverse', False)
-        message = format_error_message(context, self.get_widgets(resource,
-                                                                 context))
-        context.message = message
-        return resource.main.GET
+    def get_widgets(self, resource, context):
+        widgets = prospect_widgets[:]
+        return widgets
 
 
     def get_value(self, resource, context, name, datatype):
-        value = NewInstance.get_value(self, resource, context, name,
-                                          datatype)
-        if name == 'm_deadline' and value is None:
-            year = date.today().year
-            return date(year, 12, 31)
-        if value is None:
-            return datatype.default
-        return value
-
-
-    def _get_form(self, resource, context):
-        """ Use the STLForm method to avoid the call of get_new_resource_name
-            in NewInstance._get_form
-        """
-        return STLForm._get_form(self, resource, context)
+        if name in self.get_query_schema():
+            value = context.query[name]
+            if value:
+                return context.query[name]
+        if name == 'comment':
+            return u''
+        value = resource.get_value(name)
+        return value if value is not None else datatype.default
 
 
     def get_namespace(self, resource, context):
-        namespace = NewInstance.get_namespace(self, resource, context)
+        # Load crm css
+        context.add_style('/ui/crm/style.css')
+        # Build namespace
+        namespace = AutoForm.get_namespace(self, resource, context)
 
-        # Modify widgets namespace to change template
+        # Force reinitialization of comment field to '' after a POST.
+        if (context.request.method != 'POST'):
+            return namespace
         for index, widget in enumerate(namespace['widgets']):
-            name = self.get_widgets(resource, context)[index].name
-            namespace[name] = widget
-
-        namespace['action'] = ';new_mission'
+            if widget['name'] == 'comment':
+                comment_widget = MultilineWidget('comment',
+                    title=MSG(u'New comment'), rows=3)
+                widget['widget'] = comment_widget.to_html(Unicode, u'')
         return namespace
 
 
     def action(self, resource, context, form):
-        title = form['m_title']
-        description = form.get('m_description', '')
-        amount = form.get('m_amount', '')
-        probability = form.get('m_probability', '')
-        deadline = form.get('m_deadline', '')
-        status = form['m_status']
-
-        resource.add_mission(form)
-        # Reindex prospect
-        context.server.change_resource(resource)
-
-        goto = context.get_link(resource)
-        return context.come_back(MSG_NEW_RESOURCE, goto=goto)
+        values = get_form_values(form)
+        resource.update(values)
+        context.message = MSG_CHANGES_SAVED
 
 
 
@@ -877,66 +839,6 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
 
 
 
-class Prospect_EditForm(AutoForm):
-
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Edit prospect')
-    submit_value = MSG(u'Update prospect')
-    required_msg = MSG(u' ')
-
-
-    def get_query_schema(self):
-        return prospect_schema.copy()
-
-
-    def get_schema(self, resource, context):
-        # p_lastname, p_status, are mandatory
-        schema = {
-            'p_lastname': Unicode(mandatory=True),
-            'p_status': ProspectStatus(mandatory=True) }
-        return merge_dicts(prospect_schema, schema)
-
-
-    def get_widgets(self, resource, context):
-        widgets = prospect_widgets[:]
-        return widgets
-
-
-    def get_value(self, resource, context, name, datatype):
-        if name in self.get_query_schema():
-            value = context.query[name]
-            if value:
-                return context.query[name]
-        if name == 'comment':
-            return u''
-        value = resource.get_value(name)
-        return value if value is not None else datatype.default
-
-
-    def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-        # Build namespace
-        namespace = AutoForm.get_namespace(self, resource, context)
-
-        # Force reinitialization of comment field to '' after a POST.
-        if (context.request.method != 'POST'):
-            return namespace
-        for index, widget in enumerate(namespace['widgets']):
-            if widget['name'] == 'comment':
-                comment_widget = MultilineWidget('comment',
-                    title=MSG(u'New comment'), rows=3)
-                widget['widget'] = comment_widget.to_html(Unicode, u'')
-        return namespace
-
-
-    def action(self, resource, context, form):
-        values = get_form_values(form)
-        resource.update(values)
-        context.message = MSG_CHANGES_SAVED
-
-
-
 class Prospect_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
@@ -968,7 +870,7 @@ class Mission_EditForm(AutoForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
-#    template = '/ui/crm/Mission_edit_form.xml'
+    template = '/ui/crm/Mission_edit_form.xml'
     required_msg = MSG(u' ')
 
     def get_query_schema(self):
@@ -1003,64 +905,21 @@ class Mission_EditForm(AutoForm):
         return value if value is not None else datatype.default
 
 
-    # TO CHECK
-    ##def _get_form(self, resource, context):
-    ##    """ Alert is valid only if date AND time are filled.
-    ##    """
-    ##    form = STLForm._get_form(self, resource, context)
-    ##    alert_date = form.get('alert_date', None)
-    ##    alert_time = form.get('alert_time', None)
-    ##    # Alerts with time but without date are forbidden
-    ##    if alert_time and not alert_date:
-    ##        raise FormError, MSG_MISSING_OR_INVALID
-    ##    return form
-
-
-    # TO CHECK
-    ##def on_form_error(self, resource, context):
-    ##    """ Get back to prospect main view on current mission with error
-    ##        message.
-    ##    """
-    ##    message = format_error_message(context, self.get_widgets(resource,
-    ##                                                             context))
-    ##    path_to_prospect = context.get_link(resource.parent)
-    ##    goto = '%s/;main?mission=%s' % (path_to_prospect, resource.name)
-    ##    return context.come_back(message, goto)
-
-
-    # TO CHECK
-    ##def get_namespace(self, resource, context):
-    ##    """ Force reinitialization of comment field to '' after a POST.
-    ##    """
-    ##    namespace = DBResource_Edit.get_namespace(self, resource, context)
-    ##    submit = (context.request.method == 'POST')
-
-    ##    # Modify widgets namespace to change template
-    ##    for index, widget in enumerate(namespace['widgets']):
-    ##        name = self.get_widgets(resource, context)[index].name
-    ##        # Reset comment
-    ##        if submit and name == 'm_comment':
-    ##            widget['value'] = ''
-    ##            comment_widget = MultilineWidget('m_comment',
-    ##                                 title=MSG(u'Comment'), rows=3)
-    ##            widget['widget'] = comment_widget.to_html(Unicode, u'')
-    ##        namespace[name] = widget
-    ##    namespace['action'] = '%s/;edit_form' % context.get_link(resource)
-    ##    return namespace
-
-
     def get_namespace(self, resource, context):
         # Build namespace
         namespace = AutoForm.get_namespace(self, resource, context)
+        submit = (context.request.method == 'POST')
 
-        # Force reinitialization of comment field to '' after a POST.
-        if (context.request.method != 'POST'):
-            return namespace
+        # Modify widgets namespace to change template
         for index, widget in enumerate(namespace['widgets']):
-            if widget['name'] == 'comment':
-                comment_widget = MultilineWidget('comment',
-                    title=MSG(u'New comment'), rows=3)
+            name = self.get_widgets(resource, context)[index].name
+            # Reset comment
+            if submit and name == 'm_comment':
+                widget['value'] = ''
+                comment_widget = MultilineWidget('m_comment',
+                                     title=MSG(u'Comment'), rows=3)
                 widget['widget'] = comment_widget.to_html(Unicode, u'')
+            namespace[name] = widget
         return namespace
 
 

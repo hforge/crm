@@ -6,13 +6,15 @@
 
 <form id="autoform" name="autoform" action="${action}" method="post"
   enctype="multipart/form-data">
-  <table cellpadding="0" cellspacing="0">
+  <fieldset>
+    <legend>${title}</legend>
+  <table cellpadding="0" cellspacing="5">
     <tbody>
       <!-- MISSION TITLE AND DESCRIPTION -->
       <tr id="edit-mission-title">
         <td>
-          <label for="${m_title/name}"><!--class="${m_title/class}">-->
-            ${m_title/title} *</label>
+          <label for="${m_title/name}" class="${m_title/class}">
+            ${m_title/title}</label>
         </td>
         <td>${m_title/widget}</td>
       </tr>
@@ -25,25 +27,27 @@
       </tr>
       <tr>
         <td colspan="2">
-          <fieldset id="edit-mission-details">
-            <table cellpadding="0" cellspacing="0" width="100%">
+          <fieldset>
+            <table cellpadding="0" cellspacing="5" width="100%">
               <tbody>
                 <tr>
                   <td>
-                    <label for="${m_comment/name}"><!--class="${m_comment/class}">-->
-                      ${m_comment/title} *
-                    </label>
+                    <label for="${comment/name}" class="${comment/class}">
+                      ${comment/title}</label>
                   </td>
-                  <td>${m_comment/widget}</td>
+                  <td>${comment/widget}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <label for="${m_nextaction/name}" class="${m_nextaction/class}">
+                      ${m_nextaction/title}</label></td>
+                  <td>${m_nextaction/widget}</td>
                 </tr>
                 <!-- ATTACHEMENT -->
                 <tr>
-                  <td>
+                  <td colspan="2">
                     <label for="${file/name}" class="${file/class}">
-                      ${file/title}
-                    </label>
-                  </td>
-                  <td>
+                      ${file/title}</label>&nbsp;
                     <input type="file" id="file" name="${file/name}" size="35" />
                   </td>
                 </tr>
@@ -52,11 +56,9 @@
                   <td colspan="2">
                     <img src="/ui/crm/images/1240913081_bell_add.png" />
                     <label for="${alert_date/name}" class="${alert_date/class}">
-                      ${alert_date/title}
-                    </label>${alert_date/widget}
+                      ${alert_date/title}</label>${alert_date/widget}
                     <label for="${alert_time/name}" class="${alert_time/class}">
-                      ${alert_time/title}
-                    </label>${alert_time/widget}
+                      ${alert_time/title}</label>${alert_time/widget}
                   </td>
                 </tr>
               </tbody>
@@ -74,7 +76,7 @@
       </tr>
       <tr>
         <td colspan="2">
-          <table cellpadding="0" cellspacing="0" width="90%">
+          <table cellpadding="0" cellspacing="5" width="90%">
             <tbody>
               <tr>
                 <td>
@@ -105,5 +107,6 @@
   <script language="javascript">
     $("#${first_widget}").focus();
   </script>
+  </fieldset>
 </form>
 </stl:block>
