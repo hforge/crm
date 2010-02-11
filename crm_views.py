@@ -24,11 +24,9 @@ from itools.csv import CSVFile
 from itools.datatypes import Date, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.handlers import checkid
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.vfs import FileName
 from itools.web import BaseView, STLForm, STLView, get_context
 from itools.web import ERROR, FormError, MSG_MISSING_OR_INVALID
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
@@ -40,7 +38,7 @@ from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
-from ikaaro.utils import generate_name as igenerate_name, get_base_path_query
+from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
 from ikaaro.views_new import NewInstance
 from ikaaro.tracker.issue_views import indent
@@ -67,7 +65,8 @@ prospect_schema = {
     'p_email': Email,
     'p_description': Unicode,
     'p_position': Unicode,
-    'p_status': ProspectStatus(mandatory=True)}
+    'p_status': ProspectStatus(mandatory=True),
+    'comment': Unicode }
 
 company_schema = {
     # TODO Append a link to company aside select list
@@ -93,7 +92,9 @@ prospect_widgets = [
     MultilineWidget('p_description', title=MSG(u'Observations'), default='',
                     rows=2),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
-                is_inline=True) ]
+                is_inline=True),
+    MultilineWidget('comment', title=MSG(u'New comment'), default='',
+                    rows=3) ]
 
 
 mission_schema = {
@@ -848,6 +849,7 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
     search_template = None
     search_schema = {}
     search_fields = []
+    table_columns = Prospect_SearchMissions.table_columns[1:]
 
     def get_search_namespace(self, resource, context):
         return {}
@@ -947,106 +949,21 @@ class Prospect_View(CompositeForm):
     title = MSG(u'View prospect')
     template = '/ui/crm/Prospect_view.xml'
 
-    subviews = [Prospect_EditForm(), Prospect_ViewMissions()]
+    subviews = [Prospect_EditForm(), Prospect_ViewMissions(), Comments_View()]
 
     def get_namespace(self, resource, context):
         title = resource.get_title()
         edit = resource.edit_form.GET(resource, context)
         view_missions = resource.view_missions.GET(resource, context)
+        view_comments = resource.view_comments.GET(resource, context)
         new_url = '../../missions/;new_mission?m_prospect=%s' % resource.name
         namespace = {
             'title': title,
             'edit': edit,
             'new_url': new_url,
+            'view_comments': view_comments,
             'view_missions': view_missions }
         return namespace
-
-
-class Prospect_Main(CompositeForm):
-    """ Display edit form and missions below of it.
-    """
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Prospect')
-    template = '/ui/crm/Prospect_main.xml'
-
-    subviews = [Prospect_EditForm(), Prospect_ViewMissions()]
-
-    query_schema = {'mission': String}
-
-
-    def get_page_title(self, resource, context):
-        return None
-
-
-    def get_query_schema(self):
-        return merge_dicts(CompositeForm.get_query_schema(self),
-                           self.query_schema)
-
-
-    def get_prospect_title(self, resource, context):
-        lastname = resource.get_property('p_lastname')
-        firstname = resource.get_property('p_firstname')
-        company = resource.get_property('p_company')
-        company = resource.get_resource('../../companies/%s' % company,
-                                        soft=True)
-        if company is not None:
-            company =  u'(%s)' % company.get_title()
-        else:
-            company = ''
-        return '%s %s %s' % (lastname, firstname, company)
-
-
-    def get_namespace(self, resource, context):
-        title = self.get_prospect_title(resource, context)
-        edit = Prospect_EditForm().GET(resource, context)
-        view_missions = Prospect_ViewMissions().GET(resource, context)
-
-        # Add selected mission view if any mission
-        edit_mission = None
-        mission = context.query.get('mission', None)
-        if mission is None:
-            mission = resource.get_first_mission(context)
-        if mission:
-            path_to_mission = '../../missions/%s' % mission
-            mission_resource = resource.get_resource(path_to_mission, soft=True)
-            if mission_resource is None:
-                # FIXME infinite cycle
-                return context.come_back(ERROR(u'Mission not found'), goto=';main')
-            edit_mission = mission_resource.edit.GET(mission_resource, context)
-
-        namespace = {
-            'title': title,
-            'edit': edit,
-            'view_missions': view_missions,
-            'edit_mission': edit_mission }
-        return namespace
-
-
-
-class PMission_NewInstance(Prospect_Main):
-    """ Display edit form and missions below of it in addition to mission form.
-    """
-    title = MSG(u'New mission')
-    template = '/ui/crm/Mission_new.xml'
-
-    subviews = [Prospect_EditForm(),
-                Prospect_ViewMissions(),
-                PMission_NewInstanceForm()]
-
-    query_schema = {}
-
-
-    def get_namespace(self, resource, context):
-        title = self.get_prospect_title(resource, context)
-        edit = Prospect_EditForm().GET(resource, context)
-        view_missions = Prospect_ViewMissions().GET(resource, context)
-        new_mission = PMission_NewInstanceForm().GET(resource, context)
-
-        return {
-            'title': title,
-            'edit': edit,
-            'view_missions': view_missions,
-            'new_mission': new_mission}
 
 
 ############
@@ -1181,6 +1098,7 @@ class Mission_EditForm(AutoForm):
             for prospect in prospects:
                 prospect = crm.get_resource('prospects/%s' % prospect)
                 context.server.change_resource(prospect)
+        context.message = MSG_CHANGES_SAVED
 
 
 
@@ -1290,187 +1208,6 @@ class Mission_Add(Mission_View):
             'view_comments': None,
             'view_prospects': None }
         return namespace
-
-
-############
-# PMission #
-###########################################################################
-
-class PMission_EditForm(DBResource_Edit):
-
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Edit mission')
-    template = '/ui/crm/Mission_edit_form.xml'
-    required_msg = MSG(u' ')
-
-    query_schema = {
-        'm_title': Unicode,
-        'm_description': Unicode,
-        'm_amount': Decimal,
-        'm_probability': Integer,
-        'm_deadline': Date,
-        'm_status': MissionStatus,
-        'm_comment': Unicode,
-        'file': String,
-        'alert_date': Date,
-        'alert_time': Time}
-
-    def get_schema(self, resource, context):
-        # m_title and m_comment are mandatory
-        return merge_dicts(self.query_schema,
-                           m_title=Unicode(mandatory=True),
-                           m_comment=Unicode(mandatory=True))
-
-    widgets = [
-        TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
-        TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
-        TextWidget('m_probability', title=MSG(u'Probability'), default='',
-                   size=2),
-        DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
-        SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
-            has_empty_option=False),
-        MultilineWidget('m_comment', title=MSG(u'Comment'), default='',
-                        rows=3),
-        TextWidget('file', title=MSG(u'Attachement'), default=''),
-        DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
-        TimeWidget('alert_time', title=MSG(u'at'))]
-
-
-    def get_value(self, resource, context, name, datatype):
-        # Always reset m_comment
-        if name == 'm_comment':
-            return ''
-        value = resource.get_value(name)
-        return value if value is not None else datatype.default
-
-
-    def _get_form(self, resource, context):
-        """ Alert is valid only if date AND time are filled.
-        """
-        form = STLForm._get_form(self, resource, context)
-        alert_date = form.get('alert_date', None)
-        alert_time = form.get('alert_time', None)
-        # Alerts with time but without date are forbidden
-        if alert_time and not alert_date:
-            raise FormError, MSG_MISSING_OR_INVALID
-        return form
-
-
-    def on_form_error(self, resource, context):
-        """ Get back to prospect main view on current mission with error
-            message.
-        """
-        message = format_error_message(context, self.get_widgets(resource,
-                                                                 context))
-        path_to_prospect = context.get_link(resource.parent)
-        goto = '%s/;main?mission=%s' % (path_to_prospect, resource.name)
-        return context.come_back(message, goto)
-
-
-    def get_namespace(self, resource, context):
-        """ Force reinitialization of comment field to '' after a POST.
-        """
-        namespace = DBResource_Edit.get_namespace(self, resource, context)
-        submit = (context.request.method == 'POST')
-
-        # Modify widgets namespace to change template
-        for index, widget in enumerate(namespace['widgets']):
-            name = self.get_widgets(resource, context)[index].name
-            # Reset comment
-            if submit and name == 'm_comment':
-                widget['value'] = ''
-                comment_widget = MultilineWidget('m_comment',
-                                     title=MSG(u'Comment'), rows=3)
-                widget['widget'] = comment_widget.to_html(Unicode, u'')
-            namespace[name] = widget
-        namespace['action'] = '%s/;edit_form' % context.get_link(resource)
-        return namespace
-
-
-    def action(self, resource, context, form):
-        title = form['m_title']
-        description = form.get('m_description', '')
-        amount = form.get('m_amount', '')
-        probability = form.get('m_probability', '')
-        deadline = form.get('m_deadline', '')
-        status = form['m_status']
-        comment = form['m_comment']
-        alert_date = form.get('alert_date', None)
-        alert_time = form.get('alert_time', None)
-
-        # Attachement
-        file = form.get('file', '')
-        if file:
-            # Upload
-            filename, mimetype, body = file
-            # Find a non used name
-            name = checkid(filename)
-            name, extension, language = FileName.decode(name)
-            name = igenerate_name(name, resource.get_names())
-            # Add attachement
-            cls = get_resource_class(mimetype)
-            cls.make_resource(cls, resource, name, body=body, filename=filename,
-                            extension=extension, format=mimetype)
-            file = name
-        # Alert datetime
-        alert_datetime = None
-        if alert_date:
-            # Default alert time: 9:00
-            alert_time = alert_time or time(9,0)
-            alert_datetime = datetime.combine(alert_date, alert_time)
-
-        # FIXME
-        # Save metadata
-        resource.set_property('m_title', title)
-        resource.set_property('m_description', description)
-        resource.set_property('m_amount', amount)
-        resource.set_property('m_probability', probability)
-        resource.set_property('m_deadline', deadline)
-        resource.set_property('m_status', status)
-
-        # FIXME
-        # Add first comment
-        comments = resource.get_resource('comments')
-        record = {'comment': comment}
-        if file:
-            record['file'] = file
-        if alert_datetime:
-            record['alert_datetime'] = alert_datetime
-        comments.handler.add_record(record)
-
-        # FIXME
-        # Reindex prospect to update p_assured and p_probable
-        context.server.change_resource(resource.parent)
-
-        prospect = resource.get_property('m_prospect')
-        mission = resource.name
-        goto = '../../prospects/%s/;main?mission=%s' % (prospect, mission)
-        return context.come_back(MSG_CHANGES_SAVED, goto)
-
-
-
-class PMission_Edit(CompositeForm):
-    """ Display edit form and comments below of it.
-    """
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Edit mission')
-    template = '/ui/crm/Mission_edit.xml'
-
-    subviews = [PMission_EditForm(), Comments_View()]
-
-    def get_action_method(self, resource, context):
-        return PMission_EditForm.action
-
-
-    def get_namespace(self, resource, context):
-        title = resource.get_property('m_title')
-        edit = PMission_EditForm().GET(resource, context)
-        view_comments = Comments_View().GET(resource, context)
-        return {
-            'title': title,
-            'edit': edit,
-            'view_comments': view_comments}
 
 
 
@@ -1613,8 +1350,7 @@ class CRM_Alerts(SearchForm):
         for doc in documents:
             mission = resource.get_resource(doc.abspath)
             # Check access FIXME should be done in catalog
-            prospect = mission.parent
-            if not prospect.is_allowed_to_view(user, prospect):
+            if not mission.is_allowed_to_view(user, mission):
                 continue
             # Get alert
             comments_handler = mission.get_resource('comments').handler
@@ -1632,7 +1368,7 @@ class CRM_Alerts(SearchForm):
     def get_item_value(self, resource, context, item, column):
         alert_datetime, comment, mission, comment_id = item
         if column == 'checkbox':
-            prospect_name = mission.parent.name
+            prospect_name = mission.get_value('m_prospect')[0]
             alert_id = '%s__%s__%d' % (prospect_name, mission.name, comment_id)
             # checkbox
             return alert_id, False
@@ -1648,26 +1384,27 @@ class CRM_Alerts(SearchForm):
             if path_to_icon.startswith(';'):
                 name = resource.name
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
+            href = 'missions/%s' % mission.name
             return path_to_icon
         elif column in ('p_lastname', 'p_firstname'):
-            prospect = mission.parent
-            value = prospect.get_property(column)
-            if prospect.is_allowed_to_edit(context.user, mission):
+            prospect = mission.get_value('m_prospect')[0]
+            prospect = resource.get_resource('prospects/%s' % prospect)
+            value = prospect.get_value(column)
+            if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(prospect)
                 return value, href
             return value
         elif column == 'p_company':
-            prospect = mission.parent
-            company_name = prospect.get_property(column)
-            company = resource.get_resource('companies/%s' % company_name)
+            prospect = mission.get_value('m_prospect')[0]
+            prospect = resource.get_resource('prospects/%s' % prospect)
+            company_name = prospect.get_value(column)
+            company = mission.get_resource('../../companies/%s' % company_name)
             title = company.get_title()
             return title
         elif column == 'm_title':
-            value = mission.get_property(column)
-            prospect = mission.parent
-            if prospect.is_allowed_to_edit(context.user, mission):
-                href = context.get_link(prospect)
-                href = '%s/;main?mission=%s' % (href, mission.name)
+            value = mission.get_value(column)
+            if mission.is_allowed_to_edit(context.user, mission):
+                href = context.get_link(mission)
                 return value, href
             return value
         elif column == 'alert_date':

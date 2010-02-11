@@ -8,6 +8,8 @@
     <tbody>
       <tr>
         <td id="mission-edit">${edit}</td>
+        <td id="comments-view" rowspan="2">
+          ${view_comments}</td>
       </tr>
       <tr>
         <td id="view-missions">

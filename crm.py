@@ -475,6 +475,7 @@ class Prospect(CRMFolder):
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
     view = Prospect_View()
+    view_comments = Comments_View()
     search_missions = Prospect_SearchMissions()
     view_missions = Prospect_ViewMissions()
 
