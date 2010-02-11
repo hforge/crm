@@ -461,7 +461,7 @@ class Prospect(CRMFolder):
         return mission[0].name
 
 
-    def get_title(self):
+    def get_title(self, language=None):
         lastname = self.get_value('p_lastname')
         firstname = self.get_value('p_firstname')
         company = self.get_value('p_company') or ''

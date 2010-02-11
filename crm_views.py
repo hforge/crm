@@ -185,6 +185,22 @@ def format_error_message(context, widgets):
     return ERROR(message)
 
 
+def get_form_values(form):
+    values = {}
+    for key, value in form.iteritems():
+        if not value:
+            continue
+        if key == 'file' and str(value) == '.':
+            continue
+        if key == 'alert_date':
+            value_time = form.get('alert_time', None) or time(9, 0)
+            value = datetime.combine(value, value_time)
+            values['alert_datetime'] = value
+        elif key != 'alert_time':
+            values[key] = value
+    return values
+
+
 ############
 # Comments #
 ###########################################################################
@@ -428,15 +444,6 @@ class Company_EditForm(AutoForm):
         return value if value is not None else datatype.default
 
 
-    def get_values(self, resource, context, form):
-        values = {}
-        for key, value in form.iteritems():
-            if value is None:
-                continue
-            values[key] = value
-        return values
-
-
     def get_namespace(self, resource, context):
         # Load crm css
         context.add_style('/ui/crm/style.css')
@@ -446,7 +453,7 @@ class Company_EditForm(AutoForm):
 
 
     def action(self, resource, context, form):
-        values = self.get_values(self, resource, context, form)
+        values = get_form_values(form)
         resource.update(values)
         context.message = MSG_CHANGES_SAVED
 
@@ -471,7 +478,7 @@ class Company_AddForm(Company_EditForm):
 
 
     def action(self, resource, context, form):
-        values = self.get_values(resource, context, form)
+        values = get_form_values(form)
         name = resource.add_company(values)
         goto = '../prospects/;new_prospect?p_company=%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto)
@@ -898,49 +905,33 @@ class Prospect_EditForm(AutoForm):
     def get_value(self, resource, context, name, datatype):
         if name in self.get_query_schema():
             value = context.query[name]
-            if value is not None:
+            if value:
                 return context.query[name]
+        if name == 'comment':
+            return u''
         value = resource.get_value(name)
         return value if value is not None else datatype.default
 
 
-##    def on_form_error(self, resource, context):
-##        """ Go to main view instead of staying on edit_form.
-##        """
-##        # FIXME hack to get default query values for view_missions
-##        query = context.query
-##        query['batch_start'] = query.get('batch_start', 0)
-##        query['batch_size'] = query.get('batch_size', 10)
-##        query['sort_by'] = query.get('sort_by', 'mtime')
-##        query['reverse'] = query.get('reverse', False)
-##
-##        message = format_error_message(context, self.get_widgets(resource,
-##                                                                 context))
-##        context.message = message
-##        return resource.main.GET
-##
-##
     def get_namespace(self, resource, context):
         # Load crm css
         context.add_style('/ui/crm/style.css')
-
+        # Build namespace
         namespace = AutoForm.get_namespace(self, resource, context)
+
+        # Force reinitialization of comment field to '' after a POST.
+        if (context.request.method != 'POST'):
+            return namespace
+        for index, widget in enumerate(namespace['widgets']):
+            if widget['name'] == 'comment':
+                comment_widget = MultilineWidget('comment',
+                    title=MSG(u'New comment'), rows=3)
+                widget['widget'] = comment_widget.to_html(Unicode, u'')
         return namespace
 
 
     def action(self, resource, context, form):
-        values = {}
-        for key, value in form.iteritems():
-            if not value:
-                continue
-            if key == 'file' and str(value) == '.':
-                continue
-            if key == 'alert_date':
-                value_time = form.get('alert_time', None) or time(9, 0)
-                value = datetime.combine(value, value_time)
-                values['alert_datetime'] = value
-            elif key != 'alert_time':
-                values[key] = value
+        values = get_form_values(form)
         resource.update(values)
         context.message = MSG_CHANGES_SAVED
 
@@ -1058,24 +1049,23 @@ class Mission_EditForm(AutoForm):
     ##    return namespace
 
 
-    def get_values(self, form):
-        values = {}
-        for key, value in form.iteritems():
-            if not value:
-                continue
-            if key == 'file' and str(value) == '.':
-                continue
-            if key == 'alert_date':
-                value_time = form.get('alert_time', None) or time(9, 0)
-                value = datetime.combine(value, value_time)
-                values['alert_datetime'] = value
-            elif key != 'alert_time':
-                values[key] = value
-        return values
+    def get_namespace(self, resource, context):
+        # Build namespace
+        namespace = AutoForm.get_namespace(self, resource, context)
+
+        # Force reinitialization of comment field to '' after a POST.
+        if (context.request.method != 'POST'):
+            return namespace
+        for index, widget in enumerate(namespace['widgets']):
+            if widget['name'] == 'comment':
+                comment_widget = MultilineWidget('comment',
+                    title=MSG(u'New comment'), rows=3)
+                widget['widget'] = comment_widget.to_html(Unicode, u'')
+        return namespace
 
 
     def action(self, resource, context, form):
-        values = self.get_values(form)
+        values = get_form_values(form)
         resource.update(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
@@ -1120,7 +1110,7 @@ class Mission_AddForm(Mission_EditForm):
 
 
     def action(self, resource, context, form):
-        values = self.get_values(form)
+        values = get_form_values(form)
         name = resource.add_mission(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
