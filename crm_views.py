@@ -125,6 +125,15 @@ mission_widgets = [
     TextWidget('m_nextaction', title=MSG(u'Next action')) ]
 
 
+p_status_icons = {
+    'lead': '/ui/crm/images/status_yellow.gif',
+    'client': '/ui/crm/images/status_green.gif',
+    'dead': '/ui/crm/images/status_gray.gif' }
+m_status_icons = {
+    'opportunity': '/ui/crm/images/status_yellow.gif',
+    'project': '/ui/crm/images/status_green.gif',
+    'nogo': '/ui/crm/images/status_gray.gif' }
+
 def get_crm(resource):
     cls_crm = get_resource_class('crm')
     crm = resource
@@ -249,7 +258,6 @@ class CRM_SearchProspects(SearchForm):
         ('p_phone', MSG(u'Phone'), False),
         ('p_mobile', MSG(u'mobile'), False),
         ('p_position', MSG(u'Position'), False),
-        ('p_status', MSG(u'Status'), False),
         ('p_opportunity', MSG(u'Opp.'), True),
         ('p_project', MSG(u'Proj.'), True),
         ('p_nogo', MSG(u'NoGo'), True),
@@ -302,17 +310,14 @@ class CRM_SearchProspects(SearchForm):
         elif column == 'probable':
             value = item_brain.p_probable
             return format_amount(value)
-        if column == 'icon':
-            # icon
-            path_to_icon = item_resource.get_resource_icon(16)
-            if path_to_icon.startswith(';'):
-                name = item_brain.name
-                path_to_icon = resolve_uri('%s/' % name, path_to_icon)
-            return path_to_icon
         get_value = item_resource.get_value
-        crm = get_crm(resource)
-        if column == 'p_company':
+        if column == 'icon':
+            # Status
+            value = get_value('p_status')
+            return p_status_icons[value]
+        elif column == 'p_company':
             company = get_value(column)
+            crm = get_crm(resource)
             company_resource = crm.get_resource('companies/%s' % company)
             href = context.get_link(company_resource)
             title = company_resource.get_title()
@@ -331,10 +336,6 @@ class CRM_SearchProspects(SearchForm):
             value = get_value(column)
             href = 'mailto:%s' % value
             return value, href
-        elif column == 'p_status':
-            # Status
-            value = get_value(column)
-            return ProspectStatus.get_value(value)
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
@@ -726,7 +727,6 @@ class Prospect_SearchMissions(SearchForm):
     table_columns = [
         ('icon', None, False),
         ('title', MSG(u'Title'), True),
-        ('status', MSG(u'Status'), False),
         ('next_action', MSG(u'Next action'), False),
         ('mtime', MSG(u'Last Modified'), True),
         ('amount', MSG(u'Amount'), False),
@@ -780,16 +780,13 @@ class Prospect_SearchMissions(SearchForm):
         if column == 'checkbox':
             # checkbox
             return item_brain.name, False
-        if column == 'icon':
-            # icon
-            path_to_icon = item_resource.get_resource_icon(16)
-            if path_to_icon.startswith(';'):
-                name = item_brain.name
-                path_to_icon = resolve_uri('%s/' % name, path_to_icon)
-            return path_to_icon
-        # FIXME
         get_value = item_resource.get_value
-        if column == 'title':
+        if column == 'icon':
+            # Status
+            value = get_value('m_status')
+            return m_status_icons[value]
+        # FIXME
+        elif column == 'title':
             # Title
             return get_value('m_title'), context.get_link(item_resource)
         elif column == 'status':
@@ -848,7 +845,6 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
     search_template = None
     search_schema = {}
     search_fields = []
-    table_columns = Prospect_SearchMissions.table_columns[1:]
 
     def get_search_namespace(self, resource, context):
         return {}
