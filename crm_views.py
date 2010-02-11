@@ -56,29 +56,30 @@ ALERT_ICON_GREEN = '1240913156_bell_go.png'
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert ?""")
 
 
-prospect_schema = {
-    'p_company': CompanyName(),
-    'p_lastname': Unicode(mandatory=True),
-    'p_firstname': Unicode,
-    'p_phone': Unicode,
-    'p_mobile': Unicode,
-    'p_email': Email,
-    'p_description': Unicode,
-    'p_position': Unicode,
-    'p_status': ProspectStatus(mandatory=True),
-    'comment': Unicode }
-
 company_schema = {
-    # TODO Append a link to company aside select list
-    'c_title': Unicode(mandatory=True),
-    'c_address_1': Unicode,
-    'c_address_2': Unicode,
-    'c_zipcode': String,
-    'c_town': Unicode,
-    # XXX Country should be CountryName (listed)
-    'c_country': Unicode,
-    'c_phone': Unicode,
-    'c_fax': Unicode}
+    'c_title': Unicode,
+    'c_address_1': Unicode, 'c_address_2': Unicode,
+    # TODO Country should be CountryName (listed)
+    'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
+    'c_phone': Unicode, 'c_fax': Unicode }
+
+company_widgets = [
+    TextWidget('c_title', title=MSG(u'Title')),
+    TextWidget('c_address_1', title=MSG(u'Address')),
+    TextWidget('c_address_2', title=MSG(u'Address (next)')),
+    TextWidget('c_zipcode', title=MSG(u'Zip Code'), size=10),
+    TextWidget('c_town', title=MSG(u'Town')),
+    TextWidget('c_country', title=MSG(u'Country')),
+    TextWidget('c_phone', title=MSG(u'Phone'), size=15),
+    TextWidget('c_fax', title=MSG(u'Fax'), size=15) ]
+
+
+prospect_schema = {
+    'p_company': CompanyName,
+    'p_lastname': Unicode, 'p_firstname': Unicode,
+    'p_phone': Unicode, 'p_mobile': Unicode, 'p_email': Email,
+    'p_description': Unicode, 'p_position': Unicode,
+    'p_status': ProspectStatus, 'comment': Unicode }
 
 prospect_widgets = [
     SelectCompanyWidget('p_company', title=MSG(u'Company')),
@@ -99,12 +100,12 @@ prospect_widgets = [
 
 mission_schema = {
     # First mission
-    'm_title': Unicode(mandatory=True),
-    'm_description': Unicode,
-    'm_amount': Decimal,
-    'm_probability': Integer,
-    'm_deadline': Date,
-    'm_status': MissionStatus(mandatory=True)}
+    'm_title': Unicode, 'm_description': Unicode,
+    'm_amount': Decimal, 'm_probability': Integer,
+    'm_deadline': Date, 'm_status': MissionStatus,
+    'comment': Unicode, 'file': PathDataType,
+    'alert_date': Date, 'alert_time': Time,
+    'm_nextaction': Unicode}
 
 mission_widgets = [
     # First mission
@@ -115,7 +116,14 @@ mission_widgets = [
                size=2),
     DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
     SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
-                has_empty_option=False)]
+                has_empty_option=False),
+    MultilineWidget('comment', title=MSG(u'New comment'), default='',
+                    rows=3),
+    PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
+    DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
+    TimeWidget('alert_time', title=MSG(u'at')),
+    TextWidget('m_nextaction', title=MSG(u'Next action')) ]
+
 
 def get_crm(resource):
     cls_crm = get_resource_class('crm')
@@ -228,11 +236,9 @@ class CRM_SearchProspects(SearchForm):
     search_schema = {
         'search_field': String,
         'search_term': Unicode,
-        'p_status': ProspectStatus(multiple=True),
-    }
+        'p_status': ProspectStatus(multiple=True), }
     search_fields =  [
-        ('text', MSG(u'Text')),
-    ]
+        ('text', MSG(u'Text')), ]
 
     table_columns = [
         ('icon', None, False),
@@ -393,7 +399,6 @@ class CRM_SearchProspects(SearchForm):
         return namespace
 
 
-
 ###########
 # Company #
 ###########################################################################
@@ -404,27 +409,17 @@ class Company_EditForm(AutoForm):
     title = MSG(u'Edit company')
     required_msg = MSG(u' ')
 
-    query_schema = schema = {
-        'c_title': Unicode(mandatory=True),
-        'c_address_1': Unicode, 'c_address_2': Unicode,
-        'c_zipcode': String, 'c_town': Unicode,
-        'c_country': Unicode,
-        'c_phone': Unicode, 'c_fax': Unicode }
-
-    widgets = [
-        TextWidget('c_title', title=MSG(u'Title')),
-        TextWidget('c_address_1', title=MSG(u'Address')),
-        TextWidget('c_address_2', title=MSG(u'Address (next)')),
-        TextWidget('c_zipcode', title=MSG(u'Zip Code'), size=10),
-        TextWidget('c_town', title=MSG(u'Town')),
-        TextWidget('c_country', title=MSG(u'Country')),
-        TextWidget('c_phone', title=MSG(u'Phone'), size=15),
-        TextWidget('c_fax', title=MSG(u'Fax'), size=15) ]
-
-
     def get_query_schema(self):
-        # c_title mandatory only into form
-        return merge_dicts(self.query_schema, c_title=Unicode)
+        return company_schema.copy()
+
+
+    def get_schema(self, resource, context):
+        # c_title mandatory into form
+        return merge_dicts(company_schema, c_title=Unicode(mandatory=True))
+
+
+    def get_widgets(self, resource, context):
+        return company_widgets[:]
 
 
     def get_value(self, resource, context, name, datatype):
@@ -533,15 +528,18 @@ class Prospect_AddForm(AutoForm):
     required_msg = MSG(u' ')
 
 
-    def get_schema(self, resource, context):
-        return merge_dicts(prospect_schema, company_schema, mission_schema,
-            c_title=Unicode)
-
-
     def get_query_schema(self):
-        return merge_dicts(prospect_schema, mission_schema,
-            c_title=Unicode, p_lastname=Unicode, p_status=ProspectStatus,
-            m_title=Unicode, m_description=Unicode, m_status=MissionStatus)
+        return merge_dicts(prospect_schema, mission_schema)
+
+
+    def get_schema(self, resource, context):
+        # p_lastname, p_status, m_title, m_status are mandatory
+        schema = {
+            'p_lastname': Unicode(mandatory=True),
+            'p_status': ProspectStatus(mandatory=True),
+            'm_title': Unicode(mandatory=True),
+            'm_status': MissionStatus(mandatory=True) }
+        return merge_dicts(prospect_schema, mission_schema, schema)
 
 
     def get_widgets(self, resource, context):
@@ -615,6 +613,7 @@ class Prospect_AddForm(AutoForm):
 
 
 
+# XXX TO REMOVE
 class PMission_NewInstanceForm(NewInstance):
 
     access = 'is_allowed_to_add'
@@ -883,8 +882,16 @@ class Prospect_EditForm(AutoForm):
     required_msg = MSG(u' ')
 
 
+    def get_query_schema(self):
+        return prospect_schema.copy()
+
+
     def get_schema(self, resource, context):
-        return merge_dicts(prospect_schema)
+        # p_lastname, p_status, are mandatory
+        schema = {
+            'p_lastname': Unicode(mandatory=True),
+            'p_status': ProspectStatus(mandatory=True) }
+        return merge_dicts(prospect_schema, schema)
 
 
     def get_widgets(self, resource, context):
@@ -977,34 +984,20 @@ class Mission_EditForm(AutoForm):
 #    template = '/ui/crm/Mission_edit_form.xml'
     required_msg = MSG(u' ')
 
-    query_schema = {
-        'm_title': Unicode, 'm_description': Unicode,
-        'm_amount': Decimal, 'm_probability': Integer,
-        'm_deadline': Date, 'm_status': MissionStatus,
-        'comment': Unicode, 'file': PathDataType,
-        'alert_date': Date, 'alert_time': Time,
-        'm_nextaction': Unicode}
-
-    widgets = [
-        TextWidget('m_title', title=MSG(u'Title')),
-        MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
-        TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
-        TextWidget('m_probability', title=MSG(u'Probability'), default='',
-                   size=2),
-        DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
-        SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
-            has_empty_option=False),
-        MultilineWidget('comment', title=MSG(u'New comment'), default='',
-                        rows=3),
-        PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
-        DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
-        TimeWidget('alert_time', title=MSG(u'at')),
-        TextWidget('m_nextaction', title=MSG(u'Next action')) ]
+    def get_query_schema(self):
+        return mission_schema.copy()
 
 
     def get_schema(self, resource, context):
-        # m_title is mandatory
-        return merge_dicts(self.query_schema, m_title=Unicode(mandatory=True))
+        # m_title, m_status are mandatory
+        schema = {
+            'm_title': Unicode(mandatory=True),
+            'm_status': MissionStatus(mandatory=True) }
+        return merge_dicts(mission_schema, schema)
+
+
+    def get_widgets(self, resource, context):
+        return mission_widgets[:]
 
 
     def get_value(self, resource, context, name, datatype):
@@ -1106,11 +1099,24 @@ class Mission_AddForm(Mission_EditForm):
 
     title = MSG(u'New mission')
 
-    query_schema = merge_dicts(Mission_EditForm.query_schema,
-        m_prospect=ProspectName)
 
-    widgets = [SelectWidget('m_prospect', title=MSG(u'Prospect'),
-        mandatory=True)] + Mission_EditForm.widgets[:]
+    def get_query_schema(self):
+        return merge_dicts(mission_schema,
+                           m_prospect=ProspectName(mandatory=True))
+
+
+    def get_schema(self, resource, context):
+        # m_title, m_status are mandatory
+        schema = {
+            'm_title': Unicode(mandatory=True),
+            'm_status': MissionStatus(mandatory=True),
+            'm_prospect': ProspectName(mandatory=True)}
+        return merge_dicts(mission_schema, schema)
+
+
+    def get_widgets(self, resource, context):
+        return ([SelectWidget('m_prospect', title=MSG(u'Prospect'),
+            mandatory=True)] + prospect_widgets[:] + mission_widgets[:])
 
 
     def get_value(self, resource, context, name, datatype):
