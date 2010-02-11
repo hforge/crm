@@ -42,6 +42,7 @@ from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
 from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from crm_views import Mission_View, Mission_ViewProspects
+from crm_views import Mission_ViewProspect
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_ExportToCSV
 from datatypes import MissionStatus, ProspectStatus
@@ -670,6 +671,7 @@ class Missions(Folder):
 
     add_form = Mission_AddForm()
     new_mission = Mission_Add()
+    view_prospect = Mission_ViewProspect()
 
 
 ###################################

@@ -34,6 +34,7 @@ from itools.xapian import AndQuery, OrQuery, PhraseQuery
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
 from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
+from ikaaro.forms import HiddenWidget
 from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
@@ -944,8 +945,8 @@ class Mission_AddForm(Mission_EditForm):
 
     title = MSG(u'New mission')
 
-
     def get_query_schema(self):
+        # Add mandatory m_prospect to query schema
         return merge_dicts(mission_schema,
                            m_prospect=ProspectName(mandatory=True))
 
@@ -954,14 +955,8 @@ class Mission_AddForm(Mission_EditForm):
         # m_title, m_status are mandatory
         schema = {
             'm_title': Unicode(mandatory=True),
-            'm_status': MissionStatus(mandatory=True),
-            'm_prospect': ProspectName(mandatory=True)}
+            'm_status': MissionStatus(mandatory=True) }
         return merge_dicts(mission_schema, schema)
-
-
-    def get_widgets(self, resource, context):
-        return ([SelectWidget('m_prospect', title=MSG(u'Prospect'),
-            mandatory=True)] + prospect_widgets[:] + mission_widgets[:])
 
 
     def get_value(self, resource, context, name, datatype):
@@ -969,6 +964,8 @@ class Mission_AddForm(Mission_EditForm):
 
 
     def action(self, resource, context, form):
+        # Get m_prospect from the query
+        form['m_prospect'] = context.query['m_prospect']
         values = get_form_values(form)
         name = resource.add_mission(values)
 
@@ -1020,6 +1017,16 @@ class Mission_ViewProspects(CRM_SearchProspects):
 
 
 
+class Mission_ViewProspect(Mission_ViewProspects):
+
+    def get_items(self, resource, context, *args):
+        args = list(args)
+        prospect = context.query['m_prospect']
+        args.append(PhraseQuery('name', prospect))
+        return CRM_SearchProspects.get_items(self, resource, context, *args)
+
+
+
 class Mission_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
@@ -1046,18 +1053,25 @@ class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
 
-    subviews = [Mission_AddForm(), Comments_View()]
+    subviews = [Mission_ViewProspect(), Mission_AddForm()]
+
+
+    def on_query_error(self, resource, context):
+        msg = u'Please select a valid prospect before creating a mission.'
+        return context.come_back(ERROR(msg), goto='..')
+
 
     def get_namespace(self, resource, context):
         # Load crm css
         context.add_style('/ui/crm/style.css')
 
         add = resource.add_form.GET(resource, context)
+        view_prospect = resource.view_prospect.GET(resource, context)
         namespace = {
             'title': MSG(u'New mission'),
             'edit': add,
             'view_comments': None,
-            'view_prospects': None }
+            'view_prospects': view_prospect}
         return namespace
 
 
