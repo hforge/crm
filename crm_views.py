@@ -455,7 +455,7 @@ class Company_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource.update(values)
+        resource._update(values)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -675,7 +675,7 @@ class Prospect_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource.update(values)
+        resource._update(values)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -926,7 +926,7 @@ class Mission_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource.update(values)
+        resource._update(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
         changed_keys = values.keys()

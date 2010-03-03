@@ -160,7 +160,7 @@ class CRMFolder(Folder, RoleAware):
         return value
 
 
-    def update(self, values):
+    def _update(self, values):
         """ Add a new record with new comment or update the last record."""
         comments_handler = self.get_resource('comments').handler
         comment = values.get('comment') or None
@@ -463,14 +463,18 @@ class Prospect(CRMFolder):
 
 
     def get_title(self, language=None):
-        lastname = self.get_value('p_lastname')
-        firstname = self.get_value('p_firstname')
-        company = self.get_value('p_company') or ''
-        if company:
-            company = self.get_resource('../../companies/%s' % company,
-                                            soft=True)
-            company =  u' (%s)' % company.get_title() if company else ''
-        return '%s %s%s' % (lastname, firstname, company)
+        # XXX TODO Remove try except once migrated
+        try:
+            lastname = self.get_value('p_lastname')
+            firstname = self.get_value('p_firstname')
+            company = self.get_value('p_company') or ''
+            if company:
+                company = self.get_resource('../../companies/%s' % company,
+                                                soft=True)
+                company =  u' (%s)' % company.get_title() if company else ''
+            return '%s %s%s' % (lastname, firstname, company)
+        except LookupError:
+            return self.name
 
 
     edit_mission = Mission_EditForm()
@@ -685,7 +689,7 @@ class CRM(Folder):
         - addresses (companies and prospects)
     """
     class_id = 'crm'
-    class_version = '20100123'
+    class_version = '20100201'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
@@ -755,18 +759,18 @@ class CRM(Folder):
     def update_20100122(self):
         """ Move prospects into new folder "prospects". """
         Prospects.make_resource(Prospects, self, 'prospects')
+##
+##        names = []
+##        for prospect in self.get_resources():
+##            if not isinstance(prospect, Prospect):
+##                continue
+##            name = prospect.name
+##            new_name = generate_name(names, 'p%06d')
+##            self.move_resource(name, 'prospects/%s' % new_name)
+##            names.append(new_name)
 
-        names = []
-        for prospect in self.get_resources():
-            if not isinstance(prospect, Prospect):
-                continue
-            name = prospect.name
-            new_name = generate_name(names, 'p%06d')
-            self.move_resource(name, 'prospects/%s' % new_name)
-            names.append(new_name)
 
-
-    def update_20100123(self):
+    def update_20100201(self):
         """ Move missions into new folder "missions"
             Save prospect as a property
             Rename missions to prevent conflicts
