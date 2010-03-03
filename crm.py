@@ -29,7 +29,9 @@ from itools.web import get_context
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
-from ikaaro.registry import register_field, register_resource_class
+from ikaaro.folder_views import Folder_BrowseContent
+from ikaaro.forms import TextWidget
+from ikaaro.registry import register_field
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
 
@@ -51,7 +53,7 @@ from utils import generate_name
 class CommentsTableFile(TableFile):
     """ Base comments table used by Company, Prospect and Mission.
     """
-    record_schema = {'comment': Unicode(mandatory=True),
+    record_properties = {'comment': Unicode(mandatory=True),
                      'alert_datetime': DateTime,
                      'file': PathDataType }
 
@@ -61,7 +63,7 @@ class CommentsTableFile(TableFile):
         """
         last_record = self.get_record(-1)
         values_keys = values.keys()
-        for key in self.record_schema.keys():
+        for key in self.record_properties.keys():
             if key in ('file', 'alert_datetime'):
                 continue
             if key not in values_keys:
@@ -85,7 +87,7 @@ class CRMFolder(Folder, RoleAware):
         # Split kw data into metadata and record data
         values = {}
         metadata = {}
-        record_keys = cls.class_comments.class_handler.record_schema.keys()
+        record_keys = cls.class_comments.class_handler.record_properties.keys()
         for key, value in kw.iteritems():
             if key in record_keys:
                 values[key] = value
@@ -190,7 +192,7 @@ class CRMFolder(Folder, RoleAware):
 
 class MissionTableFile(CommentsTableFile):
 
-    record_schema = merge_dicts(CommentsTableFile.record_schema,
+    record_properties = merge_dicts(CommentsTableFile.record_properties,
             # Mission title and description
             m_title=Unicode, m_description=Unicode,
             # Prospect name
@@ -267,7 +269,7 @@ class Mission(CRMFolder):
 
 class ProspectTableFile(CommentsTableFile):
 
-    record_schema = merge_dicts(CommentsTableFile.record_schema,
+    record_properties = merge_dicts(CommentsTableFile.record_properties,
         p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
         p_phone=Unicode, p_mobile=Unicode, p_email=Email,
         p_position=Unicode, p_description=Unicode,
@@ -376,9 +378,9 @@ class Prospect(CRMFolder):
         crm = self.parent.parent
         parent_path = str('%s/missions' % crm.get_abspath())
         results = root.search(format='mission', parent_path=parent_path)
-        if not results.get_n_documents():
-            return None
         mission = results.get_documents(sort_by='mtime', reverse=True)
+        if not len(results):
+            return None
         return mission[0].name
 
 
@@ -407,7 +409,7 @@ class Prospect(CRMFolder):
 
 class CompanyTableFile(CommentsTableFile):
 
-    record_schema = merge_dicts(CommentsTableFile.record_schema,
+    record_properties = merge_dicts(CommentsTableFile.record_properties,
         c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
         c_zipcode=String, c_town=Unicode, c_country=Unicode,
         c_phone=Unicode, c_fax=Unicode)
@@ -556,16 +558,6 @@ class CRM(Folder):
         title=MSG(u'New company'))
 
 
-register_resource_class(CompanyTable)
-register_resource_class(Company)
-register_resource_class(Companies)
-register_resource_class(CRM)
-register_resource_class(MissionTable)
-register_resource_class(Mission)
-register_resource_class(Missions)
-register_resource_class(ProspectTable)
-register_resource_class(Prospect)
-register_resource_class(Prospects)
 # Mission fields
 register_field('m_prospect', String(is_indexed=True, multiple=True))
 register_field('m_status', String(is_indexed=True))

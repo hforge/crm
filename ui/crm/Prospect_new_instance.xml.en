@@ -157,7 +157,7 @@
     </table>
   </fieldset>
   <p stl:if="submit_value">
-    <input type="submit" value="${submit_value}" class="${submit_class}" />
+    <button type="submit" class="${submit_class}">${submit_value}</button>
   </p>
   <script language="javascript">
       crm_main('${p_company/name}', '${first_widget}');

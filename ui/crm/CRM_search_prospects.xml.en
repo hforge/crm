@@ -40,7 +40,8 @@
         For Excel (Encoding: CP1252, Separator: ";")
       </label>
       <br/><br/>
-      <input type="submit" name=";export_to_csv" class="button-ok" value="Export" />
+      <button type="submit" name="action" value="export_to_csv"
+        class="button-ok" >Export</button>
     </fieldset>
   </form>
 </stl:block>

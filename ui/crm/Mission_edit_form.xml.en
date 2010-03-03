@@ -102,7 +102,7 @@
     </tbody>
   </table>
   <p stl:if="submit_value">
-    <input type="submit" value="Update mission" class="${submit_class}" />
+    <button type="submit" class="${submit_class}">Update mission</button>
   </p>
   <script language="javascript">
     $("#${first_widget}").focus();

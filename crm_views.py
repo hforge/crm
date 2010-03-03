@@ -210,14 +210,9 @@ class Comments_View(STLView):
     access = 'is_allowed_to_view'
     title = MSG(u'Comments')
     template = '/ui/crm/Comments_view.xml'
-
+    styles = STLView.styles + ['/ui/crm/style.css', '/ui/tracker/style.css']
 
     def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-        # Load tracker css
-        context.add_style('/ui/tracker/style.css')
-
         comments_handler = resource.get_resource('comments').handler
         get_record_value = comments_handler.get_record_value
 
@@ -257,6 +252,7 @@ class CRM_SearchProspects(SearchForm):
     title = MSG(u'Search')
     search_template = '/ui/crm/CRM_search.xml'
     template = '/ui/crm/CRM_search_prospects.xml'
+    styles = SearchForm.styles + ['/ui/crm/style.css']
 
     search_schema = {
         'search_field': String,
@@ -400,9 +396,6 @@ class CRM_SearchProspects(SearchForm):
 
 
     def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
         self.assured = decimal('0.0')
         self.probable = decimal('0.0')
         namespace = SearchForm.get_namespace(self, resource, context)
@@ -428,6 +421,7 @@ class Company_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit company')
     required_msg = MSG(u' ')
+    styles = AutoForm.styles + ['/ui/crm/style.css']
 
     def get_query_schema(self):
         return company_schema.copy()
@@ -445,14 +439,6 @@ class Company_EditForm(AutoForm):
     def get_value(self, resource, context, name, datatype):
         value = resource.get_value(name)
         return value if value is not None else datatype.default
-
-
-    def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
-        namespace = AutoForm.get_namespace(self, resource, context)
-        return namespace
 
 
     def action(self, resource, context, form):
@@ -473,9 +459,6 @@ class Company_AddForm(Company_EditForm):
 
 
     def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
         namespace = AutoForm.get_namespace(self, resource, context)
         return namespace
 
@@ -539,6 +522,8 @@ class Prospect_AddForm(AutoForm):
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
     required_msg = MSG(u' ')
+    scripts = AutoForm.scripts + ['/ui/crm/javascript.js']
+    styles = AutoForm.styles + ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
@@ -588,13 +573,6 @@ class Prospect_AddForm(AutoForm):
 
 
     def get_namespace(self, resource, context):
-        # Inject specific javascript functions for CRM
-        scripts = get_context().scripts
-        scripts.append('/ui/crm/javascript.js')
-
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
         namespace = AutoForm.get_namespace(self, resource, context)
 
         # Modify widgets namespace to change template
@@ -634,6 +612,7 @@ class Prospect_EditForm(AutoForm):
     title = MSG(u'Edit prospect')
     submit_value = MSG(u'Update prospect')
     required_msg = MSG(u' ')
+    styles = AutoForm.styles + ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
@@ -668,8 +647,6 @@ class Prospect_EditForm(AutoForm):
 
 
     def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
         # Build namespace
         namespace = AutoForm.get_namespace(self, resource, context)
 
@@ -1064,8 +1041,8 @@ class Mission_View(CompositeForm):
 class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
-
     subviews = [Mission_ViewProspect(), Mission_AddForm()]
+    styles = Mission_View.styles + ['/ui/crm/style.css']
 
 
     def on_query_error(self, resource, context):
@@ -1074,9 +1051,6 @@ class Mission_Add(Mission_View):
 
 
     def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
         add = resource.add_form.GET(resource, context)
         view_prospect = resource.view_prospect.GET(resource, context)
         namespace = {
@@ -1168,6 +1142,7 @@ class CRM_Alerts(SearchForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Alerts')
     template = '/ui/crm/CRM_alerts.xml'
+    styles = SearchForm.styles + ['/ui/crm/style.css']
 
     search_schema = {
         'search_field': String,
@@ -1313,14 +1288,6 @@ class CRM_Alerts(SearchForm):
         items.extend(future)
         items.extend(past)
         return items
-
-
-    def get_namespace(self, resource, context):
-        # Load crm css
-        context.add_style('/ui/crm/style.css')
-
-        namespace = SearchForm.get_namespace(self, resource, context)
-        return namespace
 
 
     def action_remove(self, resource, context, form):
