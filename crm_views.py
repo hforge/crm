@@ -210,7 +210,7 @@ class Comments_View(STLView):
     access = 'is_allowed_to_view'
     title = MSG(u'Comments')
     template = '/ui/crm/Comments_view.xml'
-    styles = STLView.styles + ['/ui/crm/style.css', '/ui/tracker/style.css']
+    styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
 
     def get_namespace(self, resource, context):
         comments_handler = resource.get_resource('comments').handler
@@ -252,7 +252,7 @@ class CRM_SearchProspects(SearchForm):
     title = MSG(u'Search')
     search_template = '/ui/crm/CRM_search.xml'
     template = '/ui/crm/CRM_search_prospects.xml'
-    styles = SearchForm.styles + ['/ui/crm/style.css']
+    styles = ['/ui/crm/style.css']
 
     search_schema = {
         'search_field': String,
@@ -421,7 +421,7 @@ class Company_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit company')
     required_msg = MSG(u' ')
-    styles = AutoForm.styles + ['/ui/crm/style.css']
+    styles = ['/ui/crm/style.css']
 
     def get_query_schema(self):
         return company_schema.copy()
@@ -522,8 +522,8 @@ class Prospect_AddForm(AutoForm):
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
     required_msg = MSG(u' ')
-    scripts = AutoForm.scripts + ['/ui/crm/javascript.js']
-    styles = AutoForm.styles + ['/ui/crm/style.css']
+    scripts = ['/ui/crm/javascript.js']
+    styles = ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
@@ -612,7 +612,7 @@ class Prospect_EditForm(AutoForm):
     title = MSG(u'Edit prospect')
     submit_value = MSG(u'Update prospect')
     required_msg = MSG(u' ')
-    styles = AutoForm.styles + ['/ui/crm/style.css']
+    styles = ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
@@ -651,8 +651,7 @@ class Prospect_EditForm(AutoForm):
         namespace = AutoForm.get_namespace(self, resource, context)
 
         # Force reinitialization of comment field to '' after a POST.
-        if (context.request.method != 'POST'):
-            print 0, namespace
+        if (context.method != 'POST'):
             return namespace
         for index, widget in enumerate(namespace['widgets']):
             if widget['name'] == 'comment':
@@ -898,7 +897,7 @@ class Mission_EditForm(AutoForm):
     def get_namespace(self, resource, context):
         # Build namespace
         namespace = AutoForm.get_namespace(self, resource, context)
-        submit = (context.request.method == 'POST')
+        submit = (context.method == 'POST')
 
         # Modify widgets namespace to change template
         for index, widget in enumerate(namespace['widgets']):
@@ -1042,7 +1041,7 @@ class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
     subviews = [Mission_ViewProspect(), Mission_AddForm()]
-    styles = Mission_View.styles + ['/ui/crm/style.css']
+    styles = ['/ui/crm/style.css']
 
 
     def on_query_error(self, resource, context):
@@ -1142,7 +1141,7 @@ class CRM_Alerts(SearchForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Alerts')
     template = '/ui/crm/CRM_alerts.xml'
-    styles = SearchForm.styles + ['/ui/crm/style.css']
+    styles = ['/ui/crm/style.css']
 
     search_schema = {
         'search_field': String,
