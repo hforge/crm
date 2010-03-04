@@ -624,19 +624,24 @@ class Companies(Folder):
     """ Container of "company" resources. """
     class_id = 'companies'
     class_title = MSG(u'Companies')
-
+    class_version = '20100304'
     class_views = ['new_company', 'browse_content']
     class_document_types = [Company]
 
     def add_company(self, values):
         names = self.get_names()
         index = len(names)
-        name = generate_name(names, 'c%03d', index)
+        name = generate_name(names, 'c%06d', index)
         Company.make_resource(Company, self, name, **values)
         return name
 
 
     new_company = Company_AddForm()
+
+    def update_20100304(self):
+        for source in self.get_names():
+            target = 'c000%s' % source.split('c')[1]
+            self.move_resource(source, target)
 
 
 
@@ -644,7 +649,6 @@ class Prospects(Folder):
     """ Container of "prospect" resources. """
     class_id = 'prospects'
     class_title = MSG(u'Prospects')
-
     class_views = ['new_prospect', 'browse_content']
     class_document_types = [Prospect]
 
@@ -693,14 +697,10 @@ class CRM(Folder):
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['search', 'alerts', 'new_resource?type=mission',
-                   'new_resource?type=prospect', 'new_resource?type=company',
-                   'browse_content', 'edit']
-    class_document_types = [Company, Prospect, Mission]
+    class_views = ['search', 'alerts', 'browse_content', 'edit']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
                                                       'missions']
-
 
     @staticmethod
     def _make_resource(cls, folder, name, *args, **kw):
@@ -733,7 +733,7 @@ class CRM(Folder):
         companies = self.get_resource('companies')
         companies_names = companies.get_names()
         index = len(companies_names)
-        name = generate_name(companies_names, 'c%03d', index)
+        name = generate_name(companies_names, 'c%06d', index)
         Company.make_resource(Company, companies, name, **metadata)
         return name
 
