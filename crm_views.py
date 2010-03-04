@@ -27,7 +27,7 @@ from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.web import BaseView, STLView, get_context
+from itools.web import BaseView, STLView
 from itools.web import ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
@@ -210,7 +210,6 @@ class Comments_View(STLView):
     access = 'is_allowed_to_view'
     title = MSG(u'Comments')
     template = '/ui/crm/Comments_view.xml'
-    styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
 
     def get_namespace(self, resource, context):
         comments_handler = resource.get_resource('comments').handler
@@ -507,6 +506,7 @@ class Company_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
+    styles = ['/ui/crm/style.css']
 
     subviews = [Company_EditForm(), Company_ViewProspects()]
 
@@ -522,7 +522,6 @@ class Prospect_AddForm(AutoForm):
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
     required_msg = MSG(u' ')
-    scripts = ['/ui/crm/javascript.js']
     styles = ['/ui/crm/style.css']
 
 
@@ -833,6 +832,7 @@ class Prospect_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View prospect')
     template = '/ui/crm/Prospect_view.xml'
+    styles = ['/ui/crm/style.css']
 
     subviews = [Prospect_EditForm(), Prospect_ViewMissions(), Comments_View()]
 
@@ -1020,6 +1020,7 @@ class Mission_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View mission')
     template = '/ui/crm/Mission_view.xml'
+    styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
 
     subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
 
@@ -1041,7 +1042,6 @@ class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
     subviews = [Mission_ViewProspect(), Mission_AddForm()]
-    styles = ['/ui/crm/style.css']
 
 
     def on_query_error(self, resource, context):
