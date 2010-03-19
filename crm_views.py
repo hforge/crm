@@ -27,20 +27,18 @@ from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.web import BaseView, STLForm, STLView, get_context
-from itools.web import ERROR, FormError, MSG_MISSING_OR_INVALID
+from itools.web import BaseView, STLView, get_context
+from itools.web import ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
 from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
-from ikaaro.forms import HiddenWidget
-from ikaaro.forms import SelectRadio, SelectWidget, TextWidget
+from ikaaro.forms import SelectRadio, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
-from ikaaro.views_new import NewInstance
 from ikaaro.tracker.issue_views import indent
 
 # Import from here

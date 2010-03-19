@@ -49,33 +49,6 @@ from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name
 
 
-# TODO REMOVE
-class CRMAddresses(TableFile):
-
-    record_schema = {
-      'c_title': Unicode(is_indexed=True, mandatory=True),
-      'c_address_1': Unicode,
-      'c_address_2': Unicode,
-      'c_zipcode': String,
-      'c_town': Unicode,
-      'c_country': Unicode}
-
-
-# TODO REMOVE
-class Addresses(Table):
-
-    class_id = 'crm_addresses'
-    class_handler = CRMAddresses
-    form = [
-        TextWidget('c_title', title=MSG(u'Title')),
-        TextWidget('c_address_1', title=MSG(u'Address')),
-        TextWidget('c_address_2', title=MSG(u'Address (next)')),
-        TextWidget('c_zipcode', title=MSG(u'Zip Code')),
-        TextWidget('c_town', title=MSG(u'Town')),
-        TextWidget('c_country', title=MSG(u'Country')),
-    ]
-
-
 class CommentsTableFile(TableFile):
     """ Base comments table used by Company, Prospect and Mission.
     """
@@ -328,22 +301,7 @@ class Prospect(CRMFolder):
         crm = self.parent
         if not isinstance(crm, CRM):
             crm = crm.parent
-
-        # TO REMOVE after update_20100204
-        try:
-            comments_handler = self.get_resource('comments').handler
-        except LookupError:
-            p_lastname = Unicode.decode(self.get_property('p_lastname'))
-            document['p_lastname'] = p_lastname
-            p_company = self.get_property('p_company')
-            document['p_company'] = p_company
-            document['p_opportunity'] = 0
-            document['p_project'] = 0
-            document['p_nogo'] = 0
-            document['p_assured'] = 0
-            document['p_probable'] = 0
-            return document
-
+        comments_handler = self.get_resource('comments').handler
         get_value = self.get_value
 
         document['p_lastname'] = get_value('p_lastname')
@@ -381,15 +339,9 @@ class Prospect(CRMFolder):
         # Index probable amount (average missions amount by probability)
         p_assured = p_probable = decimal('0.0')
         cent = decimal('100.0')
-        # XXX To remove once every instance has been updated
-        if self.metadata.version < '20100123':
-            parent_path = str(self.get_abspath())
-            missions = self.get_root().search(format='mission',
-                                              parent_path=parent_path)
-        else:
-            parent_path = str('%s/missions' % crm.get_abspath())
-            missions = self.get_root().search(format='mission',
-                parent_path=parent_path, m_prospect=self.name)
+        parent_path = str('%s/missions' % crm.get_abspath())
+        missions = self.get_root().search(format='mission',
+            parent_path=parent_path, m_prospect=self.name)
         document['p_opportunity'] = 0
         document['p_project'] = 0
         document['p_nogo'] = 0
@@ -430,18 +382,14 @@ class Prospect(CRMFolder):
 
 
     def get_title(self, language=None):
-        # XXX TODO Remove try except once migrated
-        try:
-            lastname = self.get_value('p_lastname')
-            firstname = self.get_value('p_firstname')
-            company = self.get_value('p_company') or ''
-            if company:
-                company = self.get_resource('../../companies/%s' % company,
-                                                soft=True)
-                company =  u' (%s)' % company.get_title() if company else ''
-            return '%s %s%s' % (lastname, firstname, company)
-        except LookupError:
-            return self.name
+        lastname = self.get_value('p_lastname')
+        firstname = self.get_value('p_firstname')
+        company = self.get_value('p_company') or ''
+        if company:
+            company = self.get_resource('../../companies/%s' % company,
+                                            soft=True)
+            company =  u' (%s)' % company.get_title() if company else ''
+        return '%s %s%s' % (lastname, firstname, company)
 
 
     edit_mission = Mission_EditForm()
@@ -492,11 +440,7 @@ class Company(CRMFolder):
 
 
     def get_title(self, language=None):
-        # TO REMOVE after update_20100204
-        try:
-            comments_handler = self.get_resource('comments').handler
-        except LookupError:
-            return Unicode.decode(self.get_property('c_title'))
+        comments_handler = self.get_resource('comments').handler
         get_record_value = comments_handler.get_record_value
         last_record = comments_handler.get_record(-1)
         return get_record_value(last_record, 'c_title', language)
@@ -598,28 +542,6 @@ class CRM(Folder):
         # Missions
         Missions._make_resource(Missions, folder, '%s/missions' % name,
                                  title={'en': u'Missions', 'fr': u'Missions'})
-
-
-    # FIXME
-    def add_company(self, company_data):
-        # Add address to /addresses
-        addresses = self.get_resource('addresses')
-        record = {}
-        metadata = {}
-        for name in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
-                     'c_town', 'c_country']:
-            record[name] = company_data[name]
-        record = addresses.handler.add_record(record)
-        for name in ['c_title', 'c_phone', 'c_fax']:
-            metadata[name] = company_data[name]
-        metadata['c_address'] = record.id
-        # Get approximate index of new company
-        companies = self.get_resource('companies')
-        companies_names = companies.get_names()
-        index = len(companies_names)
-        name = generate_name(companies_names, 'c%06d', index)
-        Company.make_resource(Company, companies, name, **metadata)
-        return name
 
 
     alerts = CRM_Alerts()
