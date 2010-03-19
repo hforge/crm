@@ -281,39 +281,6 @@ class Mission(CRMFolder):
         return document
 
 
-    def update_20100204(self):
-        print '*'*30, 'MISSION', '*'*30
-        schema = {
-            'm_title': Unicode,
-            'm_description': Unicode,
-            # Prospect name
-            'm_prospect': String,
-            # How many € ?
-            'm_amount': Decimal,
-            # Probability ?
-            'm_probability': Integer,
-            # The deadline
-            'm_deadline': Date,
-            # Opportunity/Project/NoGo
-            'm_status': MissionStatus}
-        # Get properties set
-        data = {}
-        for name, datatype in schema.iteritems():
-            value = self.get_property(name)
-            if value:
-                data[name] = datatype.decode(value)
-        # Put properties set into the table
-        if data != {}:
-            mission_table_handler = self.get_resource('comments').handler
-            nb_records = mission_table_handler.get_n_records()
-            if nb_records > 0:
-                mission_table_handler.update_record(nb_records-1, **data)
-            else:
-                mission_table_handler.add_record(data)
-        # Delete properties now into table
-        for key in schema:
-            self.del_property(key)
-
     browse_content = Folder_BrowseContent(access=False)
     edit_form = Mission_EditForm()
     preview_content = None
@@ -485,40 +452,6 @@ class Prospect(CRMFolder):
     view_missions = Prospect_ViewMissions()
 
 
-    def update_20100204(self):
-        print '*'*30, 'PROSPECT', '*'*30
-        # ProspectTable (Comments)
-        table = ProspectTable.make_resource(ProspectTable, self, 'comments',
-            title={'en': u'Comments', 'fr': u'Commentaires'})
-        table_handler = table.handler
-
-        schema = {
-            'p_company': CompanyName,
-            'p_lastname': Unicode,
-            'p_firstname': Unicode,
-            'p_phone': Unicode,
-            'p_mobile': Unicode,
-            'p_email': Email,
-            'p_comment': Unicode,
-            # Lead/Client/Dead
-            'p_status': ProspectStatus}
-        # Get properties set
-        data = {}
-        for name, datatype in schema.iteritems():
-            value = self.get_property(name)
-            if value:
-                value = datatype.decode(value)
-                if name == 'p_comment':
-                    name = 'p_description'
-                data[name] = value
-        # Put properties set into the table
-        if data != {}:
-            table_handler.add_record(data)
-        # Delete properties now into table
-        for key in schema:
-            self.del_property(key)
-
-
 ###################################
 # Company                         #
 ###################################
@@ -573,50 +506,6 @@ class Company(CRMFolder):
     view = Company_View()
 
 
-    def update_20100204(self):
-        print '*'*30, 'COMPANY', '*'*30
-        # CompanyTable (Comments)
-        table = CompanyTable.make_resource(CompanyTable, self, 'comments',
-            title={'en': u'Comments', 'fr': u'Commentaires'})
-        table_handler = table.handler
-
-        schema = merge_dicts(Folder.get_metadata_schema(), c_title=Unicode,
-                             c_address=Integer)
-        addresses_handler = self.get_resource('../../addresses').handler
-        get_record_value = addresses_handler.get_record_value
-
-        # Get properties set
-        data = {}
-        for name, datatype in schema.iteritems():
-            value = self.get_property(name)
-            if value is None:
-                continue
-            if name == 'c_address':
-                record = addresses_handler.get_record(int(value))
-                for c_name in ['c_title', 'c_address_1', 'c_address_2', 'c_zipcode',
-                             'c_town', 'c_country']:
-                    c_value = get_record_value(record, c_name)
-                    if c_value:
-                        data[c_name] = c_value
-            elif name in ['title', 'description', 'subject', 'c_address_1',
-                          'c_address_2', 'c_zipcode', 'c_town', 'c_country']:
-                continue
-            else:
-                try:
-                    value = datatype.decode(value)
-                except TypeError:
-                    pass
-                data[name] = value
-        # Put properties set into the table
-        if data != {}:
-            table_handler.add_record(data)
-
-        # Delete properties now into table
-        for key in schema:
-            self.del_property(key)
-        self.del_property('c_address')
-
-
 ###################################
 # Containers                      #
 ###################################
@@ -637,11 +526,6 @@ class Companies(Folder):
 
 
     new_company = Company_AddForm()
-
-    def update_20100304(self):
-        for source in self.get_names():
-            target = 'c000%s' % source.split('c')[1]
-            self.move_resource(source, target)
 
 
 
@@ -736,63 +620,6 @@ class CRM(Folder):
         name = generate_name(companies_names, 'c%06d', index)
         Company.make_resource(Company, companies, name, **metadata)
         return name
-
-
-    def update_20090724(self):
-        addresses = self.get_resource('addresses')
-        if addresses.metadata.format != 'crm_addresses':
-            addresses.metadata.format = 'crm_addresses'
-            addresses.metadata.set_changed()
-
-
-    def update_20091230(self):
-        """ Move companies into new folder "companies". """
-        Companies.make_resource(Companies, self, 'companies')
-
-        companies = self.get_root().search(format='company',
-                                           parent_path=str(self.get_abspath()))
-        for company in companies.get_documents():
-            name = company.name
-            self.move_resource(name, 'companies/%s' % name)
-
-
-    def update_20100122(self):
-        """ Move prospects into new folder "prospects". """
-        Prospects.make_resource(Prospects, self, 'prospects')
-##
-##        names = []
-##        for prospect in self.get_resources():
-##            if not isinstance(prospect, Prospect):
-##                continue
-##            name = prospect.name
-##            new_name = generate_name(names, 'p%06d')
-##            self.move_resource(name, 'prospects/%s' % new_name)
-##            names.append(new_name)
-
-
-    def update_20100201(self):
-        """ Move missions into new folder "missions"
-            Save prospect as a property
-            Rename missions to prevent conflicts
-        """
-        Missions.make_resource(Missions, self, 'missions')
-
-        from itools.xapian import AndQuery, PhraseQuery, StartQuery
-        parent_path = str(self.get_abspath())
-        query = StartQuery('abspath', parent_path)
-        query = AndQuery(query, PhraseQuery('format', 'mission'))
-        missions = self.get_root().search(query)
-        names = []
-        for mission in missions.get_documents():
-            name = mission.name
-            new_name = generate_name(names, 'm%06d')
-            prospect = mission.abspath.rsplit('/', 2)[1]
-            mission = self.get_resource(mission.abspath)
-            # Save prospect as a property
-            mission.set_property('m_prospect', prospect)
-            self.move_resource('prospects/%s/%s' % (prospect, name),
-                               'missions/%s' % new_name)
-            names.append(new_name)
 
 
     alerts = CRM_Alerts()
