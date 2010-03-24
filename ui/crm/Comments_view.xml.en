@@ -9,8 +9,8 @@
   <tbody>
     <tr class="comment-header">
       <td><a name="c${comment/id}" /></td>
-      <td width="320">Comment <a href="#c${comment/id}">#${comment/id}</a></td>
-      <td>${comment/datetime}</td>
+      <td>Comment <a href="#c${comment/id}">#${comment/id}</a></td>
+      <td align="right">${comment/datetime}</td>
     </tr>
     <tr stl:if="comment/file" class="comment-file">
       <td colspan="3">

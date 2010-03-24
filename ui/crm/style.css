@@ -35,6 +35,18 @@
   margin: 1px;
 }
 
+/* Mission view subviews */
+#mission-view-prospect {
+  float: left;
+}
+#mission-view-edit {
+  float: left;
+}
+#mission-view-comments {
+  float: right;
+  width: 380px;
+}
+
 /**************************************************************************
  * Company *
  **************************************************************************/
