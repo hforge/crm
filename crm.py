@@ -28,7 +28,7 @@ from itools.web import get_context
 # Import from ikaaro
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
-from ikaaro.folder_views import Folder_BrowseContent
+from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
 from ikaaro.registry import register_field, register_resource_class
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
@@ -526,7 +526,8 @@ class CRM(Folder):
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['search', 'alerts', 'browse_content', 'edit']
+    class_views = ['search', 'alerts', 'goto_prospects', 'goto_companies',
+                   'browse_content', 'edit']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
                                                       'missions']
@@ -549,6 +550,10 @@ class CRM(Folder):
     search = CRM_SearchProspects()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     export_to_csv = CRM_ExportToCSV()
+    goto_prospects = GoToSpecificDocument(specific_document='prospects',
+        title=MSG(u'New prospect'))
+    goto_companies = GoToSpecificDocument(specific_document='companies',
+        title=MSG(u'New company'))
 
 
 register_resource_class(CompanyTable)
