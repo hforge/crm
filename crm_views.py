@@ -332,11 +332,14 @@ class CRM_SearchProspects(SearchForm):
             return p_status_icons[value]
         elif column == 'p_company':
             company = get_value(column)
-            crm = get_crm(resource)
-            company_resource = crm.get_resource('companies/%s' % company)
-            href = context.get_link(company_resource)
-            title = company_resource.get_title()
-            return title, href
+            if company:
+                crm = get_crm(resource)
+                company_resource = crm.get_resource('companies/%s' % company)
+                href = context.get_link(company_resource)
+                title = company_resource.get_title()
+                return title, href
+            else:
+                return ''
         elif column == 'p_lastname':
             href = '%s/' % context.get_link(item_resource)
             return get_value(column), href

@@ -29,7 +29,6 @@ from itools.web import get_context
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
-from ikaaro.forms import TextWidget
 from ikaaro.registry import register_field, register_resource_class
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
@@ -307,20 +306,22 @@ class Prospect(CRMFolder):
         document['p_lastname'] = get_value('p_lastname')
         # Index company name and index company title as text
         company_name = get_value('p_company')
-        company = crm.get_resource('companies/%s' % company_name)
-        get_c_value = company.get_value
-        # Index all comments as 'text', and check any alert
-        document['p_company'] = company_name
+        c_title = u''
+        if company_name:
+            company = crm.get_resource('companies/%s' % company_name)
+            get_c_value = company.get_value
+            document['p_company'] = company_name
+            try:
+                c_title = get_c_value('c_title')
+            except AttributeError:
+                pass
         # Index lastname, firstname, email and comment as text
-        try:
-            c_title = get_c_value('c_title')
-        except AttributeError:
-            c_title = u''
         values = [c_title or '']
         values.append(get_value('p_lastname') or '')
         values.append(get_value('p_firstname') or '')
         values.append(get_value('p_email') or '')
         values.append(get_value('p_comment') or '')
+        # Index all comments as 'text', and check any alert
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
@@ -550,7 +551,6 @@ class CRM(Folder):
     export_to_csv = CRM_ExportToCSV()
 
 
-register_resource_class(Addresses)
 register_resource_class(CompanyTable)
 register_resource_class(Company)
 register_resource_class(Companies)
