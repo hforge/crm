@@ -78,6 +78,18 @@
   background-color: #F3F7FF;
 }
 
+/* Prospect view subviews */
+#prospect-view-missions {
+  float: left;
+}
+#prospect-view-edit {
+  float: left;
+}
+#prospect-view-comments {
+  float: right;
+  width: 440px;
+}
+
 /* PREVIOUSLY *************************************************************/
 
 #prospect-main{
@@ -168,6 +180,10 @@ fieldset#company legend a {
   background-color: #ADA0D9; /*66BB66;*/
   font-weight: bold;
 }
+#comments-list tr.comment-header td,
+#view-comments tr.comment-header  td {
+  padding: 2px;
+}
 #comments-list td#view-comments,
 #edit-mission table td#view-comments {
   padding-left: 10px;
@@ -184,6 +200,14 @@ fieldset#company legend a {
 #comments-list tr.comment-text,
 #view-comments tr.comment-text {
   background-color: #f0f0ff;
+}
+#comments-list tr.comment-text td,
+#view-comments tr.comment-text td {
+  padding: 4px;
+}
+#comments-list tr.comment-text pre,
+#view-comments tr.comment-text pre {
+  margin:0;
 }
 #comments-list tr.comment-file,
 #view-comments tr.comment-file,

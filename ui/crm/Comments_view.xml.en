@@ -8,24 +8,24 @@
   stl:repeat="comment comments" id="comments-list">
   <tbody>
     <tr class="comment-header">
-      <td><a name="c${comment/id}" /></td>
-      <td>Comment <a href="#c${comment/id}">#${comment/id}</a></td>
+      <td><a name="c${comment/id}" />
+        Comment <a href="#c${comment/id}">#${comment/id}</a></td>
       <td align="right">${comment/datetime}</td>
     </tr>
     <tr stl:if="comment/file" class="comment-file">
-      <td colspan="3">
+      <td colspan="2">
         Attachement: <a
           href="${path_to_resource}/${comment/file}/;download">${comment/file}</a>
       </td>
     </tr>
     <tr stl:if="comment/alert_datetime" class="comment-alert">
-      <td colspan="3">
+      <td colspan="2">
         <img src="/ui/crm/images/1240913119_bell.png" />
         ${comment/alert_datetime}
       </td>
     </tr>
     <tr class="comment-text">
-      <td colspan="3">
+      <td colspan="2">
         <pre class="com">${comment/comment}</pre>
       </td>
     </tr>
