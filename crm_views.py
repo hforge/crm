@@ -44,7 +44,7 @@ from ikaaro.tracker.issue_views import indent
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
 from utils import MultipleCheckBoxWidget
-from utils import SelectCompanyWidget, TimeWidget
+from utils import NewCompanyWidget, SelectCompanyWidget, TimeWidget
 
 
 ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
@@ -71,9 +71,9 @@ company_widgets = [
     TextWidget('c_phone', title=MSG(u'Phone'), size=15),
     TextWidget('c_fax', title=MSG(u'Fax'), size=15) ]
 
-
 prospect_schema = {
     'p_company': CompanyName,
+    'new_company_url': PathDataType,
     'p_lastname': Unicode, 'p_firstname': Unicode,
     'p_phone': Unicode, 'p_mobile': Unicode, 'p_email': Email,
     'p_description': Unicode, 'p_position': Unicode,
@@ -81,6 +81,7 @@ prospect_schema = {
 
 prospect_widgets = [
     SelectCompanyWidget('p_company', title=MSG(u'Company')),
+    NewCompanyWidget('new_company_url', title=MSG(u' ')),
     TextWidget('p_lastname', title=MSG(u'Last name'), default='', size=30),
     TextWidget('p_firstname', title=MSG(u'First name'), default='',
                size=30),
@@ -530,7 +531,8 @@ class Company_View(CompositeForm):
 ###########################################################################
 
 class Prospect_AddForm(AutoForm):
-
+    """ To add a new prospect into the crm.
+    """
     access = 'is_allowed_to_add'
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
@@ -557,6 +559,9 @@ class Prospect_AddForm(AutoForm):
 
 
     def get_value(self, resource, context, name, datatype):
+        if name == 'new_company_url':
+            value = '../companies/;new_company'
+            return value
         if name in self.get_query_schema():
             value = context.query[name]
             if value is not None:
@@ -647,6 +652,9 @@ class Prospect_EditForm(AutoForm):
 
 
     def get_value(self, resource, context, name, datatype):
+        if name == 'new_company_url':
+            value = '../../companies/;new_company'
+            return value
         if name in self.get_query_schema():
             value = context.query[name]
             if value:
@@ -665,6 +673,7 @@ class Prospect_EditForm(AutoForm):
 
         # Force reinitialization of comment field to '' after a POST.
         if (context.request.method != 'POST'):
+            print 0, namespace
             return namespace
         for index, widget in enumerate(namespace['widgets']):
             if widget['name'] == 'comment':

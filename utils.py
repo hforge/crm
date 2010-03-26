@@ -72,8 +72,13 @@ class SelectCompanyWidget(SelectWidget):
           <option stl:repeat="option options" value="${option/name}"
             selected="${option/selected}">${option/value}</option>
         </select>
-        <br/>
-        <a href="../companies/;new_company" target="_blank">New (Refresh the page after adding
+        """, stl_namespaces))
+
+
+class NewCompanyWidget(TextWidget):
+
+    template = list(XMLParser("""
+        <a href="${value}" target="_blank">New (Refresh the page after adding
           it)</a>
         """, stl_namespaces))
 

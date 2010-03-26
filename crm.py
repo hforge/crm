@@ -291,7 +291,7 @@ class Prospect(CRMFolder):
     class_title = MSG(u'Prospect')
     class_version = '20100204'
 
-    class_views = ['view', 'main', 'search_missions', 'browse_users', 'add_user']
+    class_views = ['view', 'main']
     class_comments = ProspectTable
 
 

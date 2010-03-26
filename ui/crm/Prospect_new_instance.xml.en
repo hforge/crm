@@ -23,6 +23,10 @@
                 <td id="company_widget">${p_company/widget}</td>
               </tr>
               <tr>
+                <td/>
+                <td>${new_company_url/widget}</td>
+              </tr>
+              <tr>
                 <td>
                   <label for="${p_lastname/name}"><!--class="${p_lastname/class}">-->
                     ${p_lastname/title} *
