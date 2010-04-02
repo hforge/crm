@@ -483,7 +483,9 @@ class Company_AddForm(Company_EditForm):
     def action(self, resource, context, form):
         values = get_form_values(form)
         name = resource.add_company(values)
-        goto = '../prospects/;new_prospect?p_company=%s' % name
+        crm = get_crm(resource)
+        goto = context.get_link(crm)
+        goto = '%s/prospects/;new_prospect?p_company=%s' % (goto, name)
         return context.come_back(MSG_NEW_RESOURCE, goto)
 
 
