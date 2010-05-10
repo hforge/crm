@@ -266,7 +266,9 @@ class CRM_SearchMissions(SearchForm):
         ('m_nextaction', MSG(u'Next action'), False),
         ('mtime', MSG(u'Last Modified'), True),
         ('m_amount', MSG(u'Amount'), False),
-        ('m_probability', MSG(u'Prob.'), False)]
+        ('m_probability', MSG(u'Prob.'), False),
+        ('m_deadline', MSG(u'Deadline'), False) ]
+
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -329,7 +331,8 @@ class CRM_SearchMissions(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('m_nextaction', 'm_amount', 'm_probability'):
+        elif column in ('m_nextaction', 'm_amount', 'm_probability',
+                        'm_deadline'):
             return get_value(column)
 
 
@@ -802,12 +805,12 @@ class Prospect_SearchMissions(SearchForm):
 
     table_columns = [
         ('icon', None, False),
-        ('title', MSG(u'Title'), True),
-        ('next_action', MSG(u'Next action'), False),
+        ('m_title', MSG(u'Title'), True),
+        ('m_nextaction', MSG(u'Next action'), False),
         ('mtime', MSG(u'Last Modified'), True),
-        ('amount', MSG(u'Amount'), False),
-        ('probability', MSG(u'Probability'), False),
-        ('deadline', MSG(u'Deadline'), False) ]
+        ('m_amount', MSG(u'Amount'), False),
+        ('m_probability', MSG(u'Prob.'), False),
+        ('m_deadline', MSG(u'Deadline'), False) ]
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -862,9 +865,9 @@ class Prospect_SearchMissions(SearchForm):
             value = get_value('m_status')
             return m_status_icons[value]
         # FIXME
-        elif column == 'title':
+        elif column == 'm_title':
             # Title
-            return get_value('m_title'), context.get_link(item_resource)
+            return get_value(column), context.get_link(item_resource)
         elif column == 'status':
             # Status
             return MissionStatus.get_value(get_value('m_status'))
@@ -872,19 +875,13 @@ class Prospect_SearchMissions(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column == 'amount':
-            value = get_value('m_amount')
+        elif column == 'm_amount':
+            value = get_value(column)
             if value:
                 value = u'%02.02f €' % value
             return value
-        elif column == 'probability':
-            value = get_value('m_probability')
-            return value
-        elif column == 'deadline':
-            deadline = get_value('m_deadline')
-            return deadline
-        elif column == 'next_action':
-            value = get_value('next_action')
+        elif column in ('m_probability', 'm_deadline', 'm_nextaction'):
+            value = get_value(column)
             return value
 
 
