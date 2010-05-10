@@ -367,7 +367,7 @@ class CRM_SearchMissions(SearchForm):
 class CRM_SearchProspects(SearchForm):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'Search')
+    title = MSG(u'Prospects')
     search_template = '/ui/crm/CRM_search.xml'
     template = '/ui/crm/CRM_search_prospects.xml'
     styles = ['/ui/crm/style.css']

@@ -125,7 +125,7 @@ class CRMFolder(Folder, RoleAware):
         if isinstance(self, Prospect) and name[:2] == 'c_':
             company = comments_handler.get_record_value(record, 'p_company')
             company = self.get_resource('../../companies/%s' % company)
-            value = company.get_value(name, record, context)
+            value = company.get_value(name, None, context)
             return value
         if name == 'alert_date':
             value = comments_handler.get_record_value(record, 'alert_datetime')
@@ -251,8 +251,19 @@ class Mission(CRMFolder):
 
         comments_handler = self.get_resource('comments').handler
         get_record_value = comments_handler.get_record_value
+        last_record = comments_handler.get_record(-1)
+        crm_m_title = get_record_value(last_record, 'm_title')
+        prospects = get_record_value(last_record, 'm_prospect')
         # Index all comments as 'text', and check any alert
-        values = []
+        values = [crm_m_title or '']
+        crm = self.parent.parent
+        for p in prospects:
+            prospect = crm.get_resource('prospects/%s' % p)
+            values.append(prospect.get_value('p_lastname'))
+            values.append(prospect.get_value('p_firstname'))
+            c_title = prospect.get_value('c_title')
+            if c_title:
+                values.append(c_title)
         has_alerts = False
         for record in comments_handler.get_records():
             # comment
@@ -262,12 +273,10 @@ class Mission(CRMFolder):
               get_record_value(record, 'alert_datetime'):
                 has_alerts = True
         document['text'] = u' '.join(values)
-
-        last_record = comments_handler.get_record(-1)
         # Index title
-        document['crm_m_title'] = get_record_value(last_record, 'm_title')
+        document['crm_m_title'] = crm_m_title
         # Index prospect
-        document['m_prospect'] = get_record_value(last_record, 'm_prospect')
+        document['m_prospect'] = prospects
         # Index alerts
         document['m_has_alerts'] = has_alerts
         # Index status
@@ -548,8 +557,8 @@ class CRM(Folder):
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['search', 'alerts', 'goto_prospects', 'goto_companies',
-                   'browse_content', 'edit']
+    class_views = ['missions', 'prospects', 'alerts', 'goto_prospects',
+                   'goto_companies', 'browse_content', 'edit']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
                                                       'missions']
@@ -569,7 +578,7 @@ class CRM(Folder):
 
 
     alerts = CRM_Alerts()
-    search = CRM_SearchProspects()
+    prospects = CRM_SearchProspects()
     missions = CRM_SearchMissions()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     export_to_csv = CRM_ExportToCSV()
