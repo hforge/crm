@@ -249,13 +249,13 @@ class CRM_SearchMissions(SearchForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Missions')
-    #search_template = '/ui/crm/CRM_search.xml'
+    search_template = '/ui/crm/CRM_search.xml'
     styles = ['/ui/crm/style.css']
 
     search_schema = {
         'search_field': String,
         'search_term': Unicode,
-        'm_status': MissionStatus(multiple=True), }
+        'status': MissionStatus(multiple=True), }
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
@@ -278,7 +278,7 @@ class CRM_SearchMissions(SearchForm):
         # Get the parameters from the query
         query = context.query
         search_term = query['search_term'].strip()
-        m_status = query['m_status']
+        m_status = query['status']
 
         # Build the query
         args = list(args)
@@ -353,12 +353,12 @@ class CRM_SearchMissions(SearchForm):
                                                            context)
         # Add status
         default_status = ['opportunity', 'project']
-        m_status = context.query['m_status']
+        m_status = context.query['status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckBoxWidget('m_status', title=MSG(u'Status'))
+        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
         ns_status = widget.to_html(MissionStatus, m_status)
-        search_namespace['m_status'] = ns_status
+        search_namespace['status'] = ns_status
 
         return search_namespace
 
@@ -375,7 +375,7 @@ class CRM_SearchProspects(SearchForm):
     search_schema = {
         'search_field': String,
         'search_term': Unicode,
-        'p_status': ProspectStatus(multiple=True), }
+        'status': ProspectStatus(multiple=True), }
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
@@ -405,7 +405,7 @@ class CRM_SearchProspects(SearchForm):
         # Get the parameters from the query
         query = context.query
         search_term = query['search_term'].strip()
-        p_status = query['p_status']
+        p_status = query['status']
 
         # Build the query
         args = list(args)
@@ -503,12 +503,12 @@ class CRM_SearchProspects(SearchForm):
                                                            context)
         # Add status
         default_status = ['lead', 'client']
-        p_status = context.query['p_status']
+        p_status = context.query['status']
         if not p_status:
             p_status = default_status
-        widget = MultipleCheckBoxWidget('p_status', title=MSG(u'Status'))
+        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
         ns_status = widget.to_html(ProspectStatus, p_status)
-        search_namespace['p_status'] = ns_status
+        search_namespace['status'] = ns_status
 
         return search_namespace
 
