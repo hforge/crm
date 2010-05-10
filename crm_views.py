@@ -1024,9 +1024,9 @@ class Mission_EditForm(AutoForm):
         for index, widget in enumerate(namespace['widgets']):
             name = self.get_widgets(resource, context)[index].name
             # Reset comment
-            if submit and name == 'm_comment':
+            if submit and name == 'comment':
                 widget['value'] = ''
-                comment_widget = MultilineWidget('m_comment',
+                comment_widget = MultilineWidget('comment',
                                      title=MSG(u'Comment'), rows=3)
                 widget['widget'] = comment_widget.to_html(Unicode, u'')
             namespace[name] = widget
@@ -1275,7 +1275,7 @@ class CRM_Alerts(SearchForm):
         ('p_firstname', MSG(u'Firstname'), False),
         ('p_company', MSG(u'Company'), False),
         ('m_title', MSG(u'Mission'), False),
-        ('m_comment', MSG(u'Comment'), False)]
+        ('comment', MSG(u'Comment'), False)]
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
@@ -1379,7 +1379,7 @@ class CRM_Alerts(SearchForm):
         elif column == 'alert_time':
             alert_time = alert_datetime.time()
             return Time.encode(alert_time)
-        elif column == 'm_comment':
+        elif column == 'comment':
             return comment
 
 

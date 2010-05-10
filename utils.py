@@ -78,8 +78,7 @@ class SelectCompanyWidget(SelectWidget):
 class NewCompanyWidget(TextWidget):
 
     template = list(XMLParser("""
-        <a href="${value}" target="_blank">New (Refresh the page after adding
-          it)</a>
+        <a href="${value}">New</a>
         """, stl_namespaces))
 
 
