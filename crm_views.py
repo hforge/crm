@@ -917,14 +917,11 @@ class Mission_EditForm(AutoForm):
         resource._update(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
-        changed_keys = values.keys()
-        if ('m_status' in changed_keys or 'm_probability' in changed_keys \
-            or 'm_amount' in changed_keys):
-            crm = get_crm(resource)
-            prospects = resource.get_value('m_prospect')
-            for prospect in prospects:
-                prospect = crm.get_resource('prospects/%s' % prospect)
-                context.server.change_resource(prospect)
+        crm = get_crm(resource)
+        prospects = resource.get_value('m_prospect')
+        for prospect in prospects:
+            prospect = crm.get_resource('prospects/%s' % prospect)
+            context.server.change_resource(prospect)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -958,13 +955,10 @@ class Mission_AddForm(Mission_EditForm):
         name = resource.add_mission(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
-        changed_keys = values.keys()
-        if ('m_status' in changed_keys or 'm_probability' in changed_keys \
-            or 'm_amount' in changed_keys):
-            crm = get_crm(resource)
-            prospect = values.get('m_prospect')
-            prospect = crm.get_resource('prospects/%s' % prospect)
-            context.server.change_resource(prospect)
+        crm = get_crm(resource)
+        prospect = values.get('m_prospect')
+        prospect = crm.get_resource('prospects/%s' % prospect)
+        context.server.change_resource(prospect)
 
         goto = './%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
