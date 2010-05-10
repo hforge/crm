@@ -245,6 +245,125 @@ class Comments_View(STLView):
 #######
 # CRM #
 ###########################################################################
+class CRM_SearchMissions(SearchForm):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Missions')
+    #search_template = '/ui/crm/CRM_search.xml'
+    styles = ['/ui/crm/style.css']
+
+    search_schema = {
+        'search_field': String,
+        'search_term': Unicode,
+        'm_status': MissionStatus(multiple=True), }
+    search_fields =  [
+        ('text', MSG(u'Text')), ]
+
+    table_columns = [
+        ('icon', None, False),
+        ('m_title', MSG(u'Title'), True),
+        ('m_prospects', MSG(u'Prospects'), False),
+        ('m_nextaction', MSG(u'Next action'), False),
+        ('mtime', MSG(u'Last Modified'), True),
+        ('m_amount', MSG(u'Amount'), False),
+        ('m_probability', MSG(u'Prob.'), False)]
+
+    batch_msg1 = MSG(u'1 mission.')
+    batch_msg2 = MSG(u'{n} missions.')
+
+
+    def get_items(self, resource, context, *args):
+        crm = get_crm(resource)
+        crm_path = str(crm.get_abspath())
+        # Get the parameters from the query
+        query = context.query
+        search_term = query['search_term'].strip()
+        m_status = query['m_status']
+
+        # Build the query
+        args = list(args)
+        abspath = str(resource.get_canonical_path())
+        args.append(PhraseQuery('format', 'mission'))
+        args.append(get_crm_path_query(crm))
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
+        # Insert status filter
+        if m_status:
+            status_query = []
+            for s in m_status:
+                status_query.append(PhraseQuery('m_status', s))
+            args.append(OrQuery(*status_query))
+        if len(args) == 1:
+            query = args[0]
+        else:
+            query = AndQuery(*args)
+
+        # Ok
+        return context.root.search(query)
+
+
+    def get_item_value(self, resource, context, item, column):
+        item_brain, item_resource = item
+        if column == 'checkbox':
+            # checkbox
+            return item_brain.name, False
+        get_value = item_resource.get_value
+        if column == 'icon':
+            # Status
+            value = get_value('m_status')
+            return m_status_icons[value]
+        elif column == 'm_title':
+            href = context.get_link(item_resource)
+            return item_brain.crm_m_title, href
+        elif column == 'm_prospects':
+            values = get_value('m_prospect')
+            query = [PhraseQuery('name', name) for name in values]
+            if len(query) == 1:
+                query = query[0]
+            else:
+                query = OrQuery(*query)
+            query = AndQuery(PhraseQuery('format', 'prospect'), query)
+            values = context.root.search(query).get_documents()
+            return u' '.join([x.p_lastname for x in values])
+        elif column == 'mtime':
+            # Last Modified
+            accept = context.accept_language
+            return format_datetime(item_brain.mtime, accept=accept)
+        elif column in ('m_nextaction', 'm_amount', 'm_probability'):
+            return get_value(column)
+
+
+    def sort_and_batch(self, resource, context, results):
+        start = context.query['batch_start']
+        size = context.query['batch_size']
+        sort_by = context.query['sort_by']
+        reverse = context.query['reverse']
+        if sort_by == 'm_title':
+            sort_by = 'crm_m_title'
+
+        items = results.get_documents(sort_by=sort_by, reverse=reverse,
+                                      start=start, size=size)
+        return [(x, resource.get_resource(x.abspath)) for x in items]
+
+
+    #######################################################################
+    # The Search Form
+    def get_search_namespace(self, resource, context):
+        search_namespace = SearchForm.get_search_namespace(self, resource,
+                                                           context)
+        # Add status
+        default_status = ['opportunity', 'project']
+        m_status = context.query['m_status']
+        if not m_status:
+            m_status = default_status
+        widget = MultipleCheckBoxWidget('m_status', title=MSG(u'Status'))
+        ns_status = widget.to_html(MissionStatus, m_status)
+        search_namespace['m_status'] = ns_status
+
+        return search_namespace
+
+
+
 class CRM_SearchProspects(SearchForm):
 
     access = 'is_allowed_to_edit'
@@ -774,6 +893,8 @@ class Prospect_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
+        if sort_by == 'm_title':
+            sort_by = 'crm_m_title'
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
         return [(x, resource.get_resource(x.abspath)) for x in items]

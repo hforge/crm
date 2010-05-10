@@ -46,6 +46,7 @@ from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from crm_views import Mission_View, Mission_ViewProspects
 from crm_views import Mission_ViewProspect
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
+from crm_views import CRM_SearchMissions
 from crm_views import CRM_ExportToCSV
 from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name
@@ -263,6 +264,8 @@ class Mission(CRMFolder):
         document['text'] = u' '.join(values)
 
         last_record = comments_handler.get_record(-1)
+        # Index title
+        document['crm_m_title'] = get_record_value(last_record, 'm_title')
         # Index prospect
         document['m_prospect'] = get_record_value(last_record, 'm_prospect')
         # Index alerts
@@ -567,6 +570,7 @@ class CRM(Folder):
 
     alerts = CRM_Alerts()
     search = CRM_SearchProspects()
+    missions = CRM_SearchMissions()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     export_to_csv = CRM_ExportToCSV()
     goto_prospects = GoToSpecificDocument(specific_document='prospects',
@@ -576,6 +580,7 @@ class CRM(Folder):
 
 
 # Mission fields
+register_field('crm_m_title', Unicode(is_indexed=True, is_stored=True))
 register_field('m_prospect', String(is_indexed=True, multiple=True))
 register_field('m_status', String(is_indexed=True))
 register_field('m_has_alerts', Boolean(is_indexed=True))
