@@ -322,7 +322,7 @@ class Prospect(CRMFolder):
     class_title = MSG(u'Prospect')
     class_version = '20100204'
 
-    class_views = ['view', 'main']
+    class_views = ['view']
     class_comments = ProspectTable
 
 
@@ -424,6 +424,7 @@ class Prospect(CRMFolder):
         return '%s %s%s' % (lastname, firstname, company)
 
 
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     edit_mission = Mission_EditForm()
     edit_form = Prospect_EditForm()
     view = Prospect_View()
@@ -478,6 +479,7 @@ class Company(CRMFolder):
         return get_record_value(last_record, 'c_title', language)
 
 
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     edit = Company_EditForm()
     view = Company_View()
 
@@ -501,6 +503,7 @@ class Companies(Folder):
         return name
 
 
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     new_company = Company_AddForm()
 
 
@@ -519,6 +522,7 @@ class Prospects(Folder):
         Prospect.make_resource(Prospect, self, name, **values)
         return name
 
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     new_prospect = Prospect_AddForm()
 
 
@@ -538,6 +542,7 @@ class Missions(Folder):
         return name
 
     add_form = Mission_AddForm()
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     new_mission = Mission_Add()
     view_prospect = Mission_ViewProspect()
 

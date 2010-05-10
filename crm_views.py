@@ -207,7 +207,7 @@ def get_form_values(form):
 
 class Comments_View(STLView):
 
-    access = 'is_allowed_to_view'
+    access = 'is_allowed_to_edit'
     title = MSG(u'Comments')
     template = '/ui/crm/Comments_view.xml'
 
