@@ -23,17 +23,18 @@ from itools.csv import Table as TableFile
 from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
+from itools.handlers import checkid
+from itools.fs import FileName
 from itools.web import get_context
 
 # Import from ikaaro
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
-from ikaaro.folder_views import Folder_BrowseContent
-from ikaaro.forms import TextWidget
-from ikaaro.registry import register_field
+from ikaaro.registry import get_resource_class, register_field
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
+from ikaaro.utils import generate_name as igenerate_name
 
 # Import from here
 from datatypes import CompanyName
@@ -54,8 +55,8 @@ class CommentsTableFile(TableFile):
     """ Base comments table used by Company, Prospect and Mission.
     """
     record_properties = {'comment': Unicode(mandatory=True),
-                     'alert_datetime': DateTime,
-                     'file': PathDataType }
+                         'alert_datetime': DateTime,
+                         'file': PathDataType }
 
 
     def _add_record(self, values):
@@ -68,6 +69,7 @@ class CommentsTableFile(TableFile):
                 continue
             if key not in values_keys:
                 values[key] = self.get_record_value(last_record, key)
+
         self.add_record(values)
 
 
@@ -138,6 +140,21 @@ class CRMFolder(Folder, RoleAware):
         """ Add a new record with new comment or update the last record."""
         comments_handler = self.get_resource('comments').handler
         comment = values.get('comment') or None
+        # Manage attachement file
+        file = values.get('file') or None
+        if file is not None:
+            filename, mimetype, body = file
+            # Find a non used name
+            name = checkid(filename)
+            name, extension, language = FileName.decode(name)
+            name = igenerate_name(name, self.get_names())
+            # Add attachement
+            cls = get_resource_class(mimetype)
+            cls.make_resource(cls, self, name, body=body,
+                filename=filename, extension=extension,
+                format=mimetype)
+            # Link
+            values['file'] = name
         # If no comment, only update fields
         if comment is None:
             last_record = comments_handler.get_record(-1)

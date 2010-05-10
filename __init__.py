@@ -29,6 +29,6 @@ __version__ = get_version()
 # DOMAIN
 ###############################################################################
 
-# Register the itws domain
+# Register the crm domain
 path = get_abspath('locale')
 register_domain('crm', path)
