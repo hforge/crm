@@ -124,9 +124,11 @@ class CRMFolder(Folder, RoleAware):
         # Get company values from current prospect
         if isinstance(self, Prospect) and name[:2] == 'c_':
             company = comments_handler.get_record_value(record, 'p_company')
-            company = self.get_resource('../../companies/%s' % company)
-            value = company.get_value(name, None, context)
-            return value
+            if company:
+                company = self.get_resource('../../companies/%s' % company)
+                value = company.get_value(name, None, context)
+                return value
+            return None
         if name == 'alert_date':
             value = comments_handler.get_record_value(record, 'alert_datetime')
             return value.date() if value else None
