@@ -32,6 +32,7 @@ from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
 from ikaaro.registry import get_resource_class, register_field
+from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
 from ikaaro.utils import generate_name as igenerate_name
@@ -588,11 +589,13 @@ class CRM(Folder):
     prospects = CRM_SearchProspects()
     missions = CRM_SearchMissions()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
     export_to_csv = CRM_ExportToCSV()
     goto_prospects = GoToSpecificDocument(specific_document='prospects',
-        title=MSG(u'New prospect'))
+        title=MSG(u'New prospect'), access='is_allowed_to_edit')
     goto_companies = GoToSpecificDocument(specific_document='companies',
-        title=MSG(u'New company'))
+        title=MSG(u'New company'), access='is_allowed_to_edit')
 
 
 # Mission fields

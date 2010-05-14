@@ -722,7 +722,7 @@ class Prospect_AddForm(AutoForm):
         m_values['m_prospect'] = name
         name = missions.add_mission(m_values)
 
-        goto = '../missions/%s/' % name
+        goto = '%s/missions/%s/' % (context.get_link(crm), name)
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
