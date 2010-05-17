@@ -444,7 +444,7 @@ class CompanyTableFile(CommentsTableFile):
     record_properties = merge_dicts(CommentsTableFile.record_properties,
         c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
         c_zipcode=String, c_town=Unicode, c_country=Unicode,
-        c_phone=Unicode, c_fax=Unicode)
+        c_phone=Unicode, c_fax=Unicode, c_website=Unicode)
 
 
 

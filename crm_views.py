@@ -59,7 +59,7 @@ company_schema = {
     'c_address_1': Unicode, 'c_address_2': Unicode,
     # TODO Country should be CountryName (listed)
     'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
-    'c_phone': Unicode, 'c_fax': Unicode }
+    'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode }
 
 company_widgets = [
     TextWidget('c_title', title=MSG(u'Title')),
@@ -69,7 +69,8 @@ company_widgets = [
     TextWidget('c_town', title=MSG(u'Town')),
     TextWidget('c_country', title=MSG(u'Country')),
     TextWidget('c_phone', title=MSG(u'Phone'), size=15),
-    TextWidget('c_fax', title=MSG(u'Fax'), size=15) ]
+    TextWidget('c_fax', title=MSG(u'Fax'), size=15),
+    TextWidget('c_website', title=MSG(u'Website'), size=30) ]
 
 prospect_schema = {
     'p_company': CompanyName,
