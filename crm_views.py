@@ -59,7 +59,8 @@ company_schema = {
     'c_address_1': Unicode, 'c_address_2': Unicode,
     # TODO Country should be CountryName (listed)
     'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
-    'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode }
+    'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode,
+    'c_description': Unicode }
 
 company_widgets = [
     TextWidget('c_title', title=MSG(u'Title')),
@@ -70,7 +71,9 @@ company_widgets = [
     TextWidget('c_country', title=MSG(u'Country')),
     TextWidget('c_phone', title=MSG(u'Phone'), size=15),
     TextWidget('c_fax', title=MSG(u'Fax'), size=15),
-    TextWidget('c_website', title=MSG(u'Website'), size=30) ]
+    TextWidget('c_website', title=MSG(u'Website'), size=30),
+    MultilineWidget('c_description', title=MSG(u'Observations'), default='',
+                    rows=2) ]
 
 prospect_schema = {
     'p_company': CompanyName,
@@ -565,7 +568,7 @@ class Company_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource._update(values)
+        resource._update(values, context)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -785,7 +788,7 @@ class Prospect_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource._update(values)
+        resource._update(values, context)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -1033,7 +1036,7 @@ class Mission_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         values = get_form_values(form)
-        resource._update(values)
+        resource._update(values, context)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)

@@ -140,8 +140,11 @@ class CRMFolder(Folder, RoleAware):
         return value
 
 
-    def _update(self, values):
+    def _update(self, values, context=None):
         """ Add a new record with new comment or update the last record."""
+        if context is not None:
+            context.server.change_resource(self)
+
         comments_handler = self.get_resource('comments').handler
         comment = values.get('comment') or None
         # Manage attachement file
@@ -446,7 +449,8 @@ class CompanyTableFile(CommentsTableFile):
     record_properties = merge_dicts(CommentsTableFile.record_properties,
         c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
         c_zipcode=String, c_town=Unicode, c_country=Unicode,
-        c_phone=Unicode, c_fax=Unicode, c_website=Unicode)
+        c_phone=Unicode, c_fax=Unicode, c_website=Unicode,
+        c_description=Unicode)
 
 
 
@@ -472,7 +476,11 @@ class Company(CRMFolder):
 
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
-        document['crm_c_title'] = self.get_title()
+        crm_c_title = self.get_title()
+        crm_c_description = self.get_value('c_description')
+        document['crm_c_title'] = crm_c_title
+        values = [crm_c_title or '', crm_c_description or '']
+        document['text'] = u' '.join(values)
         return document
 
 
