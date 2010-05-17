@@ -374,15 +374,15 @@ class Prospect(CRMFolder):
         # Index probable amount (average missions amount by probability)
         p_assured = p_probable = decimal('0.0')
         cent = decimal('100.0')
-        parent_path = str('%s/missions' % crm.get_abspath())
-        missions = self.get_root().search(format='mission',
-            parent_path=parent_path, m_prospect=self.name)
         document['p_opportunity'] = 0
         document['p_project'] = 0
         document['p_nogo'] = 0
-        for mission in missions.get_documents():
-            mission = self.get_resource(mission.abspath)
+        missions = crm.get_resource('missions')
+        prospect = self.name
+        for mission in missions.get_resources():
             get_value = mission.get_value
+            if prospect not in get_value('m_prospect'):
+                continue
             status = get_value('m_status')
             if status:
                 key = 'p_%s' % status
@@ -398,7 +398,6 @@ class Prospect(CRMFolder):
                 m_probability = (get_value('m_probability')or 0)
                 value = (m_probability * m_amount) / cent
                 p_probable += value
-
         document['p_assured'] = p_assured
         document['p_probable'] = p_probable
 
