@@ -43,9 +43,9 @@ class CompanyName(Enumerate):
                                       parent_path=parent_path)
 
         options = []
-        for brain in results.get_documents(sort_by='c_title'):
+        for brain in results.get_documents(sort_by='crm_c_title'):
             name = brain.name
-            value = brain.c_title
+            value = brain.crm_c_title
             # Reduce the length of the title
             if len(value) > 63:
                 value = '%s...%s' % (value[:30], value[-30:])
@@ -89,9 +89,9 @@ class ProspectName(Enumerate):
                                       parent_path=parent_path)
 
         options = []
-        for brain in results.get_documents(sort_by='p_lastname'):
+        for brain in results.get_documents(sort_by='crm_p_lastname'):
             name = brain.name
-            value = brain.p_lastname
+            value = brain.crm_p_lastname
             option = {'name': name, 'value': value}
             options.append(option)
 

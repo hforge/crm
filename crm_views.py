@@ -294,7 +294,7 @@ class CRM_SearchMissions(SearchForm):
         if m_status:
             status_query = []
             for s in m_status:
-                status_query.append(PhraseQuery('m_status', s))
+                status_query.append(PhraseQuery('crm_m_status', s))
             args.append(OrQuery(*status_query))
         if len(args) == 1:
             query = args[0]
@@ -327,7 +327,7 @@ class CRM_SearchMissions(SearchForm):
                 query = OrQuery(*query)
             query = AndQuery(PhraseQuery('format', 'prospect'), query)
             values = context.root.search(query).get_documents()
-            return u' '.join([x.p_lastname for x in values])
+            return u' '.join([x.crm_p_lastname for x in values])
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
@@ -396,8 +396,8 @@ class CRM_SearchProspects(SearchForm):
         ('p_project', MSG(u'Proj.'), True),
         ('p_nogo', MSG(u'NoGo'), True),
         ('mtime', MSG(u'Last Modified'), True),
-        ('assured', MSG(u'Assured'), True),
-        ('probable', MSG(u'In pipe'), True)]
+        ('p_assured', MSG(u'Assured'), True),
+        ('p_probable', MSG(u'In pipe'), True)]
 
     batch_msg1 = MSG(u'1 prospect.')
     batch_msg2 = MSG(u'{n} prospects.')
@@ -422,7 +422,7 @@ class CRM_SearchProspects(SearchForm):
         if p_status:
             status_query = []
             for s in p_status:
-                status_query.append(PhraseQuery('p_status', s))
+                status_query.append(PhraseQuery('crm_p_status', s))
             args.append(OrQuery(*status_query))
         if len(args) == 1:
             query = args[0]
@@ -438,11 +438,11 @@ class CRM_SearchProspects(SearchForm):
         if column == 'checkbox':
             # checkbox
             return item_brain.name, False
-        elif column == 'assured':
-            value = item_brain.p_assured
+        elif column == 'p_assured':
+            value = item_brain.crm_p_assured
             return format_amount(value)
-        elif column == 'probable':
-            value = item_brain.p_probable
+        elif column == 'p_probable':
+            value = item_brain.crm_p_probable
             return format_amount(value)
         get_value = item_resource.get_value
         if column == 'icon':
@@ -478,22 +478,22 @@ class CRM_SearchProspects(SearchForm):
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
         elif column in ('p_opportunity', 'p_project', 'p_nogo'):
-            return getattr(item_brain, column)
+            return getattr(item_brain, 'crm_%s' % column)
 
 
     def sort_and_batch(self, resource, context, results):
         start = context.query['batch_start']
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
-        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'assured',
-                       'probable'):
-            sort_by = 'p_%s' % sort_by
+        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'p_assured',
+                       'p_probable'):
+            sort_by = 'crm_p_%s' % sort_by
         reverse = context.query['reverse']
 
         # Calculate the probable and assured amount
         for brain in results.get_documents():
-            self.assured += Decimal.decode(brain.p_assured)
-            self.probable += Decimal.decode(brain.p_probable)
+            self.assured += Decimal.decode(brain.crm_p_assured)
+            self.probable += Decimal.decode(brain.crm_p_probable)
 
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
@@ -613,7 +613,7 @@ class Company_ViewProspects(CRM_SearchProspects):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        args.append(PhraseQuery('p_company', resource.name))
+        args.append(PhraseQuery('crm_p_company', resource.name))
         return CRM_SearchProspects.get_items(self, resource, context, *args)
 
 
@@ -832,7 +832,7 @@ class Prospect_SearchMissions(SearchForm):
         # Build the query
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
-        args.append(PhraseQuery('m_prospect', resource.name))
+        args.append(PhraseQuery('crm_m_prospect', resource.name))
         missions = resource.parent.parent.get_resource('missions')
         abspath = str(missions.get_canonical_path())
         args.append(PhraseQuery('parent_path', abspath))
@@ -842,7 +842,7 @@ class Prospect_SearchMissions(SearchForm):
         if m_status:
             status_query = []
             for s in m_status:
-                status_query.append(PhraseQuery('m_status', s))
+                status_query.append(PhraseQuery('crm_m_status', s))
             args.append(OrQuery(*status_query))
         if len(args) == 1:
             query = args[0]
@@ -934,7 +934,7 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
     def get_items(self, resource, context, *args):
         # Build the query
         args = list(args)
-        args.append(PhraseQuery('m_prospect', resource.name))
+        args.append(PhraseQuery('crm_m_prospect', resource.name))
         if len(args) == 1:
             query = args[0]
         else:
@@ -1299,7 +1299,7 @@ class CRM_Alerts(SearchForm):
         # Build the query
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
-        args.append(PhraseQuery('m_has_alerts', True))
+        args.append(PhraseQuery('crm_m_has_alerts', True))
         if len(args) == 1:
             query = args[0]
         else:

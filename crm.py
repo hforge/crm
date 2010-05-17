@@ -257,8 +257,9 @@ class Mission(CRMFolder):
         last_record = comments_handler.get_record(-1)
         crm_m_title = get_record_value(last_record, 'm_title')
         prospects = get_record_value(last_record, 'm_prospect')
+        crm_m_description = get_record_value(last_record, 'm_description')
         # Index all comments as 'text', and check any alert
-        values = [crm_m_title or '']
+        values = [crm_m_title or '', crm_m_description or '']
         crm = self.parent.parent
         for p in prospects:
             prospect = crm.get_resource('prospects/%s' % p)
@@ -279,11 +280,11 @@ class Mission(CRMFolder):
         # Index title
         document['crm_m_title'] = crm_m_title
         # Index prospect
-        document['m_prospect'] = prospects
+        document['crm_m_prospect'] = prospects
         # Index alerts
-        document['m_has_alerts'] = has_alerts
+        document['crm_m_has_alerts'] = has_alerts
         # Index status
-        document['m_status'] = get_record_value(last_record, 'm_status')
+        document['crm_m_status'] = get_record_value(last_record, 'm_status')
         return document
 
 
@@ -337,14 +338,14 @@ class Prospect(CRMFolder):
         comments_handler = self.get_resource('comments').handler
         get_value = self.get_value
 
-        document['p_lastname'] = get_value('p_lastname')
+        document['crm_p_lastname'] = get_value('p_lastname')
         # Index company name and index company title as text
         company_name = get_value('p_company')
         c_title = u''
         if company_name:
             company = crm.get_resource('companies/%s' % company_name)
             get_c_value = company.get_value
-            document['p_company'] = company_name
+            document['crm_p_company'] = company_name
             try:
                 c_title = get_c_value('c_title')
             except AttributeError:
@@ -354,6 +355,7 @@ class Prospect(CRMFolder):
         values.append(get_value('p_lastname') or '')
         values.append(get_value('p_firstname') or '')
         values.append(get_value('p_email') or '')
+        values.append(get_value('p_description') or '')
         values.append(get_value('p_comment') or '')
         # Index all comments as 'text', and check any alert
         has_alerts = False
@@ -368,15 +370,15 @@ class Prospect(CRMFolder):
                 has_alerts = True
         document['text'] = u' '.join(values)
         # Index status
-        document['p_status'] = get_value('p_status')
+        document['crm_p_status'] = get_value('p_status')
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
         p_assured = p_probable = decimal('0.0')
         cent = decimal('100.0')
-        document['p_opportunity'] = 0
-        document['p_project'] = 0
-        document['p_nogo'] = 0
+        document['crm_p_opportunity'] = 0
+        document['crm_p_project'] = 0
+        document['crm_p_nogo'] = 0
         missions = crm.get_resource('missions')
         prospect = self.name
         for mission in missions.get_resources():
@@ -385,7 +387,7 @@ class Prospect(CRMFolder):
                 continue
             status = get_value('m_status')
             if status:
-                key = 'p_%s' % status
+                key = 'crm_p_%s' % status
                 document[key] += 1
             if status == 'nogo':
                 continue
@@ -398,8 +400,8 @@ class Prospect(CRMFolder):
                 m_probability = (get_value('m_probability')or 0)
                 value = (m_probability * m_amount) / cent
                 p_probable += value
-        document['p_assured'] = p_assured
-        document['p_probable'] = p_probable
+        document['crm_p_assured'] = p_assured
+        document['crm_p_probable'] = p_probable
 
         return document
 
@@ -470,7 +472,7 @@ class Company(CRMFolder):
 
     def _get_catalog_values(self):
         document = Folder._get_catalog_values(self)
-        document['c_title'] = self.get_title()
+        document['crm_c_title'] = self.get_title()
         return document
 
 
@@ -599,20 +601,20 @@ class CRM(Folder):
 
 # Mission fields
 register_field('crm_m_title', Unicode(is_indexed=True, is_stored=True))
-register_field('m_prospect', String(is_indexed=True, multiple=True))
-register_field('m_status', String(is_indexed=True))
-register_field('m_has_alerts', Boolean(is_indexed=True))
+register_field('crm_m_prospect', String(is_indexed=True, multiple=True))
+register_field('crm_m_status', String(is_indexed=True))
+register_field('crm_m_has_alerts', Boolean(is_indexed=True))
 # Prospect fields
-register_field('p_lastname', Unicode(is_stored=True))
-register_field('p_status', String(is_indexed=True))
-register_field('p_company', String(is_indexed=True))
-register_field('p_assured', Decimal(is_stored=True))
-register_field('p_probable', Decimal(is_stored=True))
-register_field('p_opportunity', Integer(is_stored=True))
-register_field('p_project', Integer(is_stored=True))
-register_field('p_nogo', Integer(is_stored=True))
+register_field('crm_p_lastname', Unicode(is_stored=True))
+register_field('crm_p_status', String(is_indexed=True))
+register_field('crm_p_company', String(is_indexed=True))
+register_field('crm_p_assured', Decimal(is_stored=True))
+register_field('crm_p_probable', Decimal(is_stored=True))
+register_field('crm_p_opportunity', Integer(is_stored=True))
+register_field('crm_p_project', Integer(is_stored=True))
+register_field('crm_p_nogo', Integer(is_stored=True))
 # Company fields
-register_field('c_title', Unicode(is_stored=True, is_indexed=True))
+register_field('crm_c_title', Unicode(is_stored=True, is_indexed=True))
 
 # Register crm skin
 path = get_abspath('ui/crm')
