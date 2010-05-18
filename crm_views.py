@@ -328,6 +328,8 @@ class CRM_SearchMissions(SearchForm):
                 query = query[0]
             else:
                 query = OrQuery(*query)
+            crm = get_crm(resource)
+            query = AndQuery(get_crm_path_query(crm), query)
             query = AndQuery(PhraseQuery('format', 'prospect'), query)
             values = context.root.search(query).get_documents()
             return u' '.join([x.crm_p_lastname for x in values])
