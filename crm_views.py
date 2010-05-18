@@ -267,7 +267,7 @@ class CRM_SearchMissions(SearchForm):
         ('icon', None, False),
         ('m_title', MSG(u'Title'), True),
         ('m_prospects', MSG(u'Prospects'), False),
-        ('m_nextaction', MSG(u'Next action'), False),
+        ('m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
         ('m_amount', MSG(u'Amount'), False),
         ('m_probability', MSG(u'Prob.'), False),
@@ -347,8 +347,8 @@ class CRM_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
-        if sort_by == 'm_title':
-            sort_by = 'crm_m_title'
+        if sort_by in ('m_title', 'm_nextaction'):
+            sort_by = 'crm_%s' % sort_by
 
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
@@ -812,7 +812,7 @@ class Prospect_SearchMissions(SearchForm):
     table_columns = [
         ('icon', None, False),
         ('m_title', MSG(u'Title'), True),
-        ('m_nextaction', MSG(u'Next action'), False),
+        ('m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
         ('m_amount', MSG(u'Amount'), False),
         ('m_probability', MSG(u'Prob.'), False),
@@ -896,8 +896,8 @@ class Prospect_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
-        if sort_by == 'm_title':
-            sort_by = 'crm_m_title'
+        if sort_by in ('m_title', 'm_nextaction'):
+            sort_by = 'crm_%s' % sort_by
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
         return [(x, resource.get_resource(x.abspath)) for x in items]

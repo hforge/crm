@@ -261,8 +261,11 @@ class Mission(CRMFolder):
         crm_m_title = get_record_value(last_record, 'm_title')
         prospects = get_record_value(last_record, 'm_prospect')
         crm_m_description = get_record_value(last_record, 'm_description')
+        crm_m_nextaction  = get_record_value(last_record, 'm_nextaction')
         # Index all comments as 'text', and check any alert
-        values = [crm_m_title or '', crm_m_description or '']
+        values = [crm_m_title or '',
+                  crm_m_description or '',
+                  crm_m_nextaction or '']
         crm = self.parent.parent
         for p in prospects:
             prospect = crm.get_resource('prospects/%s' % p)
@@ -282,6 +285,8 @@ class Mission(CRMFolder):
         document['text'] = u' '.join(values)
         # Index title
         document['crm_m_title'] = crm_m_title
+        # Index m_nextaction
+        document['crm_m_nextaction'] = crm_m_nextaction
         # Index prospect
         document['crm_m_prospect'] = prospects
         # Index alerts
@@ -609,6 +614,7 @@ class CRM(Folder):
 
 # Mission fields
 register_field('crm_m_title', Unicode(is_indexed=True, is_stored=True))
+register_field('crm_m_nextaction', Unicode(is_stored=True))
 register_field('crm_m_prospect', String(is_indexed=True, multiple=True))
 register_field('crm_m_status', String(is_indexed=True))
 register_field('crm_m_has_alerts', Boolean(is_indexed=True))
