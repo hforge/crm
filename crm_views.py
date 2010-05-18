@@ -1337,8 +1337,7 @@ class CRM_Alerts(SearchForm):
     def get_item_value(self, resource, context, item, column):
         alert_datetime, comment, mission, comment_id = item
         if column == 'checkbox':
-            prospect_name = mission.get_value('m_prospect')[0]
-            alert_id = '%s__%s__%d' % (prospect_name, mission.name, comment_id)
+            alert_id = '%s__%d' % (mission.name, comment_id)
             # checkbox
             return alert_id, False
         if column == 'icon':
@@ -1411,14 +1410,14 @@ class CRM_Alerts(SearchForm):
         not_removed = []
         for alert_id in form.get('ids', []):
             try:
-                prospect_name, mission_name, comment_id = alert_id.split('__')
+                mission_name, comment_id = alert_id.split('__')
                 comment_id = int(comment_id)
             except ValueError:
                 not_removed.append(alert_id)
                 continue
             # Remove alert_datetime
-            prospect = resource.get_resource(prospect_name)
-            mission = prospect.get_resource(mission_name)
+            crm = get_crm(resource)
+            mission = crm.get_resource('missions/%s' % mission_name)
             comments_handler = mission.get_resource('comments').handler
             comments_handler.update_record(comment_id, alert_datetime=None)
 
