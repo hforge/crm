@@ -43,7 +43,7 @@ from ikaaro.tracker.issue_views import indent
 
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
-from utils import MultipleCheckBoxWidget
+from utils import EmailWidget, MultipleCheckBoxWidget
 from utils import NewCompanyWidget, SelectCompanyWidget, TimeWidget
 
 
@@ -91,7 +91,7 @@ prospect_widgets = [
                size=30),
     TextWidget('p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
-    TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
+    EmailWidget('p_email', title=MSG(u'Email'), default='', size=30),
     TextWidget('p_position', title=MSG(u'Position'), default='', size=15),
     MultilineWidget('p_description', title=MSG(u'Observations'), default='',
                     rows=4),

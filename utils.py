@@ -75,6 +75,15 @@ class SelectCompanyWidget(SelectWidget):
         """, stl_namespaces))
 
 
+class EmailWidget(TextWidget):
+
+    template = list(XMLParser(
+        """<input type="${type}" id="${id}" name="${name}" value="${value}"
+             size="${size}" /><a stl:if="value" href="mailto:${value}">
+             <img src="/ui/icons/16x16/mail.png" /></a>
+        """, stl_namespaces))
+
+
 class NewCompanyWidget(TextWidget):
 
     template = list(XMLParser("""
