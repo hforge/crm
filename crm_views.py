@@ -73,7 +73,7 @@ company_widgets = [
     TextWidget('c_fax', title=MSG(u'Fax'), size=15),
     TextWidget('c_website', title=MSG(u'Website'), size=30),
     MultilineWidget('c_description', title=MSG(u'Observations'), default='',
-                    rows=2) ]
+                    rows=4) ]
 
 prospect_schema = {
     'p_company': CompanyName,
@@ -94,7 +94,7 @@ prospect_widgets = [
     TextWidget('p_email', title=MSG(u'Email'), default='', size=30),
     TextWidget('p_position', title=MSG(u'Position'), default='', size=15),
     MultilineWidget('p_description', title=MSG(u'Observations'), default='',
-                    rows=2),
+                    rows=4),
     SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
@@ -113,7 +113,7 @@ mission_schema = {
 mission_widgets = [
     # First mission
     TextWidget('m_title', title=MSG(u'Title')),
-    MultilineWidget('m_description', title=MSG(u'Description'), rows=2),
+    MultilineWidget('m_description', title=MSG(u'Description'), rows=4),
     TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
     TextWidget('m_probability', title=MSG(u'Probability'), default='',
                size=2),
@@ -1278,7 +1278,7 @@ class CRM_Alerts(SearchForm):
         ('p_firstname', MSG(u'Firstname'), False),
         ('p_company', MSG(u'Company'), False),
         ('m_title', MSG(u'Mission'), False),
-        ('comment', MSG(u'Comment'), False)]
+        ('m_nextaction', MSG(u'Next action'), False)]
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
@@ -1328,14 +1328,14 @@ class CRM_Alerts(SearchForm):
                 alert_datetime = get_record_value(record, 'alert_datetime')
                 if not alert_datetime:
                     continue
-                comment = get_record_value(record, 'comment')
-                items.append((alert_datetime, comment, mission, record.id))
+                m_nextaction = get_record_value(record, 'm_nextaction')
+                items.append((alert_datetime, m_nextaction, mission, record.id))
 
         return items
 
 
     def get_item_value(self, resource, context, item, column):
-        alert_datetime, comment, mission, comment_id = item
+        alert_datetime, m_nextaction, mission, comment_id = item
         if column == 'checkbox':
             alert_id = '%s__%d' % (mission.name, comment_id)
             # checkbox
@@ -1381,8 +1381,8 @@ class CRM_Alerts(SearchForm):
         elif column == 'alert_time':
             alert_time = alert_datetime.time()
             return Time.encode(alert_time)
-        elif column == 'comment':
-            return comment
+        elif column == 'm_nextaction':
+            return m_nextaction
 
 
     def sort_and_batch(self, resource, context, results):
