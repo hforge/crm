@@ -1188,20 +1188,22 @@ class CRM_ExportToCSV(BaseView):
 
     def get_mission_infos(self, resource, mission):
         infos = []
-        prospect = mission.parent
-        get_property = prospect.get_property
+        prospect = mission.get_value('m_prospect')[0]
+        prospect = resource.get_resource('prospects/%s' % prospect)
+        get_value = prospect.get_value
         # Prospect
-        infos.append(get_property('p_lastname'))
-        infos.append(get_property('p_firstname') or '')
-        p_company = get_property('p_company')
-        company = resource.get_resource('companies/%s' % p_company)
-        infos.append(company.get_property('c_title'))
-        infos.append(get_property('p_status'))
+        infos.append(get_value('p_lastname'))
+        infos.append(get_value('p_firstname') or '')
+        p_company = get_value('p_company')
+        if p_company:
+            company = resource.get_resource('companies/%s' % p_company)
+            infos.append(company.get_value('c_title'))
+        infos.append(get_value('p_status'))
 
         # Mission
         l = ['m_title', 'm_amount', 'm_probability', 'm_status', 'm_deadline']
         for property in l:
-            property = mission.get_property(property)
+            property = mission.get_value(property)
             infos.append(property or '')
         return infos
 
@@ -1246,10 +1248,8 @@ class CRM_ExportToCSV(BaseView):
             csv.add_row(row)
 
         # Set response type
-        response = context.response
-        response.set_header('Content-Type', 'text/comma-separated-values')
-        response.set_header('Content-Disposition',
-                            'attachment; filename=export.csv')
+        context.set_content_type('text/comma-separated-values')
+        context.set_content_disposition('attachment; filename="export.csv"')
         return csv.to_str(separator=separator)
 
 
