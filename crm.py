@@ -579,7 +579,7 @@ class CRM(Folder):
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['missions', 'prospects', 'alerts', 'goto_prospects',
+    class_views = ['alerts', 'missions', 'prospects', 'goto_prospects',
                    'goto_companies', 'browse_content', 'edit']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
