@@ -38,13 +38,14 @@
 /* Mission view subviews */
 #mission-view-prospect {
   float: left;
+  width: 100%;
 }
 #mission-view-edit {
   float: left;
 }
 #mission-view-comments {
-  float: right;
-  width: 380px;
+  float: left;
+  width: 100%;
 }
 
 /**************************************************************************
@@ -81,13 +82,14 @@
 /* Prospect view subviews */
 #prospect-view-missions {
   float: left;
+  width: 100%;
 }
 #prospect-view-edit {
   float: left;
 }
 #prospect-view-comments {
-  float: right;
-  width: 440px;
+  float: left;
+  width: 100%;
 }
 
 /* PREVIOUSLY *************************************************************/

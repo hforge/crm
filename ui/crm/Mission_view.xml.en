@@ -4,7 +4,7 @@
 <stl:block xmlns="http://www.w3.org/1999/xhtml"
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 
-  <div id="mission-view-comments">${view_comments}</div>
   <div id="mission-view-prospect">${view_prospects}</div>
   <div id="mission-view-edit">${edit}</div>
+  <div id="mission-view-comments">${view_comments}</div>
 </stl:block>
