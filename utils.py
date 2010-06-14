@@ -84,6 +84,23 @@ class EmailWidget(TextWidget):
         """, stl_namespaces))
 
 
+class LinkWidget(TextWidget):
+
+    template = list(XMLParser(
+        """<input type="${type}" id="${id}" name="${name}" value="${value}"
+             size="${size}" /><a stl:if="value" href="${value}"
+             target="_blank"><img src="/ui/icons/16x16/website.png" /></a>
+        """, stl_namespaces))
+
+    def get_namespace(self, datatype, value):
+        namespace = TextWidget.get_namespace(self, datatype, value)
+        value = namespace['value']
+        if 'http://' not in value and 'https://' not in value:
+            value = 'http://%s' % value
+            namespace['value'] = value
+        return namespace
+
+
 class NewCompanyWidget(TextWidget):
 
     template = list(XMLParser("""

@@ -44,7 +44,7 @@ from ikaaro.tracker.issue_views import indent
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
 from utils import EmailWidget, MultipleCheckBoxWidget
-from utils import NewCompanyWidget, SelectCompanyWidget, TimeWidget
+from utils import LinkWidget, NewCompanyWidget, SelectCompanyWidget, TimeWidget
 
 
 ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
@@ -71,7 +71,7 @@ company_widgets = [
     TextWidget('c_country', title=MSG(u'Country')),
     TextWidget('c_phone', title=MSG(u'Phone'), size=15),
     TextWidget('c_fax', title=MSG(u'Fax'), size=15),
-    TextWidget('c_website', title=MSG(u'Website'), size=30),
+    LinkWidget('c_website', title=MSG(u'Website'), size=30),
     MultilineWidget('c_description', title=MSG(u'Observations'), default='',
                     rows=4) ]
 
