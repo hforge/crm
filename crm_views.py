@@ -28,7 +28,7 @@ from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
 from itools.web import BaseView, STLView
-from itools.web import ERROR
+from itools.web import FormError, ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
@@ -663,8 +663,8 @@ class Prospect_AddForm(AutoForm):
         schema = {
             'p_lastname': Unicode(mandatory=True),
             'p_status': ProspectStatus(mandatory=True),
-            'm_title': Unicode(mandatory=True),
-            'm_status': MissionStatus(mandatory=True) }
+            'm_title': Unicode(),
+            'm_status': MissionStatus() }
         return merge_dicts(prospect_schema, mission_schema, schema)
 
 
@@ -694,6 +694,18 @@ class Prospect_AddForm(AutoForm):
         return value
 
 
+    def _get_form(self, resource, context):
+        form = AutoForm._get_form(self, resource, context)
+
+        # If title is defined, status is required
+        m_title = form['m_title'].strip()
+        m_status = form['m_status']
+        if m_title and m_status is None:
+            raise FormError(invalid=['m_status'])
+
+        return form
+
+
     def on_form_error(self, resource, context):
         message = format_error_message(context, self.get_widgets(resource,
                                                                  context))
@@ -704,9 +716,8 @@ class Prospect_AddForm(AutoForm):
         namespace = AutoForm.get_namespace(self, resource, context)
 
         # Modify widgets namespace to change template
-        for index, widget in enumerate(namespace['widgets']):
-            name = self.get_widgets(resource, context)[index].name
-            namespace[name] = widget
+        for widget in namespace['widgets']:
+            namespace[widget['name']] = widget
 
         return namespace
 
@@ -724,12 +735,15 @@ class Prospect_AddForm(AutoForm):
             elif key[:2] == 'm_':
                 m_values[key] = value
         # Add prospect
-        name = prospects.add_prospect(p_values)
-        # Add mission
-        m_values['m_prospect'] = name
-        name = missions.add_mission(m_values)
+        p_name = prospects.add_prospect(p_values)
+        # Add mission if title is defined
+        if m_values['m_title']:
+            m_values['m_prospect'] = p_name
+            m_name = missions.add_mission(m_values)
+            goto = '%s/missions/%s/' % (context.get_link(crm), m_name)
+        else:
+            goto = '%s/prospects/%s/' % (context.get_link(crm), p_name)
 
-        goto = '%s/missions/%s/' % (context.get_link(crm), name)
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
