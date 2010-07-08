@@ -60,7 +60,7 @@ company_schema = {
     # TODO Country should be CountryName (listed)
     'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
     'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode,
-    'c_description': Unicode }
+    'c_description': Unicode, 'c_activity': Unicode }
 
 company_widgets = [
     TextWidget('c_title', title=MSG(u'Title')),
@@ -72,6 +72,7 @@ company_widgets = [
     TextWidget('c_phone', title=MSG(u'Phone'), size=15),
     TextWidget('c_fax', title=MSG(u'Fax'), size=15),
     LinkWidget('c_website', title=MSG(u'Website'), size=30),
+    TextWidget('c_activity', title=MSG(u'Activity'), size=30),
     MultilineWidget('c_description', title=MSG(u'Observations'), default='',
                     rows=4) ]
 
