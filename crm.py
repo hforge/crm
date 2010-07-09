@@ -45,6 +45,7 @@ from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
 from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from crm_views import Mission_View, Mission_ViewProspects
+from crm_views import Mission_EditProspects, Mission_AddProspects
 from crm_views import Mission_ViewProspect
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_SearchMissions
@@ -296,12 +297,14 @@ class Mission(CRMFolder):
         return document
 
 
+    add_prospects = Mission_AddProspects()
     browse_content = Folder_BrowseContent(access=False)
     edit_form = Mission_EditForm()
+    edit_prospects = Mission_EditProspects()
     preview_content = None
+    view = Mission_View()
     view_comments = Comments_View()
     view_prospects = Mission_ViewProspects()
-    view = Mission_View()
 
 
 ###################################

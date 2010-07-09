@@ -32,7 +32,7 @@ from itools.web import FormError, ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
-from ikaaro.buttons import RemoveButton
+from ikaaro.buttons import Button, RemoveButton
 from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
 from ikaaro.forms import SelectRadio, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
@@ -52,7 +52,6 @@ ALERT_ICON_ORANGE = '1240913150_bell_error.png'
 ALERT_ICON_GREEN = '1240913156_bell_go.png'
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert ?""")
-
 
 company_schema = {
     'c_title': Unicode,
@@ -204,6 +203,13 @@ def get_form_values(form):
         elif key != 'alert_time':
             values[key] = value
     return values
+
+
+class ButtonAddProspect(Button):
+    name = 'add_prospect'
+    access='is_allowed_to_edit'
+    title=MSG(u'Add prospect')
+
 
 
 ############
@@ -1145,6 +1151,80 @@ class Mission_ViewProspect(Mission_ViewProspects):
         prospect = context.query['m_prospect']
         args.append(PhraseQuery('name', prospect))
         return CRM_SearchProspects.get_items(self, resource, context, *args)
+
+
+
+class Mission_EditProspects(Mission_ViewProspects):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit prospects')
+
+    schema = {'ids': String(multiple=True, mandatory=True)}
+
+    table_actions = [ RemoveButton(name='remove', title=MSG(u'Remove prospect'),
+                                   confirm=REMOVE_ALERT_MSG)]
+
+    def get_table_columns(self, resource, context):
+        columns = Mission_ViewProspects.get_table_columns(self, resource,
+                                                          context)
+        columns = list(columns) # do not alter parent columns
+        columns.insert(0, ('checkbox', None))
+        return columns
+
+
+    def action_remove(self, resource, context, form):
+        prospects = resource.get_value('m_prospect')
+
+        for prospect_id in form.get('ids', []):
+            try:
+                prospects.remove(prospect_id)
+            except:
+                pass
+
+        if len(prospects) == 0:
+            msg = ERROR(u'At least one prospect is required')
+        else:
+            # Apply change
+            resource._update({'m_prospect': prospects})
+            msg = MSG_CHANGES_SAVED
+
+        context.message = msg
+
+
+
+class Mission_AddProspects(CRM_SearchProspects):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Add prospects')
+
+    schema = {'ids': String(multiple=True, mandatory=True)}
+
+    table_actions = [ButtonAddProspect]
+
+    def get_table_columns(self, resource, context):
+        columns = CRM_SearchProspects.get_table_columns(self, resource, context)
+        columns = list(columns) # do not alter parent columns
+        columns.insert(0, ('checkbox', None))
+        return columns
+
+
+    def get_namespace(self, resource, context):
+        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace['crm-infos'] = False
+        namespace['export-csv'] = False
+        return namespace
+
+
+    def action_add_prospect(self, resource, context, form):
+        prospects = resource.get_value('m_prospect')
+
+        for prospect_id in form.get('ids', []):
+            prospects.append(prospect_id)
+
+        prospects = list(set(prospects))
+        # Apply change
+        resource._update({'m_prospect': prospects})
+        msg = MSG_CHANGES_SAVED
 
 
 
