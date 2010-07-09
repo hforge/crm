@@ -1538,3 +1538,34 @@ class CRM_Alerts(SearchForm):
 
         context.message = msg
 
+
+
+class Mission_EditAlerts(CRM_Alerts):
+
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit alerts')
+    search_template = None
+
+    # Table
+    table_columns = [
+        ('checkbox', None),
+        ('icon', None, False),
+        ('alert_date', MSG(u'Date'), False),
+        ('alert_time', MSG(u'Time'), False),
+        ('comment', MSG(u'Comment'), False),
+        ('m_nextaction', MSG(u'Next action'), False)]
+
+    def get_items(self, resource, context, *args):
+        args = list(args)
+        abspath = resource.get_canonical_path()
+        args.append(PhraseQuery('abspath', str(abspath)))
+        return CRM_Alerts.get_items(self, resource, context, *args)
+
+
+    def get_item_value(self, resource, context, item, column):
+        alert_datetime, m_nextaction, mission, comment_id = item
+        if column == 'comment':
+            handler = mission.get_resource('comments').handler
+            record = handler.get_record(comment_id)
+            return handler.get_record_value(record, 'comment')
+        return CRM_Alerts.get_item_value(self, resource, context, item, column)

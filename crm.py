@@ -48,7 +48,7 @@ from crm_views import Prospect_View
 from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from crm_views import Mission_View, Mission_ViewProspects
 from crm_views import Mission_EditProspects, Mission_AddProspects
-from crm_views import Mission_ViewProspect
+from crm_views import Mission_ViewProspect, Mission_EditAlerts
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_SearchMissions
 from crm_views import CRM_ExportToCSV
@@ -402,7 +402,7 @@ class Mission(CRMFolder):
     class_id = 'mission'
     class_title = MSG(u'Mission')
     class_version = '20100204'
-    class_views = ['view', 'add_prospects', 'edit_prospects']
+    class_views = ['view', 'add_prospects', 'edit_prospects', 'edit_alerts']
     class_comments = MissionTable
 
 
@@ -452,6 +452,7 @@ class Mission(CRMFolder):
 
     add_prospects = Mission_AddProspects()
     browse_content = Folder_BrowseContent(access=False)
+    edit_alerts = Mission_EditAlerts()
     edit_form = Mission_EditForm()
     edit_prospects = Mission_EditProspects()
     preview_content = None
