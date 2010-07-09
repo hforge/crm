@@ -1161,8 +1161,8 @@ class Mission_EditProspects(Mission_ViewProspects):
 
     schema = {'ids': String(multiple=True, mandatory=True)}
 
-    table_actions = [ RemoveButton(name='remove', title=MSG(u'Remove prospect'),
-                                   confirm=REMOVE_ALERT_MSG)]
+    table_actions = [
+            RemoveButton(name='remove', title=MSG(u'Remove prospect')) ]
 
     def get_table_columns(self, resource, context):
         columns = Mission_ViewProspects.get_table_columns(self, resource,

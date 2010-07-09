@@ -249,7 +249,7 @@ class Mission(CRMFolder):
     class_id = 'mission'
     class_title = MSG(u'Mission')
     class_version = '20100204'
-    class_views = ['view']
+    class_views = ['view', 'add_prospects', 'edit_prospects']
     class_comments = MissionTable
 
 
