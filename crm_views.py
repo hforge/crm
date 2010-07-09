@@ -27,19 +27,21 @@ from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.web import BaseView, STLView
+from itools.web import get_context, BaseView, STLView
 from itools.web import FormError, ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.buttons import Button, RemoveButton
-from ikaaro.forms import AutoForm, DateWidget, MultilineWidget, PathSelectorWidget
+from ikaaro.forms import AutoForm, DateWidget, ImageSelectorWidget
+from ikaaro.forms import MultilineWidget, PathSelectorWidget
 from ikaaro.forms import SelectRadio, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
+from ikaaro.resource_views import DBResource_AddImage
+from ikaaro.tracker.issue_views import indent
 from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
-from ikaaro.tracker.issue_views import indent
 
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
@@ -59,7 +61,8 @@ company_schema = {
     # TODO Country should be CountryName (listed)
     'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
     'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode,
-    'c_description': Unicode, 'c_activity': Unicode }
+    'c_description': Unicode, 'c_activity': Unicode,
+    'c_logo': PathDataType }
 
 company_widgets = [
     TextWidget('c_title', title=MSG(u'Title')),
@@ -72,6 +75,7 @@ company_widgets = [
     TextWidget('c_fax', title=MSG(u'Fax'), size=15),
     LinkWidget('c_website', title=MSG(u'Website'), size=30),
     TextWidget('c_activity', title=MSG(u'Activity'), size=30),
+    ImageSelectorWidget('c_logo', title=MSG(u'Logo'), action='add_logo'),
     MultilineWidget('c_description', title=MSG(u'Observations'), default='',
                     rows=4) ]
 
@@ -549,6 +553,17 @@ class CRM_SearchProspects(SearchForm):
 ###########
 # Company #
 ###########################################################################
+
+class Compagny_AddImage(DBResource_AddImage):
+
+    def get_root(self, context):
+        return context.resource
+
+
+    def get_start(self, resource):
+        return self.get_root(get_context())
+
+
 
 class Company_EditForm(AutoForm):
 

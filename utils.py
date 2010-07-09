@@ -40,6 +40,17 @@ def generate_name(names, strformat='%03d', index=None):
     return name
 
 
+def get_path_and_view(path):
+    view = ''
+    name = path.get_name()
+    # Strip the view
+    if name and name[0] == ';':
+        view = '/' + name
+        path = path[:-1]
+
+    return path, view
+
+
 ############################################################
 # Forms
 ############################################################

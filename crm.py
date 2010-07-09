@@ -25,6 +25,7 @@ from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 from itools.handlers import checkid
 from itools.fs import FileName
+from itools.uri import get_reference, Path
 from itools.web import get_context
 
 # Import from ikaaro
@@ -40,6 +41,7 @@ from ikaaro.utils import generate_name as igenerate_name
 # Import from here
 from datatypes import CompanyName
 from crm_views import Company_AddForm, Company_EditForm, Company_View
+from crm_views import Compagny_AddImage
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
@@ -51,7 +53,7 @@ from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CRM_SearchMissions
 from crm_views import CRM_ExportToCSV
 from datatypes import MissionStatus, ProspectStatus
-from utils import generate_name
+from utils import generate_name, get_path_and_view
 
 
 class CommentsTableFile(TableFile):
@@ -209,6 +211,157 @@ class CRMFolder(Folder, RoleAware):
             return True
 
         return False
+
+
+    def get_links(self):
+        links = Folder.get_links(self)
+        base = self.get_canonical_path()
+
+        # metadata
+        schema = self.get_metadata_schema()
+        for key, datatype in schema.iteritems():
+            if issubclass(datatype, PathDataType) is False:
+                continue
+            value = self.get_property(key)
+            if not value:
+                continue
+            ref = get_reference(value)
+            if ref.scheme:
+                continue
+            path, view = get_path_and_view(ref.path)
+            links.append(str(base.resolve2(path)))
+
+        # comments
+        comments_handler = self.get_resource('comments').handler
+        comments_schema = comments_handler.record_properties
+        path_datatypes = [ k for k, d in comments_schema.iteritems()
+                           if issubclass(d, PathDataType) ]
+        get_value = comments_handler.get_record_value
+        for key in path_datatypes:
+            for record in comments_handler.get_records():
+                value = get_value(record, key)
+                if not value:
+                    continue
+                ref = get_reference(value)
+                if ref.scheme:
+                    continue
+                path, view = get_path_and_view(ref.path)
+                links.append(str(base.resolve2(path)))
+
+        return links
+
+
+    def update_links(self, source, target):
+        Folder.update_links(self, source, target)
+
+        base = self.get_canonical_path()
+        resources_new2old = get_context().database.resources_new2old
+        base = str(base)
+        old_base = resources_new2old.get(base, base)
+        old_base = Path(old_base)
+        new_base = Path(base)
+
+        # metadata
+        schema = self.get_metadata_schema()
+        for key, datatype in schema.iteritems():
+            if issubclass(datatype, PathDataType) is False:
+                continue
+            value = self.get_property(key)
+            if not value:
+                continue
+            ref = get_reference(value)
+            if ref.scheme:
+                continue
+            path, view = get_path_and_view(ref.path)
+            path = str(old_base.resolve2(path))
+            if path == source:
+                # Hit the old name
+                # Build the new path with the right path
+                new_path = str(new_base.get_pathto(target)) + view
+                self.set_property(key, Path(new_path))
+
+        # comments
+        comments_handler = self.get_resource('comments').handler
+        comments_schema = comments_handler.record_properties
+        path_datatypes = [ k for k, d in comments_schema.iteritems()
+                           if issubclass(d, PathDataType) ]
+        get_value = comments_handler.get_record_value
+        update_record = comments_handler.update_record
+        for key in path_datatypes:
+            for record in comments_handler.get_records():
+                value = get_value(record, key)
+                if not value:
+                    continue
+                ref = get_reference(value)
+                if ref.scheme:
+                    continue
+                path, view = get_path_and_view(ref.path)
+                path = str(old_base.resolve2(path))
+                if path == source:
+                    # Hit the old name
+                    # Build the new path with the right path
+                    new_path = str(new_base.get_pathto(target)) + view
+                    update_record(record.id, **{key: Path(new_path)})
+
+        get_context().server.change_resource(self)
+
+
+    def update_relative_links(self, source):
+        Folder.update_relative_links(self, source)
+
+        target = self.get_canonical_path()
+        resources_old2new = get_context().database.resources_old2new
+
+        # metadata
+        schema = self.get_metadata_schema()
+        for key, datatype in schema.iteritems():
+            if issubclass(datatype, PathDataType) is False:
+                continue
+            value = self.get_property(key)
+            if not value:
+                continue
+            ref = get_reference(value)
+            if ref.scheme:
+                continue
+            path, view = get_path_and_view(ref.path)
+            # Calcul the old absolute path
+            old_abs_path = source.resolve2(path)
+            # Check if the target path has not been moved
+            new_abs_path = resources_old2new.get(old_abs_path,
+                                                 old_abs_path)
+            # Build the new path with the right path
+            # Absolute path allow to call get_pathto with the target
+            new_path = str(target.get_pathto(new_abs_path)) + view
+            # Update the property
+            self.set_property(key, Path(new_path))
+
+        # comments
+        comments_handler = self.get_resource('comments').handler
+        comments_schema = comments_handler.record_properties
+        path_datatypes = [ k for k, d in comments_schema.iteritems()
+                           if issubclass(d, PathDataType) ]
+        get_value = comments_handler.get_record_value
+        update_record = comments_handler.update_record
+        for key in path_datatypes:
+            for record in comments_handler.get_records():
+                value = get_value(record, key)
+                if not value:
+                    continue
+                ref = get_reference(value)
+                if ref.scheme:
+                    continue
+                path, view = get_path_and_view(ref.path)
+                # Calcul the old absolute path
+                old_abs_path = source.resolve2(path)
+                # Check if the target path has not been moved
+                new_abs_path = resources_old2new.get(old_abs_path,
+                                                     old_abs_path)
+                # Build the new path with the right path
+                # Absolute path allow to call get_pathto with the target
+                new_path = str(target.get_pathto(new_abs_path)) + view
+                # Update the record
+                update_record(record.id, **{key: Path(new_path)})
+
 
 
 ###################################
@@ -458,7 +611,7 @@ class CompanyTableFile(CommentsTableFile):
         c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
         c_zipcode=String, c_town=Unicode, c_country=Unicode,
         c_phone=Unicode, c_fax=Unicode, c_website=Unicode,
-        c_description=Unicode, c_activity=Unicode)
+        c_description=Unicode, c_activity=Unicode, c_logo=PathDataType)
 
 
 
@@ -499,6 +652,7 @@ class Company(CRMFolder):
         return get_record_value(last_record, 'c_title', language)
 
 
+    add_logo = Compagny_AddImage()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     edit = Company_EditForm()
     view = Company_View()
