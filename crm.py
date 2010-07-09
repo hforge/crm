@@ -41,7 +41,7 @@ from ikaaro.utils import generate_name as igenerate_name
 # Import from here
 from datatypes import CompanyName
 from crm_views import Company_AddForm, Company_EditForm, Company_View
-from crm_views import Compagny_AddImage
+from crm_views import Company_AddImage
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
@@ -652,7 +652,7 @@ class Company(CRMFolder):
         return get_record_value(last_record, 'c_title', language)
 
 
-    add_logo = Compagny_AddImage()
+    add_logo = Company_AddImage()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     edit = Company_EditForm()
     view = Company_View()

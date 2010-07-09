@@ -554,7 +554,7 @@ class CRM_SearchProspects(SearchForm):
 # Company #
 ###########################################################################
 
-class Compagny_AddImage(DBResource_AddImage):
+class Company_AddImage(DBResource_AddImage):
 
     def get_root(self, context):
         return context.resource
