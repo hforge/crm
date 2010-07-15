@@ -39,9 +39,8 @@ from ikaaro.table import Table
 from ikaaro.utils import generate_name as igenerate_name
 
 # Import from here
-from datatypes import CompanyName
+from datatypes import CompanyName, Company_AddImage
 from crm_views import Company_AddForm, Company_EditForm, Company_View
-from crm_views import Company_AddImage
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
@@ -50,8 +49,8 @@ from crm_views import Mission_View, Mission_ViewProspects
 from crm_views import Mission_EditProspects, Mission_AddProspects
 from crm_views import Mission_ViewProspect, Mission_EditAlerts
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
-from crm_views import CRM_SearchMissions
-from crm_views import CRM_ExportToCSV
+from crm_views import CancelAlert
+from crm_views import CRM_ExportToCSV, CRM_SearchMissions
 from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name, get_path_and_view
 
@@ -451,6 +450,7 @@ class Mission(CRMFolder):
 
 
     add_prospects = Mission_AddProspects()
+    cancel_alert = CancelAlert()
     browse_content = Folder_BrowseContent(access=False)
     edit_alerts = Mission_EditAlerts()
     edit_form = Mission_EditForm()

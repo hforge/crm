@@ -28,7 +28,7 @@ from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
 from itools.web import get_context, BaseView, STLView
-from itools.web import FormError, ERROR
+from itools.web import BaseForm, FormError, ERROR
 from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
@@ -1039,14 +1039,12 @@ class Mission_EditForm(AutoForm):
 
 
     def get_value(self, resource, context, name, datatype):
-        if name == 'alert_date':
-            return datatype.default
-        elif name == 'alert_time':
+        if name in ('alert_date', 'alert_time'):
             return datatype.default
         elif name == 'comment':
-            return context.query.get('comment') or u''
+            return context.query.get(name) or u''
         elif name == 'file':
-            return context.query.get('file') or ''
+            return context.query.get(name) or ''
         value = resource.get_value(name)
         return value if value is not None else datatype.default
 
@@ -1080,6 +1078,24 @@ class Mission_EditForm(AutoForm):
             prospect = crm.get_resource('prospects/%s' % prospect)
             context.server.change_resource(prospect)
         context.message = MSG_CHANGES_SAVED
+
+
+
+class CancelAlert(BaseForm):
+    """ Form accessed from Mission_View.
+    """
+    access = 'is_allowed_to_edit'
+    schema = {'id': Integer(mandatory=True)}
+
+    def action(self, resource, context, form):
+        comment_id = form['id']
+        # Remove alert_datetime
+        crm = get_crm(resource)
+        mission = resource
+        comments_handler = mission.get_resource('comments').handler
+        comments_handler.update_record(comment_id, alert_datetime=None)
+
+        return context.come_back(MSG_CHANGES_SAVED, './')
 
 
 
