@@ -1039,13 +1039,10 @@ class Mission_EditForm(AutoForm):
 
 
     def get_value(self, resource, context, name, datatype):
-        # TODO Make alert_date&time empty if we want to use it more than 1 time
         if name == 'alert_date':
-            value = resource.get_value('alert_datetime')
-            return value.date() if value is not None else datatype.default
+            return datatype.default
         elif name == 'alert_time':
-            value = resource.get_value('alert_datetime')
-            return value.time() if value is not None else datatype.default
+            return datatype.default
         elif name == 'comment':
             return context.query.get('comment') or u''
         elif name == 'file':
