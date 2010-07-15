@@ -22,9 +22,10 @@
       <td colspan="2">
         <img src="/ui/crm/images/1240913119_bell.png" />
         ${comment/alert_datetime}
-        <form action=";cancel_alert" method="POST" style="display: inline;">
+        <form action=";cancel_alert" method="POST" style="display: inline;"
+            onsubmit="return confirm('${msg_alert}');">
           <input type="hidden" name="id" value="${comment/id}" />
-          <input type="image" title="Supprimer l'alerte"
+          <input type="image" title="Remove alert"
             src="/ui/crm/icons/16x16/1240913137_bell_delete.png"
             style="background-color: transparent; border: none;" />
         </form>

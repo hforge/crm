@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 # Copyright (C) 2007-2008 Henry Obein <henry@itaapy.com>
-# Copyright (C) 2008 Nicolas Deram <nicolas@itaapy.com>
+# Copyright (C) 2008-2010 Nicolas Deram <nicolas@itaapy.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
-from itools.web import get_context
 from itools.xml import XMLParser
 
 # Import from ikaaro
@@ -129,9 +128,4 @@ class TimeWidget(TextWidget):
           $("#${name}").val("${value}");
         </script>
         """, stl_namespaces))
-
-    def get_namespace(self, datatype, value):
-        scripts = get_context().scripts
-        scripts.append('/ui/common/jquery.maskedinput-1.2.2.min.js')
-        return TextWidget.get_namespace(self, datatype, value)
 

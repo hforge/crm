@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# Copyright (C) 2009 Nicolas Deram <nicolas@itaapy.com>
+# Copyright (C) 2009-2010 Nicolas Deram <nicolas@itaapy.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -253,7 +253,8 @@ class Comments_View(STLView):
 
         path_to_resource = context.get_link(resource)
         namespace = {'comments': ns_comments,
-                     'path_to_resource': path_to_resource}
+                     'path_to_resource': path_to_resource,
+                     'msg_alert': REMOVE_ALERT_MSG }
         return namespace
 
 
@@ -1262,6 +1263,7 @@ class Mission_View(CompositeForm):
     title = MSG(u'View mission')
     template = '/ui/crm/Mission_view.xml'
     styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
+    scripts = ['/ui/crm/jquery.maskedinput-1.2.2.min.js']
 
     subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
 

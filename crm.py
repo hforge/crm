@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# Copyright (C) 2009 Nicolas Deram <nicolas@itaapy.com>
+# Copyright (C) 2009-2010 Nicolas Deram <nicolas@itaapy.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,8 +39,9 @@ from ikaaro.table import Table
 from ikaaro.utils import generate_name as igenerate_name
 
 # Import from here
-from datatypes import CompanyName, Company_AddImage
-from crm_views import Company_AddForm, Company_EditForm, Company_View
+from datatypes import CompanyName
+from crm_views import Company_AddForm, Company_AddImage, Company_EditForm
+from crm_views import Company_View
 from crm_views import Prospect_AddForm, Prospect_EditForm
 from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
 from crm_views import Prospect_View
