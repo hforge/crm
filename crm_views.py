@@ -335,8 +335,7 @@ class CRM_SearchMissions(SearchForm):
             args.append(OrQuery(*status_query))
         # Insert with_no_alert filter
         if with_no_alert:
-            args.append(PhraseQuery('crm_m_has_alerts', True))
-        print 1, repr(with_no_alert), args
+            args.append(PhraseQuery('crm_m_has_alerts', False))
         if len(args) == 1:
             query = args[0]
         else:
@@ -1104,6 +1103,7 @@ class CancelAlert(BaseForm):
         mission = resource
         comments_handler = mission.get_resource('comments').handler
         comments_handler.update_record(comment_id, alert_datetime=None)
+        context.server.change_resource(resource)
 
         return context.come_back(MSG_CHANGES_SAVED, './')
 
@@ -1554,6 +1554,7 @@ class CRM_Alerts(SearchForm):
             mission = crm.get_resource('missions/%s' % mission_name)
             comments_handler = mission.get_resource('comments').handler
             comments_handler.update_record(comment_id, alert_datetime=None)
+            context.server.change_resource(mission)
 
         if not_removed:
             msg = ERROR(u'One or more alert could not have been removed.')
