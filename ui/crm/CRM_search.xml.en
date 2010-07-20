@@ -11,6 +11,9 @@
     <br/>
     <!-- Status -->
     ${status}
+    <br/>
+    <!-- With no alert only -->
+    ${with_no_alert} With no alert only
   </fieldset>
 </form>
 

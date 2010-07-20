@@ -21,7 +21,7 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import CSVFile
-from itools.datatypes import Date, Decimal, Email, Integer
+from itools.datatypes import Boolean, Date, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
@@ -33,9 +33,9 @@ from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.buttons import Button, RemoveButton
-from ikaaro.forms import AutoForm, DateWidget, ImageSelectorWidget
-from ikaaro.forms import MultilineWidget, PathSelectorWidget
-from ikaaro.forms import SelectRadio, TextWidget
+from ikaaro.forms import AutoForm, BooleanCheckBox, DateWidget
+from ikaaro.forms import ImageSelectorWidget, MultilineWidget
+from ikaaro.forms import PathSelectorWidget, SelectRadio, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_AddImage
@@ -271,7 +271,8 @@ class CRM_SearchMissions(SearchForm):
     search_schema = {
         'search_field': String,
         'search_term': Unicode,
-        'status': MissionStatus(multiple=True), }
+        'status': MissionStatus(multiple=True),
+        'with_no_alert': Boolean }
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
@@ -285,9 +286,29 @@ class CRM_SearchMissions(SearchForm):
         ('m_probability', MSG(u'Prob.'), False),
         ('m_deadline', MSG(u'Deadline'), False) ]
 
-
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
+
+    # The Search Form
+    def get_search_namespace(self, resource, context):
+        search_namespace = SearchForm.get_search_namespace(self, resource,
+                                                           context)
+        # Add status
+        default_status = ['opportunity', 'project']
+        m_status = context.query['status']
+        if not m_status:
+            m_status = default_status
+        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
+        ns_status = widget.to_html(MissionStatus, m_status)
+        search_namespace['status'] = ns_status
+        # Add with_no_alert
+        with_no_alert = context.query['with_no_alert']
+        widget = BooleanCheckBox('with_no_alert',
+            title=MSG(u'With no alert only'))
+        ns_with_no_alert = widget.to_html(Boolean, with_no_alert)
+        search_namespace['with_no_alert'] = ns_with_no_alert
+
+        return search_namespace
 
 
     def get_items(self, resource, context, *args):
@@ -297,6 +318,7 @@ class CRM_SearchMissions(SearchForm):
         query = context.query
         search_term = query['search_term'].strip()
         m_status = query['status']
+        with_no_alert = query['with_no_alert']
 
         # Build the query
         args = list(args)
@@ -311,6 +333,10 @@ class CRM_SearchMissions(SearchForm):
             for s in m_status:
                 status_query.append(PhraseQuery('crm_m_status', s))
             args.append(OrQuery(*status_query))
+        # Insert with_no_alert filter
+        if with_no_alert:
+            args.append(PhraseQuery('crm_m_has_alerts', True))
+        print 1, repr(with_no_alert), args
         if len(args) == 1:
             query = args[0]
         else:
@@ -365,23 +391,6 @@ class CRM_SearchMissions(SearchForm):
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
         return [(x, resource.get_resource(x.abspath)) for x in items]
-
-
-    #######################################################################
-    # The Search Form
-    def get_search_namespace(self, resource, context):
-        search_namespace = SearchForm.get_search_namespace(self, resource,
-                                                           context)
-        # Add status
-        default_status = ['opportunity', 'project']
-        m_status = context.query['status']
-        if not m_status:
-            m_status = default_status
-        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
-        ns_status = widget.to_html(MissionStatus, m_status)
-        search_namespace['status'] = ns_status
-
-        return search_namespace
 
 
 
