@@ -12,8 +12,10 @@
     <!-- Status -->
     ${status}
     <br/>
-    <!-- With no alert only -->
-    ${with_no_alert} With no alert only
+    <stl:block stl:if="with_no_alert">
+      <!-- With no alert only -->
+      ${with_no_alert} With no alert only
+    </stl:block>
   </fieldset>
 </form>
 

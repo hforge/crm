@@ -538,6 +538,8 @@ class CRM_SearchProspects(SearchForm):
         widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
         ns_status = widget.to_html(ProspectStatus, p_status)
         search_namespace['status'] = ns_status
+        # Add *empty* with_no_alert
+        search_namespace['with_no_alert'] = None
 
         return search_namespace
 
