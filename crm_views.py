@@ -21,6 +21,7 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import CSVFile
+from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Boolean, Date, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
@@ -29,7 +30,6 @@ from itools.ical import Time
 from itools.uri import resolve_uri
 from itools.web import get_context, BaseView, STLView
 from itools.web import BaseForm, FormError, ERROR
-from itools.xapian import AndQuery, OrQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.buttons import Button, RemoveButton

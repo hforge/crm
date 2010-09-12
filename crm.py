@@ -772,22 +772,22 @@ class CRM(Folder):
 
 
 # Mission fields
-register_field('crm_m_title', Unicode(is_indexed=True, is_stored=True))
-register_field('crm_m_nextaction', Unicode(is_stored=True))
-register_field('crm_m_prospect', String(is_indexed=True, multiple=True))
-register_field('crm_m_status', String(is_indexed=True))
-register_field('crm_m_has_alerts', Boolean(is_indexed=True))
+register_field('crm_m_title', Unicode(indexed=True, stored=True))
+register_field('crm_m_nextaction', Unicode(stored=True))
+register_field('crm_m_prospect', String(indexed=True, multiple=True))
+register_field('crm_m_status', String(indexed=True))
+register_field('crm_m_has_alerts', Boolean(indexed=True))
 # Prospect fields
-register_field('crm_p_lastname', Unicode(is_stored=True))
-register_field('crm_p_status', String(is_indexed=True))
-register_field('crm_p_company', String(is_indexed=True))
-register_field('crm_p_assured', Decimal(is_stored=True))
-register_field('crm_p_probable', Decimal(is_stored=True))
-register_field('crm_p_opportunity', Integer(is_stored=True))
-register_field('crm_p_project', Integer(is_stored=True))
-register_field('crm_p_nogo', Integer(is_stored=True))
+register_field('crm_p_lastname', Unicode(stored=True))
+register_field('crm_p_status', String(indexed=True))
+register_field('crm_p_company', String(indexed=True))
+register_field('crm_p_assured', Decimal(stored=True))
+register_field('crm_p_probable', Decimal(stored=True))
+register_field('crm_p_opportunity', Integer(stored=True))
+register_field('crm_p_project', Integer(stored=True))
+register_field('crm_p_nogo', Integer(stored=True))
 # Company fields
-register_field('crm_c_title', Unicode(is_stored=True, is_indexed=True))
+register_field('crm_c_title', Unicode(stored=True, indexed=True))
 
 # Register crm skin
 path = get_abspath('ui/crm')
