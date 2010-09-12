@@ -20,6 +20,7 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.core import get_abspath, merge_dicts
 from itools.csv import Table as TableFile
+from itools.database import register_field
 from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
@@ -32,7 +33,7 @@ from itools.web import get_context
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
-from ikaaro.registry import get_resource_class, register_field
+from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
@@ -406,8 +407,8 @@ class Mission(CRMFolder):
     class_comments = MissionTable
 
 
-    def _get_catalog_values(self):
-        document = Folder._get_catalog_values(self)
+    def get_catalog_values(self):
+        document = Folder.get_catalog_values(self)
 
         comments_handler = self.get_resource('comments').handler
         get_record_value = comments_handler.get_record_value
@@ -496,8 +497,8 @@ class Prospect(CRMFolder):
     class_comments = ProspectTable
 
 
-    def _get_catalog_values(self):
-        document = Folder._get_catalog_values(self)
+    def get_catalog_values(self):
+        document = Folder.get_catalog_values(self)
         crm = self.parent
         if not isinstance(crm, CRM):
             crm = crm.parent
@@ -637,8 +638,8 @@ class Company(CRMFolder):
     class_comments = CompanyTable
 
 
-    def _get_catalog_values(self):
-        document = Folder._get_catalog_values(self)
+    def get_catalog_values(self):
+        document = Folder.get_catalog_values(self)
         crm_c_title = self.get_title()
         crm_c_description = self.get_value('c_description')
         document['crm_c_title'] = crm_c_title

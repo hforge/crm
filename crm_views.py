@@ -33,9 +33,9 @@ from itools.web import BaseForm, FormError, ERROR
 
 # Import from ikaaro
 from ikaaro.buttons import Button, RemoveButton
-from ikaaro.forms import AutoForm, BooleanCheckBox, DateWidget
-from ikaaro.forms import ImageSelectorWidget, MultilineWidget
-from ikaaro.forms import PathSelectorWidget, SelectRadio, TextWidget
+from ikaaro.autoform import AutoForm, CheckBoxWidget, DateWidget
+from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
+from ikaaro.autoform import PathSelectorWidget, RadioWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_AddImage
@@ -99,7 +99,7 @@ prospect_widgets = [
     TextWidget('p_position', title=MSG(u'Position'), default='', size=15),
     MultilineWidget('p_description', title=MSG(u'Observations'), default='',
                     rows=4),
-    SelectRadio('p_status', title=MSG(u'Status'), has_empty_option=False,
+    RadioWidget('p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3) ]
@@ -122,7 +122,7 @@ mission_widgets = [
     TextWidget('m_probability', title=MSG(u'Probability'), default='',
                size=2),
     DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
-    SelectRadio('m_status', title=MSG(u'Status'), is_inline=True,
+    RadioWidget('m_status', title=MSG(u'Status'), is_inline=True,
                 has_empty_option=False),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
@@ -269,8 +269,8 @@ class CRM_SearchMissions(SearchForm):
     styles = ['/ui/crm/style.css']
 
     search_schema = {
-        'search_field': String,
-        'search_term': Unicode,
+        'search_text': Unicode,
+        'search_type': String,
         'status': MissionStatus(multiple=True),
         'with_no_alert': Boolean }
     search_fields =  [
@@ -298,15 +298,15 @@ class CRM_SearchMissions(SearchForm):
         m_status = context.query['status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
-        ns_status = widget.to_html(MissionStatus, m_status)
-        search_namespace['status'] = ns_status
+        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'),
+                    datatype=MissionStatus, value=m_status)
+        search_namespace['status'] = widget.render()
         # Add with_no_alert
         with_no_alert = context.query['with_no_alert']
-        widget = BooleanCheckBox('with_no_alert',
-            title=MSG(u'With no alert only'))
-        ns_with_no_alert = widget.to_html(Boolean, with_no_alert)
-        search_namespace['with_no_alert'] = ns_with_no_alert
+        widget = CheckBoxWidget('with_no_alert',
+            title=MSG(u'With no alert only'), datatype=Boolean,
+            value=with_no_alert)
+        search_namespace['with_no_alert'] = widget.render()
 
         return search_namespace
 
@@ -316,7 +316,7 @@ class CRM_SearchMissions(SearchForm):
         crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
-        search_term = query['search_term'].strip()
+        search_text = query['search_text'].strip()
         m_status = query['status']
         with_no_alert = query['with_no_alert']
 
@@ -325,8 +325,8 @@ class CRM_SearchMissions(SearchForm):
         abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'mission'))
         args.append(get_crm_path_query(crm))
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
+        if search_text:
+            args.append(PhraseQuery('text', search_text))
         # Insert status filter
         if m_status:
             status_query = []
@@ -402,8 +402,8 @@ class CRM_SearchProspects(SearchForm):
     styles = ['/ui/crm/style.css']
 
     search_schema = {
-        'search_field': String,
-        'search_term': Unicode,
+        'search_text': Unicode,
+        'search_type': String,
         'status': ProspectStatus(multiple=True), }
     search_fields =  [
         ('text', MSG(u'Text')), ]
@@ -433,7 +433,7 @@ class CRM_SearchProspects(SearchForm):
         crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
-        search_term = query['search_term'].strip()
+        search_text = query['search_text'].strip()
         p_status = query['status']
 
         # Build the query
@@ -441,8 +441,8 @@ class CRM_SearchProspects(SearchForm):
         abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'prospect'))
         args.append(get_crm_path_query(crm))
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
+        if search_text:
+            args.append(PhraseQuery('text', search_text))
         # Insert status filter
         if p_status:
             status_query = []
@@ -535,9 +535,9 @@ class CRM_SearchProspects(SearchForm):
         p_status = context.query['status']
         if not p_status:
             p_status = default_status
-        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'))
-        ns_status = widget.to_html(ProspectStatus, p_status)
-        search_namespace['status'] = ns_status
+        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'),
+                datatype=ProspectStatus, value=p_status)
+        search_namespace['status'] = widget.render()
         # Add *empty* with_no_alert
         search_namespace['with_no_alert'] = None
 
@@ -830,8 +830,9 @@ class Prospect_EditForm(AutoForm):
         for index, widget in enumerate(namespace['widgets']):
             if widget['name'] == 'comment':
                 comment_widget = MultilineWidget('comment',
-                    title=MSG(u'New comment'), rows=3)
-                widget['widget'] = comment_widget.to_html(Unicode, u'')
+                    title=MSG(u'New comment'), rows=3, datatype=Unicode,
+                    value=u'')
+                widget['widget'] = comment_widget.render()
         return namespace
 
 
@@ -849,8 +850,8 @@ class Prospect_SearchMissions(SearchForm):
     search_template = '/ui/crm/Prospect_search.xml'
 
     search_schema = {
-        'search_field': String,
-        'search_term': Unicode,
+        'search_text': Unicode,
+        'search_type': String,
         'm_status': MissionStatus(multiple=True) }
     search_fields =  [
         ('title', MSG(u'Title')),
@@ -877,8 +878,8 @@ class Prospect_SearchMissions(SearchForm):
     def get_items(self, resource, context, *args):
         # Get the parameters from the query
         query = context.query
-        search_term = query['search_term'].strip()
-        field = query['search_field']
+        search_text = query['search_text'].strip()
+        field = query['search_type']
         m_status = query['m_status']
 
         # Build the query
@@ -888,8 +889,8 @@ class Prospect_SearchMissions(SearchForm):
         missions = resource.parent.parent.get_resource('missions')
         abspath = str(missions.get_canonical_path())
         args.append(PhraseQuery('parent_path', abspath))
-        if search_term:
-            args.append(PhraseQuery(field, search_term))
+        if search_text:
+            args.append(PhraseQuery(field, search_text))
         # Insert status filter
         if m_status:
             status_query = []
@@ -960,9 +961,9 @@ class Prospect_SearchMissions(SearchForm):
         m_status = context.query['m_status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckBoxWidget('m_status', title=MSG(u'Status'))
-        ns_status = widget.to_html(MissionStatus, m_status)
-        search_namespace['m_status'] = ns_status
+        widget = MultipleCheckBoxWidget('m_status', title=MSG(u'Status'),
+                datatype=MissionStatus, value=m_status)
+        search_namespace['m_status'] = widget.render()
 
         return search_namespace
 
@@ -1072,8 +1073,9 @@ class Mission_EditForm(AutoForm):
             if submit and name == 'comment':
                 widget['value'] = ''
                 comment_widget = MultilineWidget('comment',
-                                     title=MSG(u'Comment'), rows=3)
-                widget['widget'] = comment_widget.to_html(Unicode, u'')
+                        title=MSG(u'Comment'), rows=3, datatype=Unicode,
+                        value=u'')
+                widget['widget'] = comment_widget.render()
             namespace[name] = widget
         return namespace
 
@@ -1398,8 +1400,8 @@ class CRM_Alerts(SearchForm):
     styles = ['/ui/crm/style.css']
 
     search_schema = {
-        'search_field': String,
-        'search_term': Unicode,
+        'search_text': Unicode,
+        'search_type': String,
     }
     search_fields =  []
 
