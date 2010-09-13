@@ -15,12 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Import from itools
-from itools.xml import XMLParser
-
 # Import from ikaaro
-from ikaaro.forms import CheckBoxWidget, SelectWidget, TextWidget
-from ikaaro.forms import stl_namespaces
+from ikaaro.autoform import CheckboxWidget, SelectWidget, TextWidget
+from ikaaro.autoform import make_stl_template
 
 
 def generate_name(names, strformat='%03d', index=None):
@@ -53,13 +50,12 @@ def get_path_and_view(path):
 ############################################################
 # Forms
 ############################################################
-class MultipleCheckBoxWidget(CheckBoxWidget):
+class MultipleCheckboxWidget(CheckboxWidget):
 
-    template = list(XMLParser("""
+    template = make_stl_template("""
         <stl:inline stl:repeat="item items">
           <input type="checkbox" name="${name}" value="${item/name}"
-            checked="${item/selected}" />${item/value}</stl:inline>
-        """, stl_namespaces))
+            checked="${item/selected}" />${item/value}</stl:inline>""")
 
 
     def get_namespace(self, datatype, value):
@@ -75,32 +71,29 @@ class MultipleCheckBoxWidget(CheckBoxWidget):
 
 class SelectCompanyWidget(SelectWidget):
 
-    template = list(XMLParser("""
+    template = make_stl_template("""
         <select id="${id}" name="${name}" multiple="${multiple}" size="${size}"
             class="${css}">
           <option value="" stl:if="has_empty_option"></option>
           <option stl:repeat="option options" value="${option/name}"
             selected="${option/selected}">${option/value}</option>
-        </select>
-        """, stl_namespaces))
+        </select>""")
 
 
 class EmailWidget(TextWidget):
 
-    template = list(XMLParser(
-        """<input type="${type}" id="${id}" name="${name}" value="${value}"
+    template = make_stl_template("""
+           <input type="${type}" id="${id}" name="${name}" value="${value}"
              size="${size}" /><a stl:if="value" href="mailto:${value}">
-             <img src="/ui/icons/16x16/mail.png" /></a>
-        """, stl_namespaces))
+             <img src="/ui/icons/16x16/mail.png" /></a>""")
 
 
 class LinkWidget(TextWidget):
 
-    template = list(XMLParser(
-        """<input type="${type}" id="${id}" name="${name}" value="${value}"
+    template = make_stl_template("""
+           <input type="${type}" id="${id}" name="${name}" value="${value}"
              size="${size}" /><a stl:if="value" href="${value}"
-             target="_blank"><img src="/ui/icons/16x16/website.png" /></a>
-        """, stl_namespaces))
+             target="_blank"><img src="/ui/icons/16x16/website.png" /></a> """)
 
     def get_namespace(self, datatype, value):
         namespace = TextWidget.get_namespace(self, datatype, value)
@@ -113,19 +106,16 @@ class LinkWidget(TextWidget):
 
 class NewCompanyWidget(TextWidget):
 
-    template = list(XMLParser("""
-        <a href="${value}">New</a>
-        """, stl_namespaces))
+    template = make_stl_template("""<a href="${value}">New</a>""")
 
 
 class TimeWidget(TextWidget):
 
-    template = list(XMLParser("""
+    template = make_stl_template("""
         <input type="text" name="${name}" value="${value}" id="${name}"
           size="5" />
         <script type="text/javascript">
           $("#${name}").mask("99:99");
           $("#${name}").val("${value}");
-        </script>
-        """, stl_namespaces))
+        </script>""")
 

@@ -19,12 +19,11 @@ from decimal import Decimal as decimal
 
 # Import from itools
 from itools.core import get_abspath, merge_dicts
-from itools.csv import Table as TableFile
-from itools.database import register_field
+from itools.csv import Property, Table as TableFile
 from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.handlers import checkid
+from itools.handlers import checkid, folder as FolderHandler
 from itools.fs import FileName
 from itools.uri import get_reference, Path
 from itools.web import get_context
@@ -57,122 +56,77 @@ from datatypes import MissionStatus, ProspectStatus
 from utils import generate_name, get_path_and_view
 
 
-class CommentsTableFile(TableFile):
-    """ Base comments table used by Company, Prospect and Mission.
-    """
-    record_properties = {'comment': Unicode(mandatory=True),
-                         'alert_datetime': DateTime,
-                         'file': PathDataType }
-
-
-    def _add_record(self, values):
-        """ Get non set data from previous record.
-        """
-        last_record = self.get_record(-1)
-        values_keys = values.keys()
-        for key in self.record_properties.keys():
-            if key in ('file', 'alert_datetime'):
-                continue
-            if key not in values_keys:
-                values[key] = self.get_record_value(last_record, key)
-
-        self.add_record(values)
-
-
-
 class CRMFolder(Folder, RoleAware):
     """ Base folder for Company, Prospect and Mission.
     """
     class_document_types = []
-    class_comments = None
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['comments']
+
+    class_schema = merge_dicts(
+        Folder.class_schema,
+        RoleAware.class_schema,
+        comment=Unicode(source='metadata', mandatory=True, multiple=True),
+        attachment=String(source='metadata', multiple=True))
 
 
-    @staticmethod
-    def make_resource(cls, container, name, *args, **kw):
-        if cls.class_comments is None:
-            raise NotImplementedError
-        # Split kw data into metadata and record data
-        values = {}
-        metadata = {}
-        record_keys = cls.class_comments.class_handler.record_properties.keys()
-        for key, value in kw.iteritems():
-            if key in record_keys:
-                values[key] = value
-            else:
-                metadata[key] = value
+    def init_resource(self, **kw):
+        Folder.init_resource(self, **kw)
+        RoleAware.init_resource(self, **kw)
 
         # Add current user as admin
         username = get_context().user.name
-        metadata['admins'] = kw.get('admins', []) + [username]
-        resource = Folder.make_resource(cls, container, name, *args,
-                                           **metadata)
-        # Comments and data table
-        cls_comments = cls.class_comments
-        comments = cls_comments.make_resource(cls_comments, resource,
-            'comments', title={'en': u'Comments', 'fr': u'Commentaires'})
-        comments.handler.add_record(values)
-
-        return name
-
-
-    @classmethod
-    def get_metadata_schema(cls):
-        schema = RoleAware.get_metadata_schema()
-        return merge_dicts(Folder.get_metadata_schema(), schema)
+        admins = kw.get('admins', []) + [username]
+        self.set_property('admins', tuple(admins))
 
 
     def get_value(self, name, record=None, context=None):
-        comments_handler = self.get_resource('comments').handler
-        if record is None:
-            record = comments_handler.get_record(-1)
         # Get company values from current prospect
         if isinstance(self, Prospect) and name[:2] == 'c_':
-            company = comments_handler.get_record_value(record, 'p_company')
+            company = self.get_property('p_company')
             if company:
                 company = self.get_resource('../../companies/%s' % company)
                 value = company.get_value(name, None, context)
                 return value
             return None
+        # Return date or time only
         if name == 'alert_date':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
+            value = self.get_property('alert_datetime')
             return value.date() if value else None
         elif name == 'alert_time':
-            value = comments_handler.get_record_value(record, 'alert_datetime')
+            value = self.get_property('alert_datetime')
             return value.time() if value else None
-        value = comments_handler.get_record_value(record, name)
-        return value
+        # Return value
+        return self.get_property(name)
 
 
     def _update(self, values, context=None):
-        """ Add a new record with new comment or update the last record."""
+        """ Update metadata. """
         if context is not None:
             context.server.change_resource(self)
 
-        comments_handler = self.get_resource('comments').handler
-        comment = values.get('comment') or None
-        # Manage attachement file
-        file = values.get('file') or None
-        if file is not None:
-            filename, mimetype, body = file
-            # Find a non used name
-            name = checkid(filename)
-            name, extension, language = FileName.decode(name)
-            name = igenerate_name(name, self.get_names())
-            # Add attachement
-            cls = get_resource_class(mimetype)
-            cls.make_resource(cls, self, name, body=body,
-                filename=filename, extension=extension,
-                format=mimetype)
-            # Link
-            values['file'] = name
-        # If no comment, only update fields
-        if comment is None:
-            last_record = comments_handler.get_record(-1)
-            comments_handler.update_record(last_record.id, **values)
-        # Add a new comment
-        else:
-            comments_handler._add_record(values)
+        for key, value in values.iteritems():
+            if key == 'attachment':
+                # Manage attachement file
+                file = values.get('attachment') or None
+                if file is not None:
+                    filename, mimetype, body = file
+                    # Find a non used name
+                    name = checkid(filename)
+                    name, extension, language = FileName.decode(name)
+                    name = igenerate_name(name, self.get_names())
+                    # Add attachement
+                    cls = get_resource_class(mimetype)
+                    self.make_resource(name, cls, body=body,
+                        filename=filename, extension=extension,
+                        format=mimetype)
+                    # Link
+                    values['attachment'] = name
+            elif key == 'comment':
+                date = context.timestamp
+                user = context.user
+                author = user.name if user else None
+                comment = Property(value, date=date, author=author)
+            else:
+                self.set_property(key, value)
 
 
     def is_allowed_to_edit(self, user, resource):
@@ -219,7 +173,7 @@ class CRMFolder(Folder, RoleAware):
         base = self.get_canonical_path()
 
         # metadata
-        schema = self.get_metadata_schema()
+        schema = self.class_schema
         for key, datatype in schema.iteritems():
             if issubclass(datatype, PathDataType) is False:
                 continue
@@ -263,7 +217,7 @@ class CRMFolder(Folder, RoleAware):
         new_base = Path(base)
 
         # metadata
-        schema = self.get_metadata_schema()
+        schema = self.class_schema
         for key, datatype in schema.iteritems():
             if issubclass(datatype, PathDataType) is False:
                 continue
@@ -314,7 +268,7 @@ class CRMFolder(Folder, RoleAware):
         resources_old2new = get_context().database.resources_old2new
 
         # metadata
-        schema = self.get_metadata_schema()
+        schema = self.class_schema
         for key, datatype in schema.iteritems():
             if issubclass(datatype, PathDataType) is False:
                 continue
@@ -364,59 +318,99 @@ class CRMFolder(Folder, RoleAware):
                 update_record(record.id, **{key: Path(new_path)})
 
 
+    def update_20100912(self):
+        from itools.core import utc
+        from obsolete import MissionTableFile, ProspectTableFile
+        from obsolete import CompanyTableFile
+
+        metadata = self.metadata
+        attachments = []
+        comments = self.get_resource('comments', soft=True)
+        if not comments:
+            print 'NO COMMENTS', self.get_abspath()
+            return
+        # Comments
+        if isinstance(self, Mission):
+            cls = MissionTableFile
+        elif isinstance(self, Prospect):
+            cls = ProspectTableFile
+        elif isinstance(self, Company):
+            cls = CompanyTableFile
+        else:
+            raise ValueError
+        comments_handler = comments.parent.handler.get_handler('comments', cls)
+        get_record_value = comments_handler.get_record_value
+        item_comments = []
+        for record in comments_handler.get_records():
+            comment = get_record_value(record, 'comment')
+            if comment:
+                date = get_record_value(record, 'ts')
+                if date is not None:
+                    date = date.replace(tzinfo=utc)
+                    comment = Property(comment, date=date)
+                item_comments.append(comment)
+            file = get_record_value(record, 'file')
+            if file and file != '.':
+                attachments.append(file)
+        # Set comments
+        metadata.set_property('comment', item_comments)
+        # Attachments
+        if attachments:
+            metadata.set_property('attachment', attachments)
+
+        # Other metadata
+        record = comments_handler.get_record(-1)
+        for key in self.class_schema.keys():
+            source_key = key
+            if key[:4] == 'crm_':
+                source_key = key[4:]
+            value = get_record_value(record, source_key)
+            print 4, repr(source_key), value
+            if value is not None:
+                metadata.set_property(key, value)
+        # Set mtime
+        ts = get_record_value(record, 'ts')
+        if ts is not None:
+            metadata.set_property('mtime', ts)
+
+        # Remove table comments
+        self.del_resource('comments')
+
 
 ###################################
 # Mission                         #
 ###################################
 
-class MissionTableFile(CommentsTableFile):
-
-    record_properties = merge_dicts(CommentsTableFile.record_properties,
-            # Mission title and description
-            m_title=Unicode, m_description=Unicode,
-            # Prospect name
-            m_prospect=String(multiple=True),
-            # How many € ?
-            m_amount=Decimal,
-            m_probability=Integer,
-            m_deadline=Date,
-            # Opportunity/Project/NoGo
-            m_status=MissionStatus,
-            # Next action
-            m_nextaction=Unicode)
-
-
-
-class MissionTable(Table):
-
-    class_id = 'mission-comments'
-    class_title = MSG(u'Mission comments')
-    class_handler = MissionTableFile
-
-
-
 class Mission(CRMFolder):
     """ A mission is a folder containing:
-        - a table of comments
+        - metadata (including comments)
         - documents related to comments
     """
     class_id = 'mission'
     class_title = MSG(u'Mission')
-    class_version = '20100204'
+    class_version = '20100912'
     class_views = ['view', 'add_prospects', 'edit_prospects', 'edit_alerts']
-    class_comments = MissionTable
+
+    class_schema = merge_dicts(
+        CRMFolder.class_schema,
+        crm_m_title=Unicode(source='metadata', indexed=True, stored=True),
+        crm_m_description=Unicode(source='metadata'),
+        crm_m_nextaction=Unicode(source='metadata', stored=True),
+        crm_m_prospect=String(source='metadata', indexed=True, multiple=True),
+        crm_m_status=MissionStatus(source='metadata', indexed=True),
+        crm_m_has_alerts=Boolean(source='metadata', indexed=True),
+        alert_datetime=DateTime(source='metadata'),
+        crm_m_amount=Decimal(source='metadata'),
+        crm_m_probability=Integer(source='metadata'),
+        crm_m_deadline=Date(source='metadata'))
 
 
     def get_catalog_values(self):
-        document = Folder.get_catalog_values(self)
-
-        comments_handler = self.get_resource('comments').handler
-        get_record_value = comments_handler.get_record_value
-        last_record = comments_handler.get_record(-1)
-        crm_m_title = get_record_value(last_record, 'm_title')
-        prospects = get_record_value(last_record, 'm_prospect')
-        crm_m_description = get_record_value(last_record, 'm_description')
-        crm_m_nextaction  = get_record_value(last_record, 'm_nextaction')
+        document = CRMFolder.get_catalog_values(self)
+        crm_m_title = self.get_property('m_title')
+        prospects = self.get_property('m_prospect')
+        crm_m_description = self.get_property('m_description')
+        crm_m_nextaction  = self.get_property('m_nextaction')
         # Index all comments as 'text', and check any alert
         values = [crm_m_title or '',
                   crm_m_description or '',
@@ -429,14 +423,8 @@ class Mission(CRMFolder):
             c_title = prospect.get_value('c_title')
             if c_title:
                 values.append(c_title)
-        has_alerts = False
-        for record in comments_handler.get_records():
-            # comment
-            values.append(u' '.join(get_record_value(record, 'comment')))
-            # alert
-            if has_alerts is False and \
-              get_record_value(record, 'alert_datetime'):
-                has_alerts = True
+        has_alerts = self.get_property('alert_datetime')
+        values.append(u' '.join([ c for c in self.get_property('comments')]))
         document['text'] = u' '.join(values)
         # Index title
         document['crm_m_title'] = crm_m_title
@@ -447,7 +435,7 @@ class Mission(CRMFolder):
         # Index alerts
         document['crm_m_has_alerts'] = has_alerts
         # Index status
-        document['crm_m_status'] = get_record_value(last_record, 'm_status')
+        document['crm_m_status'] = self.get_property('m_status')
         return document
 
 
@@ -467,34 +455,31 @@ class Mission(CRMFolder):
 # Prospect                        #
 ###################################
 
-class ProspectTableFile(CommentsTableFile):
-
-    record_properties = merge_dicts(CommentsTableFile.record_properties,
-        p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
-        p_phone=Unicode, p_mobile=Unicode, p_email=Email,
-        p_position=Unicode, p_description=Unicode,
-        # Lead/Client/Dead
-        p_status=ProspectStatus)
-
-
-
-class ProspectTable(Table):
-
-    class_id = 'prospect-comments'
-    class_title = MSG(u'Prospect comments')
-    class_handler = ProspectTableFile
-
-
-
 class Prospect(CRMFolder):
     """ A prospect is a contact.
     """
     class_id = 'prospect'
     class_title = MSG(u'Prospect')
-    class_version = '20100204'
+    class_version = '20100912'
 
     class_views = ['view']
-    class_comments = ProspectTable
+
+    class_schema = merge_dicts(
+        CRMFolder.class_schema,
+        crm_p_company=String(source='metadata', indexed=True),
+        crm_p_lastname=Unicode(source='metadata', stored=True),
+        crm_p_firstname=Unicode(source='metadata'),
+        crm_p_phone=Unicode(source='metadata'),
+        crm_p_mobile=Unicode(source='metadata'),
+        crm_p_email=Email(source='metadata'),
+        crm_p_position=Unicode(source='metadata'),
+        crm_p_description=Unicode(source='metadata'),
+        crm_p_status=String(source='metadata', indexed=True),
+        crm_p_assured=Decimal(source='metadata', stored=True),
+        crm_p_probable=Decimal(source='metadata', stored=True),
+        crm_p_opportunity=Integer(source='metadata', stored=True),
+        crm_p_project=Integer(source='metadata', stored=True),
+        crm_p_nogo=Integer(source='metadata', stored=True))
 
 
     def get_catalog_values(self):
@@ -502,7 +487,6 @@ class Prospect(CRMFolder):
         crm = self.parent
         if not isinstance(crm, CRM):
             crm = crm.parent
-        comments_handler = self.get_resource('comments').handler
         get_value = self.get_value
 
         document['crm_p_lastname'] = get_value('p_lastname')
@@ -525,16 +509,9 @@ class Prospect(CRMFolder):
         values.append(get_value('p_description') or '')
         values.append(get_value('p_comment') or '')
         # Index all comments as 'text', and check any alert
-        has_alerts = False
-        for record in comments_handler.get_records():
-            # comment
-            value = get_value('comment', record)
-            if value:
-                values.append(value)
-            # alert
-            if has_alerts is False and \
-              get_value('alert_datetime', record):
-                has_alerts = True
+        has_alerts = self.get_property('alert_datetime')
+        comments = self.get_property('comments')
+        values.append([c for c in comments])
         document['text'] = u' '.join(values)
         # Index status
         document['crm_p_status'] = get_value('p_status')
@@ -608,34 +585,30 @@ class Prospect(CRMFolder):
 # Company                         #
 ###################################
 
-class CompanyTableFile(CommentsTableFile):
-
-    record_properties = merge_dicts(CommentsTableFile.record_properties,
-        c_title=Unicode, c_address_1=Unicode, c_address_2=Unicode,
-        c_zipcode=String, c_town=Unicode, c_country=Unicode,
-        c_phone=Unicode, c_fax=Unicode, c_website=Unicode,
-        c_description=Unicode, c_activity=Unicode, c_logo=PathDataType)
-
-
-
-class CompanyTable(Table):
-
-    class_id = 'company-comments'
-    class_title = MSG(u'Company comments')
-    class_handler = CompanyTableFile
-
-
-
 class Company(CRMFolder):
     """ A Company is a folder with metadata containing files related to it such
         as logo, images, ...
     """
     class_id = 'company'
     class_title = MSG(u'Company')
-    class_version = '20100204'
+    class_version = '20100912'
 
     class_views = ['view', 'browse_content']
-    class_comments = CompanyTable
+
+    class_schema = merge_dicts(
+        CRMFolder.class_schema,
+        crm_c_title=Unicode(source='metadata', stored=True, indexed=True),
+        crm_c_address_1=Unicode(source='metadata'),
+        crm_c_address_2=Unicode(source='metadata'),
+        crm_c_zipcode=String(source='metadata'),
+        crm_c_town=Unicode(source='metadata'),
+        crm_c_country=Unicode(source='metadata'),
+        crm_c_phone=Unicode(source='metadata'),
+        crm_c_fax=Unicode(source='metadata'),
+        crm_c_website=Unicode(source='metadata'),
+        crm_c_description=Unicode(source='metadata'),
+        crm_c_activity=Unicode(source='metadata'),
+        crm_c_logo=PathDataType(source='metadata', default='.'))
 
 
     def get_catalog_values(self):
@@ -649,10 +622,7 @@ class Company(CRMFolder):
 
 
     def get_title(self, language=None):
-        comments_handler = self.get_resource('comments').handler
-        get_record_value = comments_handler.get_record_value
-        last_record = comments_handler.get_record(-1)
-        return get_record_value(last_record, 'c_title', language)
+        return self.get_property('c_title')
 
 
     add_logo = Company_AddImage()
@@ -676,7 +646,7 @@ class Companies(Folder):
         names = self.get_names()
         index = len(names)
         name = generate_name(names, 'c%06d', index)
-        Company.make_resource(Company, self, name, **values)
+        self.make_resource(name, Company, **values)
         return name
 
 
@@ -696,7 +666,7 @@ class Prospects(Folder):
         names = self.get_names()
         index = len(names)
         name = generate_name(names, 'p%06d', index)
-        Prospect.make_resource(Prospect, self, name, **values)
+        self.make_resource(name, Prospect, **values)
         return name
 
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
@@ -715,7 +685,7 @@ class Missions(Folder):
         names = self.get_names()
         index = len(names)
         name = generate_name(names, 'm%06d', index)
-        Mission.make_resource(Mission, self, name, **values)
+        self.make_resource(name, Mission, **values)
         return name
 
     add_form = Mission_AddForm()
@@ -745,18 +715,23 @@ class CRM(Folder):
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
                                                       'missions']
 
-    @staticmethod
-    def _make_resource(cls, folder, name, *args, **kw):
-        Folder._make_resource(cls, folder, name, **kw)
+    def init_resource(self, **kw):
+        Folder.init_resource(self, **kw)
+        folder = self.handler
+
         # Companies
-        Companies._make_resource(Companies, folder, '%s/companies' % name,
-                                 title={'en': u'Companies', 'fr': u'Sociétés'})
+        self.make_resource('companies', Companies,
+            title={'en': u'Companies', 'fr': u'Sociétés'})
+        handler = FolderHandler()
+        folder.set_handler('companies', handler)
         # Prospects
-        Prospects._make_resource(Prospects, folder, '%s/prospects' % name,
-                                 title={'en': u'Prospects', 'fr': u'Prospects'})
+        self.make_resource('prospects', Prospects,
+            title={'en': u'Prospects', 'fr': u'Prospects'})
+        folder.set_handler('prospects', handler)
         # Missions
-        Missions._make_resource(Missions, folder, '%s/missions' % name,
-                                 title={'en': u'Missions', 'fr': u'Missions'})
+        self.make_resource('missions', Missions,
+            title={'en': u'Missions', 'fr': u'Missions'})
+        folder.set_handler('missions', handler)
 
 
     alerts = CRM_Alerts()
@@ -771,24 +746,6 @@ class CRM(Folder):
     goto_companies = GoToSpecificDocument(specific_document='companies',
         title=MSG(u'New company'), access='is_allowed_to_edit')
 
-
-# Mission fields
-register_field('crm_m_title', Unicode(indexed=True, stored=True))
-register_field('crm_m_nextaction', Unicode(stored=True))
-register_field('crm_m_prospect', String(indexed=True, multiple=True))
-register_field('crm_m_status', String(indexed=True))
-register_field('crm_m_has_alerts', Boolean(indexed=True))
-# Prospect fields
-register_field('crm_p_lastname', Unicode(stored=True))
-register_field('crm_p_status', String(indexed=True))
-register_field('crm_p_company', String(indexed=True))
-register_field('crm_p_assured', Decimal(stored=True))
-register_field('crm_p_probable', Decimal(stored=True))
-register_field('crm_p_opportunity', Integer(stored=True))
-register_field('crm_p_project', Integer(stored=True))
-register_field('crm_p_nogo', Integer(stored=True))
-# Company fields
-register_field('crm_c_title', Unicode(stored=True, indexed=True))
 
 # Register crm skin
 path = get_abspath('ui/crm')

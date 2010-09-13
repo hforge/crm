@@ -33,19 +33,19 @@ from itools.web import BaseForm, FormError, ERROR
 
 # Import from ikaaro
 from ikaaro.buttons import Button, RemoveButton
-from ikaaro.autoform import AutoForm, CheckBoxWidget, DateWidget
+from ikaaro.autoform import AutoForm, CheckboxWidget, DateWidget
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
 from ikaaro.autoform import PathSelectorWidget, RadioWidget, TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
+from ikaaro.popup import DBResource_AddImage
 from ikaaro.registry import get_resource_class
-from ikaaro.resource_views import DBResource_AddImage
-from ikaaro.tracker.issue_views import indent
+from ikaaro.comments import indent
 from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from here
 from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
-from utils import EmailWidget, MultipleCheckBoxWidget
+from utils import EmailWidget, MultipleCheckboxWidget
 from utils import LinkWidget, NewCompanyWidget, SelectCompanyWidget, TimeWidget
 
 
@@ -298,12 +298,12 @@ class CRM_SearchMissions(SearchForm):
         m_status = context.query['status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'),
+        widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
                     datatype=MissionStatus, value=m_status)
         search_namespace['status'] = widget.render()
         # Add with_no_alert
         with_no_alert = context.query['with_no_alert']
-        widget = CheckBoxWidget('with_no_alert',
+        widget = CheckboxWidget('with_no_alert',
             title=MSG(u'With no alert only'), datatype=Boolean,
             value=with_no_alert)
         search_namespace['with_no_alert'] = widget.render()
@@ -535,7 +535,7 @@ class CRM_SearchProspects(SearchForm):
         p_status = context.query['status']
         if not p_status:
             p_status = default_status
-        widget = MultipleCheckBoxWidget('status', title=MSG(u'Status'),
+        widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
                 datatype=ProspectStatus, value=p_status)
         search_namespace['status'] = widget.render()
         # Add *empty* with_no_alert
@@ -961,7 +961,7 @@ class Prospect_SearchMissions(SearchForm):
         m_status = context.query['m_status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckBoxWidget('m_status', title=MSG(u'Status'),
+        widget = MultipleCheckboxWidget('m_status', title=MSG(u'Status'),
                 datatype=MissionStatus, value=m_status)
         search_namespace['m_status'] = widget.render()
 
