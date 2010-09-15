@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Import from itools
+from itools.core import thingy_lazy_property
+
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget, SelectWidget, TextWidget
 from ikaaro.autoform import make_stl_template
@@ -57,16 +60,15 @@ class MultipleCheckboxWidget(CheckboxWidget):
           <input type="checkbox" name="${name}" value="${item/name}"
             checked="${item/selected}" />${item/value}</stl:inline>""")
 
-
-    def get_namespace(self, datatype, value):
+    def items(self):
         items = []
-        for option in datatype.get_options():
+        for option in self.datatype.get_options():
             name = option['name']
             items.append({
                 'name': name,
                 'value': option['value'],
-                'selected': name in value})
-        return {'name': self.name, 'items': items}
+                'selected': name in self.value})
+        return items
 
 
 class SelectCompanyWidget(SelectWidget):
@@ -95,13 +97,12 @@ class LinkWidget(TextWidget):
              size="${size}" /><a stl:if="value" href="${value}"
              target="_blank"><img src="/ui/icons/16x16/website.png" /></a> """)
 
-    def get_namespace(self, datatype, value):
-        namespace = TextWidget.get_namespace(self, datatype, value)
-        value = namespace['value']
+    @thingy_lazy_property
+    def value_(self):
+        value = self.value
         if 'http://' not in value and 'https://' not in value:
             value = 'http://%s' % value
-            namespace['value'] = value
-        return namespace
+        return value
 
 
 class NewCompanyWidget(TextWidget):
@@ -118,4 +119,3 @@ class TimeWidget(TextWidget):
           $("#${name}").mask("99:99");
           $("#${name}").val("${value}");
         </script>""")
-
