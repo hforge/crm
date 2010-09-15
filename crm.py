@@ -185,7 +185,8 @@ class CRMFolder(RoleAware, Folder):
             links.append(str(base.resolve2(path)))
 
         # comments
-        for comment in self.metadata.get_property('comment'):
+        comments = self.metadata.get_property('comment') or []
+        for comment in comments:
             # XXX hardcoded, not typed
             for key in ('file', 'crm_c_logo'):
                 value = comment.get_parameter(key)
@@ -230,7 +231,8 @@ class CRMFolder(RoleAware, Folder):
                 self.set_property(key, Path(new_path))
 
         # comments
-        for comment in self.metadata.get_property('comment'):
+        comments = self.metadata.get_property('comment') or []
+        for comment in comments:
             # XXX hardcoded, not typed
             for key in ('file', 'crm_c_logo'):
                 value = comment.get_parameter(key)
@@ -281,7 +283,8 @@ class CRMFolder(RoleAware, Folder):
             self.set_property(key, Path(new_path))
 
         # comments
-        for comment in self.metadata.get_property('comment'):
+        comments = self.metadata.get_property('comment')
+        for comment in comments:
             # XXX hardcoded, not typed
             for key in ('file', 'crm_c_logo'):
                 value = comment.get_parameter(key)
@@ -331,9 +334,10 @@ class CRMFolder(RoleAware, Folder):
             comment = get_record_value(record, 'comment')
             if comment:
                 date = get_record_value(record, 'ts')
-                if date is not None:
-                    date = date.replace(tzinfo=utc)
-                    comment = Property(comment, date=date)
+                if date is None:
+                    raise ValueError
+                date = date.replace(tzinfo=utc)
+                comment = Property(comment, date=date)
                 item_comments.append(comment)
             file = get_record_value(record, 'file')
             if file and file != '.':
@@ -347,11 +351,12 @@ class CRMFolder(RoleAware, Folder):
         # Other metadata
         record = comments_handler.get_record(-1)
         for key in self.class_schema.keys():
+            if key in ('comment', 'file'):
+                continue
             source_key = key
             if key[:4] == 'crm_':
                 source_key = key[4:]
             value = get_record_value(record, source_key)
-            print 4, repr(source_key), value
             if value is not None:
                 metadata.set_property(key, value)
         # Set mtime
