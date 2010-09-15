@@ -229,7 +229,7 @@ class Comments_View(STLView):
     def get_namespace(self, resource, context):
 
         ns_comments = []
-        comments = resource.get_property('comment') or []
+        comments = resource.metadata.get_property('comment') or []
         for i, comment in enumerate(comments):
             comment_datetime = comment.get_parameter('date')
             file = comment.get_parameter('file') or ''
