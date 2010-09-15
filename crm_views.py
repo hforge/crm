@@ -350,13 +350,13 @@ class CRM_SearchMissions(SearchForm):
         get_value = item_resource.get_value
         if column == 'icon':
             # Status
-            value = get_value('m_status')
+            value = get_value('crm_m_status')
             return m_status_icons[value]
         elif column == 'm_title':
             href = context.get_link(item_resource)
             return item_brain.crm_m_title, href
         elif column == 'm_prospects':
-            values = get_value('m_prospect')
+            values = get_value('crm_m_prospect')
             query = [PhraseQuery('name', name) for name in values]
             if len(query) == 1:
                 query = query[0]
@@ -469,7 +469,7 @@ class CRM_SearchProspects(SearchForm):
         get_value = item_resource.get_value
         if column == 'icon':
             # Status
-            value = get_value('p_status')
+            value = get_value('crm_p_status')
             return p_status_icons[value]
         elif column == 'p_company':
             company = get_value(column)
@@ -913,7 +913,7 @@ class Prospect_SearchMissions(SearchForm):
         get_value = item_resource.get_value
         if column == 'icon':
             # Status
-            value = get_value('m_status')
+            value = get_value('crm_m_status')
             return m_status_icons[value]
         # FIXME
         elif column == 'm_title':
@@ -921,7 +921,7 @@ class Prospect_SearchMissions(SearchForm):
             return get_value(column), context.get_link(item_resource)
         elif column == 'status':
             # Status
-            return MissionStatus.get_value(get_value('m_status'))
+            return MissionStatus.get_value(get_value('crm_m_status'))
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
@@ -1083,7 +1083,7 @@ class Mission_EditForm(AutoForm):
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        prospects = resource.get_value('m_prospect')
+        prospects = resource.get_value('crm_m_prospect')
         for prospect in prospects:
             prospect = crm.get_resource('prospects/%s' % prospect)
             context.server.change_resource(prospect)
@@ -1168,7 +1168,7 @@ class Mission_ViewProspects(CRM_SearchProspects):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        prospects = resource.get_value('m_prospect')
+        prospects = resource.get_value('crm_m_prospect')
         if len(prospects) == 1:
             args.append(PhraseQuery('name', prospects[0]))
         elif len(prospects) > 1:
@@ -1213,7 +1213,7 @@ class Mission_EditProspects(Mission_ViewProspects):
 
 
     def action_remove(self, resource, context, form):
-        prospects = resource.get_value('m_prospect')
+        prospects = resource.get_value('crm_m_prospect')
 
         for prospect_id in form.get('ids', []):
             try:
@@ -1256,7 +1256,7 @@ class Mission_AddProspects(CRM_SearchProspects):
 
 
     def action_add_prospect(self, resource, context, form):
-        prospects = resource.get_value('m_prospect')
+        prospects = resource.get_value('crm_m_prospect')
 
         for prospect_id in form.get('ids', []):
             prospects.append(prospect_id)
@@ -1279,7 +1279,7 @@ class Mission_View(CompositeForm):
     subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
 
     def get_namespace(self, resource, context):
-        title = resource.get_value('m_title')
+        title = resource.get_value('crm_m_title')
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_prospects = resource.view_prospects.GET(resource, context)
@@ -1324,17 +1324,17 @@ class CRM_ExportToCSV(BaseView):
 
     def get_mission_infos(self, resource, mission):
         infos = []
-        prospect = mission.get_value('m_prospect')[0]
+        prospect = mission.get_value('crm_m_prospect')[0]
         prospect = resource.get_resource('prospects/%s' % prospect)
         get_value = prospect.get_value
         # Prospect
-        infos.append(get_value('p_lastname'))
-        infos.append(get_value('p_firstname') or '')
-        p_company = get_value('p_company')
+        infos.append(get_value('crm_p_lastname'))
+        infos.append(get_value('crm_p_firstname') or '')
+        p_company = get_value('crm_p_company')
         if p_company:
             company = resource.get_resource('companies/%s' % p_company)
-            infos.append(company.get_value('c_title'))
-        infos.append(get_value('p_status'))
+            infos.append(company.get_value('crm_c_title'))
+        infos.append(get_value('crm_p_status'))
 
         # Mission
         l = ['m_title', 'm_amount', 'm_probability', 'm_status', 'm_deadline']
@@ -1490,7 +1490,7 @@ class CRM_Alerts(SearchForm):
             href = 'missions/%s' % mission.name
             return path_to_icon
         elif column in ('p_lastname', 'p_firstname'):
-            prospect = mission.get_value('m_prospect')[0]
+            prospect = mission.get_value('crm_m_prospect')[0]
             prospect = resource.get_resource('prospects/%s' % prospect)
             value = prospect.get_value(column)
             if mission.is_allowed_to_edit(context.user, mission):
@@ -1498,7 +1498,7 @@ class CRM_Alerts(SearchForm):
                 return value, href
             return value
         elif column == 'p_company':
-            prospect = mission.get_value('m_prospect')[0]
+            prospect = mission.get_value('crm_m_prospect')[0]
             prospect = resource.get_resource('prospects/%s' % prospect)
             company_name = prospect.get_value(column)
             company = mission.get_resource('../../companies/%s' % company_name)
