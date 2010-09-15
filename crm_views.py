@@ -227,25 +227,22 @@ class Comments_View(STLView):
     template = '/ui/crm/Comments_view.xml'
 
     def get_namespace(self, resource, context):
-        comments_handler = resource.get_resource('comments').handler
-        get_record_value = comments_handler.get_record_value
 
         ns_comments = []
-        for record in comments_handler.get_records():
-            id = record.id
-            comment = get_record_value(record, 'comment')
-            comment_datetime = get_record_value(record, 'ts')
-            file = get_record_value(record, 'file') or ''
-            alert_datetime = get_record_value(record, 'alert_datetime')
+        comments = resource.get_property('comment') or []
+        for i, comment in enumerate(comments):
+            comment_datetime = comment.get_parameter('date')
+            file = comment.get_parameter('file') or ''
+            alert_datetime = comment.get_parameter('alert_datetime')
             if alert_datetime:
                 alert_datetime = format_datetime(alert_datetime)
             # TODO Add diff (useful at creation without any comment)
             ns_comment = {
-                'id': id,
+                'id': i,
                 'datetime': format_datetime(comment_datetime),
                 'file': str(file),
                 'alert_datetime': alert_datetime,
-                'comment': indent(comment)}
+                'comment': indent(comment.value)}
             ns_comments.append((id, ns_comment))
         # Sort comments
         ns_comments.sort(reverse=True)
@@ -1105,8 +1102,9 @@ class CancelAlert(BaseForm):
         # Remove alert_datetime
         crm = get_crm(resource)
         mission = resource
-        comments_handler = mission.get_resource('comments').handler
-        comments_handler.update_record(comment_id, alert_datetime=None)
+        comments = mission.get_property('comment')
+        comments[comment_id].set_parameter(alert_datetime=None)
+        # XXX set_property?
         context.server.change_resource(resource)
 
         return context.come_back(MSG_CHANGES_SAVED, './')
@@ -1460,14 +1458,13 @@ class CRM_Alerts(SearchForm):
             if not mission.is_allowed_to_view(user, mission):
                 continue
             # Get alert
-            comments_handler = mission.get_resource('comments').handler
-            get_record_value = comments_handler.get_record_value
-            for record in comments_handler.get_records():
-                alert_datetime = get_record_value(record, 'alert_datetime')
+            comments = mission.metadata.get_property('comment') or []
+            for i, comment in enumerate(comments):
+                alert_datetime = comment.get_parameter('alert_datetime')
                 if not alert_datetime:
                     continue
-                m_nextaction = get_record_value(record, 'm_nextaction')
-                items.append((alert_datetime, m_nextaction, mission, record.id))
+                m_nextaction = comment.get_parameter('m_nextaction')
+                items.append((alert_datetime, m_nextaction, mission, i))
 
         return items
 
@@ -1556,8 +1553,9 @@ class CRM_Alerts(SearchForm):
             # Remove alert_datetime
             crm = get_crm(resource)
             mission = crm.get_resource('missions/%s' % mission_name)
-            comments_handler = mission.get_resource('comments').handler
-            comments_handler.update_record(comment_id, alert_datetime=None)
+            comments = mission.metadata.get_property('comment')
+            comments[comment_id].set_parameter(alert_datetime=None)
+            # XXX set_property?
             context.server.change_resource(mission)
 
         if not_removed:
@@ -1594,7 +1592,6 @@ class Mission_EditAlerts(CRM_Alerts):
     def get_item_value(self, resource, context, item, column):
         alert_datetime, m_nextaction, mission, comment_id = item
         if column == 'comment':
-            handler = mission.get_resource('comments').handler
-            record = handler.get_record(comment_id)
-            return handler.get_record_value(record, 'comment')
+            comments = mission.get_property('comment')
+            return comments[comment_id]
         return CRM_Alerts.get_item_value(self, resource, context, item, column)

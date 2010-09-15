@@ -18,8 +18,8 @@
 from decimal import Decimal as decimal
 
 # Import from itools
-from itools.core import get_abspath, merge_dicts
-from itools.csv import Property, Table as TableFile
+from itools.core import get_abspath, merge_dicts, freeze
+from itools.csv import Property
 from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
@@ -35,11 +35,9 @@ from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
-from ikaaro.table import Table
 from ikaaro.utils import generate_name as igenerate_name
 
 # Import from here
-from datatypes import CompanyName
 from crm_views import Company_AddForm, Company_AddImage, Company_EditForm
 from crm_views import Company_View
 from crm_views import Prospect_AddForm, Prospect_EditForm
@@ -52,11 +50,11 @@ from crm_views import Mission_ViewProspect, Mission_EditAlerts
 from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CancelAlert
 from crm_views import CRM_ExportToCSV, CRM_SearchMissions
-from datatypes import MissionStatus, ProspectStatus
+from datatypes import MissionStatus
 from utils import generate_name, get_path_and_view
 
 
-class CRMFolder(Folder, RoleAware):
+class CRMFolder(RoleAware, Folder):
     """ Base folder for Company, Prospect and Mission.
     """
     class_document_types = []
@@ -80,8 +78,8 @@ class CRMFolder(Folder, RoleAware):
 
     def get_value(self, name, record=None, context=None):
         # Get company values from current prospect
-        if isinstance(self, Prospect) and name[:2] == 'c_':
-            company = self.get_property('p_company')
+        if isinstance(self, Prospect) and name[:2] == 'crm_c_':
+            company = self.get_property('crm_p_company')
             if company:
                 company = self.get_resource('../../companies/%s' % company)
                 value = company.get_value(name, None, context)
@@ -187,14 +185,10 @@ class CRMFolder(Folder, RoleAware):
             links.append(str(base.resolve2(path)))
 
         # comments
-        comments_handler = self.get_resource('comments').handler
-        comments_schema = comments_handler.record_properties
-        path_datatypes = [ k for k, d in comments_schema.iteritems()
-                           if issubclass(d, PathDataType) ]
-        get_value = comments_handler.get_record_value
-        for key in path_datatypes:
-            for record in comments_handler.get_records():
-                value = get_value(record, key)
+        for comment in self.metadata.get_property('comment'):
+            # XXX hardcoded, not typed
+            for key in ('file', 'crm_c_logo'):
+                value = comment.get_parameter(key)
                 if not value:
                     continue
                 ref = get_reference(value)
@@ -236,15 +230,10 @@ class CRMFolder(Folder, RoleAware):
                 self.set_property(key, Path(new_path))
 
         # comments
-        comments_handler = self.get_resource('comments').handler
-        comments_schema = comments_handler.record_properties
-        path_datatypes = [ k for k, d in comments_schema.iteritems()
-                           if issubclass(d, PathDataType) ]
-        get_value = comments_handler.get_record_value
-        update_record = comments_handler.update_record
-        for key in path_datatypes:
-            for record in comments_handler.get_records():
-                value = get_value(record, key)
+        for comment in self.metadata.get_property('comment'):
+            # XXX hardcoded, not typed
+            for key in ('file', 'crm_c_logo'):
+                value = comment.get_parameter(key)
                 if not value:
                     continue
                 ref = get_reference(value)
@@ -256,7 +245,8 @@ class CRMFolder(Folder, RoleAware):
                     # Hit the old name
                     # Build the new path with the right path
                     new_path = str(new_base.get_pathto(target)) + view
-                    update_record(record.id, **{key: Path(new_path)})
+                    comment.set_parameter(key, new_path)
+                    # XXX set_property?
 
         get_context().server.change_resource(self)
 
@@ -291,15 +281,10 @@ class CRMFolder(Folder, RoleAware):
             self.set_property(key, Path(new_path))
 
         # comments
-        comments_handler = self.get_resource('comments').handler
-        comments_schema = comments_handler.record_properties
-        path_datatypes = [ k for k, d in comments_schema.iteritems()
-                           if issubclass(d, PathDataType) ]
-        get_value = comments_handler.get_record_value
-        update_record = comments_handler.update_record
-        for key in path_datatypes:
-            for record in comments_handler.get_records():
-                value = get_value(record, key)
+        for comment in self.metadata.get_property('comment'):
+            # XXX hardcoded, not typed
+            for key in ('file', 'crm_c_logo'):
+                value = comment.get_parameter(key)
                 if not value:
                     continue
                 ref = get_reference(value)
@@ -315,7 +300,8 @@ class CRMFolder(Folder, RoleAware):
                 # Absolute path allow to call get_pathto with the target
                 new_path = str(target.get_pathto(new_abs_path)) + view
                 # Update the record
-                update_record(record.id, **{key: Path(new_path)})
+                comment.set_parameter(key, new_path)
+                # XXX set_property?
 
 
     def update_20100912(self):
@@ -398,7 +384,7 @@ class Mission(CRMFolder):
         crm_m_nextaction=Unicode(source='metadata', stored=True),
         crm_m_prospect=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
-        crm_m_has_alerts=Boolean(source='metadata', indexed=True),
+        crm_m_has_alerts=Boolean(indexed=True),
         alert_datetime=DateTime(source='metadata'),
         crm_m_amount=Decimal(source='metadata'),
         crm_m_probability=Integer(source='metadata'),
@@ -407,10 +393,10 @@ class Mission(CRMFolder):
 
     def get_catalog_values(self):
         document = CRMFolder.get_catalog_values(self)
-        crm_m_title = self.get_property('m_title')
-        prospects = self.get_property('m_prospect')
-        crm_m_description = self.get_property('m_description')
-        crm_m_nextaction  = self.get_property('m_nextaction')
+        crm_m_title = self.get_property('crm_m_title')
+        prospects = self.get_property('crm_m_prospect')
+        crm_m_description = self.get_property('crm_m_description')
+        crm_m_nextaction  = self.get_property('crm_m_nextaction')
         # Index all comments as 'text', and check any alert
         values = [crm_m_title or '',
                   crm_m_description or '',
@@ -418,13 +404,13 @@ class Mission(CRMFolder):
         crm = self.parent.parent
         for p in prospects:
             prospect = crm.get_resource('prospects/%s' % p)
-            values.append(prospect.get_value('p_lastname'))
-            values.append(prospect.get_value('p_firstname'))
-            c_title = prospect.get_value('c_title')
+            values.append(prospect.get_value('crm_p_lastname'))
+            values.append(prospect.get_value('crm_p_firstname'))
+            c_title = prospect.get_value('crm_c_title')
             if c_title:
                 values.append(c_title)
-        has_alerts = self.get_property('alert_datetime')
-        values.append(u' '.join([ c for c in self.get_property('comments')]))
+        alert_datetime = self.get_property('alert_datetime')
+        values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index title
         document['crm_m_title'] = crm_m_title
@@ -433,9 +419,9 @@ class Mission(CRMFolder):
         # Index prospect
         document['crm_m_prospect'] = prospects
         # Index alerts
-        document['crm_m_has_alerts'] = has_alerts
+        document['crm_m_has_alerts'] = alert_datetime is not None
         # Index status
-        document['crm_m_status'] = self.get_property('m_status')
+        document['crm_m_status'] = self.get_property('crm_m_status')
         return document
 
 
@@ -489,32 +475,30 @@ class Prospect(CRMFolder):
             crm = crm.parent
         get_value = self.get_value
 
-        document['crm_p_lastname'] = get_value('p_lastname')
+        document['crm_p_lastname'] = get_value('crm_p_lastname')
         # Index company name and index company title as text
-        company_name = get_value('p_company')
+        company_name = get_value('crm_p_company')
         c_title = u''
         if company_name:
             company = crm.get_resource('companies/%s' % company_name)
             get_c_value = company.get_value
             document['crm_p_company'] = company_name
             try:
-                c_title = get_c_value('c_title')
+                c_title = get_c_value('crm_c_title')
             except AttributeError:
                 pass
         # Index lastname, firstname, email and comment as text
         values = [c_title or '']
-        values.append(get_value('p_lastname') or '')
-        values.append(get_value('p_firstname') or '')
-        values.append(get_value('p_email') or '')
-        values.append(get_value('p_description') or '')
-        values.append(get_value('p_comment') or '')
+        values.append(get_value('crm_p_lastname') or '')
+        values.append(get_value('crm_p_firstname') or '')
+        values.append(get_value('crm_p_email') or '')
+        values.append(get_value('crm_p_description') or '')
+        values.append(get_value('crm_p_comment') or '')
         # Index all comments as 'text', and check any alert
-        has_alerts = self.get_property('alert_datetime')
-        comments = self.get_property('comments')
-        values.append([c for c in comments])
+        values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index status
-        document['crm_p_status'] = get_value('p_status')
+        document['crm_p_status'] = get_value('crm_p_status')
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
@@ -527,21 +511,21 @@ class Prospect(CRMFolder):
         prospect = self.name
         for mission in missions.get_resources():
             get_value = mission.get_value
-            if prospect not in get_value('m_prospect'):
+            if prospect not in get_value('crm_m_prospect'):
                 continue
-            status = get_value('m_status')
+            status = get_value('crm_m_status')
             if status:
                 key = 'crm_p_%s' % status
                 document[key] += 1
             if status == 'nogo':
                 continue
             # Get mission amount
-            m_amount = (get_value('m_amount') or 0)
+            m_amount = (get_value('crm_m_amount') or 0)
             if status == 'project':
                 p_assured += m_amount
             else:
                 # Get mission probability
-                m_probability = (get_value('m_probability')or 0)
+                m_probability = (get_value('crm_m_probability')or 0)
                 value = (m_probability * m_amount) / cent
                 p_probable += value
         document['crm_p_assured'] = p_assured
@@ -562,9 +546,9 @@ class Prospect(CRMFolder):
 
 
     def get_title(self, language=None):
-        lastname = self.get_value('p_lastname')
-        firstname = self.get_value('p_firstname')
-        company = self.get_value('p_company') or ''
+        lastname = self.get_value('crm_p_lastname')
+        firstname = self.get_value('crm_p_firstname')
+        company = self.get_value('crm_p_company') or ''
         if company:
             company = self.get_resource('../../companies/%s' % company,
                                             soft=True)
@@ -614,7 +598,7 @@ class Company(CRMFolder):
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
         crm_c_title = self.get_title()
-        crm_c_description = self.get_value('c_description')
+        crm_c_description = self.get_value('crm_c_description')
         document['crm_c_title'] = crm_c_title
         values = [crm_c_title or '', crm_c_description or '']
         document['text'] = u' '.join(values)
@@ -622,7 +606,7 @@ class Company(CRMFolder):
 
 
     def get_title(self, language=None):
-        return self.get_property('c_title')
+        return self.get_property('crm_c_title')
 
 
     add_logo = Company_AddImage()
