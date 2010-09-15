@@ -211,8 +211,15 @@ def get_form_values(form):
 
 class ButtonAddProspect(Button):
     name = 'add_prospect'
-    access='is_allowed_to_edit'
-    title=MSG(u'Add prospect')
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Add prospect')
+
+
+
+class ButtonUpdate(Button):
+    name = 'update_mission'
+    access = 'is_allowed_to_edit'
+    title = MSG(u"Update mission")
 
 
 
@@ -1030,6 +1037,7 @@ class Mission_EditForm(AutoForm):
     title = MSG(u'Edit mission')
     template = '/ui/crm/Mission_edit_form.xml'
     required_msg = MSG(u' ')
+    actions = [ButtonUpdate()]
 
     def get_query_schema(self):
         return mission_schema.copy()

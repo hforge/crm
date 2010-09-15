@@ -5,7 +5,7 @@
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 
 <form id="autoform" name="autoform" action="${action}" method="post"
-  enctype="multipart/form-data">
+  enctype="multipart/form-data" stl:omit-tag="not actions">
   <fieldset>
     <legend>${title}</legend>
   <table cellpadding="0" cellspacing="5">
@@ -13,17 +13,23 @@
       <!-- MISSION TITLE AND DESCRIPTION -->
       <tr id="edit-mission-title">
         <td>
-          <label for="${m_title/name}" class="${m_title/class}">
-            ${m_title/title}</label>
+          <label for="${m_title/name}">${m_title/title}</label>
         </td>
-        <td>${m_title/widget}</td>
+        <td>
+          <span stl:if="m_title/error"
+            class="field-error">${m_title/error}<br/></span>
+          ${m_title/widget}
+        </td>
       </tr>
       <tr id="edit-mission-description">
         <td>
-          <label for="${m_description/name}" class="${m_description/class}">
-            ${m_description/title}</label>
+          <label for="${m_description/name}">${m_description/title}</label>
         </td>
-        <td>${m_description/widget}</td>
+        <td>
+          <span stl:if="m_description/error"
+            class="field-error">${m_description/error}<br/></span>
+          ${m_description/widget}
+        </td>
       </tr>
       <tr>
         <td colspan="2">
@@ -32,21 +38,29 @@
               <tbody>
                 <tr>
                   <td>
-                    <label for="${comment/name}" class="${comment/class}">
+                    <label for="${comment/name}">
                       ${comment/title}</label>
                   </td>
-                  <td>${comment/widget}</td>
+                  <td>
+                    <span stl:if="comment/error"
+                      class="field-error">${comment/error}<br/></span>
+                    ${comment/widget}
+                  </td>
                 </tr>
                 <tr>
                   <td>
-                    <label for="${m_nextaction/name}" class="${m_nextaction/class}">
+                    <label for="${m_nextaction/name}">
                       ${m_nextaction/title}</label></td>
-                  <td>${m_nextaction/widget}</td>
+                  <td>
+                    <span stl:if="m_nextaction/error"
+                      class="field-error">${m_nextaction/error}<br/></span>
+                    ${m_nextaction/widget}
+                  </td>
                 </tr>
                 <!-- ATTACHEMENT -->
                 <tr>
                   <td colspan="2">
-                    <label for="${file/name}" class="${file/class}">
+                    <label for="${file/name}">
                       ${file/title}</label>&nbsp;
                     <input type="file" id="file" name="${file/name}" size="35" />
                   </td>
@@ -55,10 +69,14 @@
                 <tr>
                   <td colspan="2">
                     <img src="/ui/crm/images/1240913081_bell_add.png" />
-                    <label for="${alert_date/name}" class="${alert_date/class}">
-                      ${alert_date/title}</label>${alert_date/widget}
-                    <label for="${alert_time/name}" class="${alert_time/class}">
-                      ${alert_time/title}</label>${alert_time/widget}
+                    <label for="${alert_date/name}">${alert_date/title}</label>
+                    <span stl:if="alert_date/error"
+                      class="field-error">${alert_date/error}<br/></span>
+                    ${alert_date/widget}
+                    <label for="${alert_time/name}">${alert_time/title}</label>
+                    <span stl:if="alert_time/error"
+                      class="field-error">${alert_time/error}<br/></span>
+                    ${alert_time/widget}
                   </td>
                 </tr>
               </tbody>
@@ -68,11 +86,15 @@
       </tr>
       <tr>
         <td>
-          <label for="${m_status/name}" class="${m_status/class}">
+          <label for="${m_status/name}">
             ${m_status/title}
           </label>
         </td>
-        <td>${m_status/widget}</td>
+        <td>
+          <span stl:if="m_status/error"
+            class="field-error">${m_status/error}<br/></span>
+          ${m_status/widget}
+        </td>
       </tr>
       <tr>
         <td colspan="2">
@@ -80,20 +102,29 @@
             <tbody>
               <tr>
                 <td>
-                  <label for="${m_amount/name}"
-                    class="${m_amount/class}">${m_amount/title}</label>
+                  <label for="${m_amount/name}">${m_amount/title}</label>
                 </td>
-                <td class="amount">${m_amount/widget}</td>
+                <td class="amount">
+                  <span stl:if="m_amount/error"
+                    class="field-error">${m_amount/error}<br/></span>
+                  ${m_amount/widget}
+                </td>
                 <td>
-                  <label for="${m_probability/name}"
-                    class="${m_probability/class}">${m_probability/title}</label>
+                  <label for="${m_probability/name}">${m_probability/title}</label>
                 </td>
-                <td class="amount">${m_probability/widget} %</td>
+                <td class="amount">
+                  <span stl:if="m_probability/error"
+                    class="field-error">${m_probability/error}<br/></span>
+                  ${m_probability/widget} %
+                </td>
                 <td>
-                  <label for="${m_deadline/name}"
-                    class="${m_deadline/class}">${m_deadline/title}</label>
+                  <label for="${m_deadline/name}">${m_deadline/title}</label>
                 </td>
-                <td>${m_deadline/widget}</td>
+                <td>
+                  <span stl:if="m_deadline/error"
+                    class="field-error">${m_deadline/error}<br/></span>
+                  ${m_deadline/widget}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -101,8 +132,15 @@
       </tr>
     </tbody>
   </table>
-  <p stl:if="submit_value">
-    <button type="submit" class="${submit_class}">Update mission</button>
+  <p stl:if="actions">
+      <stl:block stl:repeat="action actions">
+        <button stl:if="not action/value" type="submit"
+          class="${action/class}" onclick="${action/onclick}"
+          >${action/title}</button>
+        <button stl:if="action/value" type="submit" name="action"
+          value="${action/value}" class="${action/class}"
+          onclick="${action/onclick}">${action/title}</button>
+      </stl:block>
   </p>
   <script language="javascript">
     $("#${first_widget}").focus();
