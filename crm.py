@@ -99,7 +99,7 @@ class CRMFolder(RoleAware, Folder):
     def _update(self, values, context=None):
         """ Update metadata. """
         if context is not None:
-            context.server.change_resource(self)
+            context.database.change_resource(self)
 
         for key, value in values.iteritems():
             if key == 'attachment':
@@ -250,7 +250,7 @@ class CRMFolder(RoleAware, Folder):
                     comment.set_parameter(key, new_path)
                     # XXX set_property?
 
-        get_context().server.change_resource(self)
+        get_context().database.change_resource(self)
 
 
     def update_relative_links(self, source):

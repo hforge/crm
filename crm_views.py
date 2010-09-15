@@ -1094,7 +1094,7 @@ class Mission_EditForm(AutoForm):
         prospects = resource.get_value('crm_m_prospect')
         for prospect in prospects:
             prospect = crm.get_resource('prospects/%s' % prospect)
-            context.server.change_resource(prospect)
+            context.database.change_resource(prospect)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -1113,7 +1113,7 @@ class CancelAlert(BaseForm):
         comments = mission.get_property('comment')
         comments[comment_id].set_parameter(alert_datetime=None)
         # XXX set_property?
-        context.server.change_resource(resource)
+        context.database.change_resource(resource)
 
         return context.come_back(MSG_CHANGES_SAVED, './')
 
@@ -1151,7 +1151,7 @@ class Mission_AddForm(Mission_EditForm):
         crm = get_crm(resource)
         prospect = values.get('m_prospect')
         prospect = crm.get_resource('prospects/%s' % prospect)
-        context.server.change_resource(prospect)
+        context.database.change_resource(prospect)
 
         goto = './%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
@@ -1564,7 +1564,7 @@ class CRM_Alerts(SearchForm):
             comments = mission.metadata.get_property('comment')
             comments[comment_id].set_parameter(alert_datetime=None)
             # XXX set_property?
-            context.server.change_resource(mission)
+            context.database.change_resource(mission)
 
         if not_removed:
             msg = ERROR(u'One or more alert could not have been removed.')
