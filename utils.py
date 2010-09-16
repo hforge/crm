@@ -23,10 +23,10 @@ from ikaaro.autoform import CheckboxWidget, SelectWidget, TextWidget
 from ikaaro.autoform import make_stl_template
 
 
-def generate_name(names, strformat='%03d', index=None):
-    """ Generate a name with a prefix followed by an integer.
-            generate_name(['c1', 'c3', 'c4'], 'c%03d') -> 'c005'
-            generate_name(['c005'], 'c%03d') -> 'c001'
+def generate_code(names, strformat='%03d', index=None):
+    """ Generate a codename with a prefix followed by an integer.
+            generate_code(['c1', 'c3', 'c4'], 'c%03d') -> 'c005'
+            generate_code(['c005'], 'c%03d') -> 'c001'
     """
     if index is None:
         index = len(names)

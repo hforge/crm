@@ -35,7 +35,7 @@ from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
-from ikaaro.utils import generate_name as igenerate_name
+from ikaaro.utils import generate_name
 
 # Import from here
 from crm_views import Company_AddForm, Company_AddImage, Company_EditForm
@@ -51,7 +51,7 @@ from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
 from crm_views import CancelAlert
 from crm_views import CRM_ExportToCSV, CRM_SearchMissions
 from datatypes import MissionStatus
-from utils import generate_name, get_path_and_view
+from utils import generate_code, get_path_and_view
 
 
 class CRMFolder(RoleAware, Folder):
@@ -110,7 +110,7 @@ class CRMFolder(RoleAware, Folder):
                     # Find a non used name
                     name = checkid(filename)
                     name, extension, language = FileName.decode(name)
-                    name = igenerate_name(name, self.get_names())
+                    name = generate_name(name, self.get_names())
                     # Add attachement
                     cls = get_resource_class(mimetype)
                     self.make_resource(name, cls, body=body,
@@ -633,8 +633,7 @@ class Companies(Folder):
 
     def add_company(self, values):
         names = self.get_names()
-        index = len(names)
-        name = generate_name(names, 'c%06d', index)
+        name = generate_code(names, 'c%06d')
         self.make_resource(name, Company, **values)
         return name
 
@@ -653,8 +652,7 @@ class Prospects(Folder):
 
     def add_prospect(self, values):
         names = self.get_names()
-        index = len(names)
-        name = generate_name(names, 'p%06d', index)
+        name = generate_code(names, 'p%06d')
         self.make_resource(name, Prospect, **values)
         return name
 
@@ -672,8 +670,7 @@ class Missions(Folder):
 
     def add_mission(self, values):
         names = self.get_names()
-        index = len(names)
-        name = generate_name(names, 'm%06d', index)
+        name = generate_code(names, 'm%06d')
         self.make_resource(name, Mission, **values)
         return name
 

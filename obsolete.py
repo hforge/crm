@@ -33,7 +33,6 @@ from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
 from ikaaro.table import Table
-from ikaaro.utils import generate_name as igenerate_name
 
 # Import from here
 from datatypes import CompanyName
