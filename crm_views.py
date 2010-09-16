@@ -82,8 +82,8 @@ company_widgets = [
     LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
     TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
     ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
-    MultilineWidget('crm_c_description', title=MSG(u'Observations'), default='',
-                    rows=4) ]
+    MultilineWidget('crm_c_description', title=MSG(u'Observations'),
+        default='', rows=4) ]
 
 prospect_schema = {
     'crm_p_company': CompanyName,
@@ -95,7 +95,8 @@ prospect_schema = {
     'crm_p_email': Email,
     'crm_p_description': Unicode,
     'crm_p_position': Unicode,
-    'crm_p_status': ProspectStatus, 'comment': Unicode }
+    'crm_p_status': ProspectStatus,
+    'comment': Unicode }
 
 prospect_widgets = [
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
@@ -123,8 +124,10 @@ mission_schema = {
     'crm_m_probability': Integer,
     'crm_m_deadline': Date,
     'crm_m_status': MissionStatus,
-    'comment': Unicode, 'file': PathDataType,
-    'alert_date': Date, 'alert_time': Time,
+    'comment': Unicode,
+    'file': PathDataType,
+    'alert_date': Date,
+    'alert_time': Time,
     'crm_m_nextaction': Unicode}
 
 mission_widgets = [
@@ -594,7 +597,6 @@ class Company_EditForm(AutoForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit company')
-    required_msg = MSG(u' ')
     styles = ['/ui/crm/style.css']
 
     def get_query_schema(self):
@@ -696,7 +698,6 @@ class Prospect_AddForm(AutoForm):
     access = 'is_allowed_to_add'
     title = MSG(u'New prospect')
     template = '/ui/crm/Prospect_new_instance.xml'
-    required_msg = MSG(u' ')
     styles = ['/ui/crm/style.css']
 
 
@@ -799,7 +800,6 @@ class Prospect_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit prospect')
     submit_value = MSG(u'Update prospect')
-    required_msg = MSG(u' ')
     styles = ['/ui/crm/style.css']
 
 
@@ -1045,7 +1045,6 @@ class Mission_EditForm(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit mission')
     template = '/ui/crm/Mission_edit_form.xml'
-    required_msg = MSG(u' ')
     actions = [ButtonUpdate()]
 
     def get_query_schema(self):

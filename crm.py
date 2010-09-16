@@ -18,7 +18,7 @@
 from decimal import Decimal as decimal
 
 # Import from itools
-from itools.core import get_abspath, merge_dicts, freeze
+from itools.core import get_abspath, merge_dicts
 from itools.csv import Property
 from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
