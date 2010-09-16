@@ -62,8 +62,7 @@ class CRMFolder(RoleAware, Folder):
     class_schema = merge_dicts(
         Folder.class_schema,
         RoleAware.class_schema,
-        comment=Unicode(source='metadata', mandatory=True, multiple=True),
-        attachment=String(source='metadata', multiple=True))
+        comment=Unicode(source='metadata', mandatory=True, multiple=True))
 
 
     def init_resource(self, **kw):
@@ -98,33 +97,40 @@ class CRMFolder(RoleAware, Folder):
 
     def _update(self, values, context=None):
         """ Update metadata. """
-        if context is not None:
-            context.database.change_resource(self)
-
         for key, value in values.iteritems():
             if key == 'attachment':
-                # Manage attachement file
-                file = values.get('attachment') or None
-                if file is not None:
-                    filename, mimetype, body = file
+                continue
+            elif key == 'comment':
+                # Commit empty comments
+                if not value:
+                    value = u"_"
+                # Date
+                date = context.timestamp
+                # Attachment
+                attachment = values.get('attachment') or None
+                if attachment is not None:
+                    filename, mimetype, body = attachment
                     # Find a non used name
                     name = checkid(filename)
                     name, extension, language = FileName.decode(name)
                     name = generate_name(name, self.get_names())
-                    # Add attachement
+                    # Add attachment
                     cls = get_resource_class(mimetype)
                     self.make_resource(name, cls, body=body,
                         filename=filename, extension=extension,
                         format=mimetype)
                     # Link
-                    values['attachment'] = name
-            elif key == 'comment':
-                date = context.timestamp
+                    attachment = name
+                # Author
                 user = context.user
                 author = user.name if user else None
-                comment = Property(value, date=date, author=author)
-            else:
-                self.set_property(key, value)
+                value = Property(value, date=date, attachment=[attachment],
+                        author=author)
+            self.metadata.set_property(key, value)
+
+        if context is not None:
+            context.database.change_resource(self)
+
 
 
     def is_allowed_to_edit(self, user, resource):
@@ -188,10 +194,12 @@ class CRMFolder(RoleAware, Folder):
         comments = self.metadata.get_property('comment') or []
         for comment in comments:
             # XXX hardcoded, not typed
-            for key in ('file', 'crm_c_logo'):
+            for key in ('attachment',):
                 value = comment.get_parameter(key)
                 if not value:
                     continue
+                # XXX Default as a list
+                value = value[0]
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -234,10 +242,12 @@ class CRMFolder(RoleAware, Folder):
         comments = self.metadata.get_property('comment') or []
         for comment in comments:
             # XXX hardcoded, not typed
-            for key in ('file', 'crm_c_logo'):
+            for key in ('attachment',):
                 value = comment.get_parameter(key)
                 if not value:
                     continue
+                # XXX Default as a list
+                value = value[0]
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -286,10 +296,12 @@ class CRMFolder(RoleAware, Folder):
         comments = self.metadata.get_property('comment')
         for comment in comments:
             # XXX hardcoded, not typed
-            for key in ('file', 'crm_c_logo'):
+            for key in ('attachment',):
                 value = comment.get_parameter(key)
                 if not value:
                     continue
+                # XXX Default as a list
+                value = value[0]
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -318,6 +330,7 @@ class CRMFolder(RoleAware, Folder):
         if not comments:
             print 'NO COMMENTS', self.get_abspath()
             return
+
         # Comments
         if isinstance(self, Mission):
             cls = MissionTableFile
@@ -327,7 +340,8 @@ class CRMFolder(RoleAware, Folder):
             cls = CompanyTableFile
         else:
             raise ValueError
-        comments_handler = comments.parent.handler.get_handler('comments', cls)
+        comments_handler = comments.parent.handler.get_handler('comments',
+                cls)
         get_record_value = comments_handler.get_record_value
         item_comments = []
         for record in comments_handler.get_records():
@@ -335,23 +349,19 @@ class CRMFolder(RoleAware, Folder):
             if comment:
                 date = get_record_value(record, 'ts')
                 if date is None:
-                    raise ValueError
+                    raise ValueError, self.get_abspath()
                 date = date.replace(tzinfo=utc)
-                comment = Property(comment, date=date)
+                attachment = get_record_value(record, 'file')
+                if not attachment or attachment == '.':
+                    attachment = None
+                comment = Property(comment, date=date, attachment=attachment)
                 item_comments.append(comment)
-            file = get_record_value(record, 'file')
-            if file and file != '.':
-                attachments.append(file)
-        # Set comments
         metadata.set_property('comment', item_comments)
-        # Attachments
-        if attachments:
-            metadata.set_property('attachment', attachments)
 
         # Other metadata
         record = comments_handler.get_record(-1)
         for key in self.class_schema.keys():
-            if key in ('comment', 'file'):
+            if key in ('comment', 'attachment'):
                 continue
             source_key = key
             if key[:4] == 'crm_':

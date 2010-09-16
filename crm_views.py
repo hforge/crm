@@ -35,7 +35,8 @@ from itools.web import BaseForm, FormError, ERROR
 from ikaaro.buttons import Button, RemoveButton
 from ikaaro.autoform import AutoForm, CheckboxWidget, DateWidget
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
-from ikaaro.autoform import PathSelectorWidget, RadioWidget, TextWidget
+from ikaaro.autoform import FileWidget, RadioWidget, TextWidget
+from ikaaro.datatypes import FileDataType
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.popup import DBResource_AddImage
 from ikaaro.registry import get_resource_class
@@ -125,7 +126,7 @@ mission_schema = {
     'crm_m_deadline': Date,
     'crm_m_status': MissionStatus,
     'comment': Unicode,
-    'file': PathDataType,
+    'attachment': FileDataType,
     'alert_date': Date,
     'alert_time': Time,
     'crm_m_nextaction': Unicode}
@@ -142,7 +143,7 @@ mission_widgets = [
                 has_empty_option=False),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
-    PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
+    FileWidget('attachment', title=MSG(u'Attachment'), size=35, default=''),
     DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
     TimeWidget('alert_time', title=MSG(u'at')),
     TextWidget('crm_m_nextaction', title=MSG(u'Next action')) ]
@@ -212,10 +213,6 @@ def format_error_message(context, widgets):
 def get_form_values(form):
     values = {}
     for key, value in form.iteritems():
-        if not value:
-            continue
-        if key == 'file' and str(value) == '.':
-            continue
         if key == 'alert_date':
             value_time = form.get('alert_time', None) or time(9, 0)
             value = datetime.combine(value, value_time)
@@ -255,7 +252,7 @@ class Comments_View(STLView):
         comments = resource.metadata.get_property('comment') or []
         for i, comment in enumerate(comments):
             comment_datetime = comment.get_parameter('date')
-            file = comment.get_parameter('file') or ''
+            attachment = (comment.get_parameter('attachment') or [''])[0]
             alert_datetime = comment.get_parameter('alert_datetime')
             if alert_datetime:
                 alert_datetime = format_datetime(alert_datetime)
@@ -263,7 +260,7 @@ class Comments_View(STLView):
             ns_comment = {
                 'id': i,
                 'datetime': format_datetime(comment_datetime),
-                'file': str(file),
+                'attachment': str(attachment),
                 'alert_datetime': alert_datetime,
                 'comment': indent(comment.value)}
             ns_comments.append((id, ns_comment))
@@ -1068,7 +1065,7 @@ class Mission_EditForm(AutoForm):
             return datatype.default
         elif name == 'comment':
             return context.query.get(name) or u''
-        elif name == 'file':
+        elif name == 'attachment':
             return context.query.get(name) or ''
         value = resource.get_value(name)
         return value if value is not None else datatype.default

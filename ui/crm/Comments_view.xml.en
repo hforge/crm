@@ -12,10 +12,10 @@
         Comment <a href="#c${comment/id}">#${comment/id}</a></td>
       <td align="right">${comment/datetime}</td>
     </tr>
-    <tr stl:if="comment/file" class="comment-file">
+    <tr stl:if="comment/attachment" class="comment-file">
       <td colspan="2">
-        Attachement: <a
-          href="${path_to_resource}/${comment/file}/;download">${comment/file}</a>
+        Attachment: <a
+          href="${path_to_resource}/${comment/attachment}/;download">${comment/attachment}</a>
       </td>
     </tr>
     <tr stl:if="comment/alert_datetime" class="comment-alert">

@@ -57,12 +57,14 @@
                     ${crm_m_nextaction/widget}
                   </td>
                 </tr>
-                <!-- ATTACHEMENT -->
+                <!-- ATTACHMENT -->
                 <tr>
                   <td colspan="2">
-                    <label for="${file/name}">
-                      ${file/title}</label>&nbsp;
-                    <input type="file" id="file" name="${file/name}" size="35" />
+                    <label for="${attachment/name}">
+                      ${attachment/title}</label>&nbsp;
+                    <span stl:if="attachment/error"
+                      class="field-error">${attachment/error}<br/></span>
+                    ${attachment/widget}
                   </td>
                 </tr>
                 <!-- ALERT -->
