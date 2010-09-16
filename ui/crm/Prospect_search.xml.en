@@ -16,7 +16,7 @@
     <button type="submit" class="button-search">OK</button>
     <br/>
     <!-- Status -->
-    ${m_status}
+    ${crm_m_status}
   </fieldset>
 </form>
 

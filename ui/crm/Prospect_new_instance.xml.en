@@ -17,10 +17,10 @@
             <tbody>
               <tr>
                 <td>
-                  <label for="${p_company/name}"><!--class="${p_company/class}">-->
-                    ${p_company/title}</label>
+                  <label for="${crm_p_company/name}"><!--class="${crm_p_company/class}">-->
+                    ${crm_p_company/title}</label>
                 </td>
-                <td id="company_widget">${p_company/widget}</td>
+                <td id="company_widget">${crm_p_company/widget}</td>
               </tr>
               <tr>
                 <td/>
@@ -28,19 +28,19 @@
               </tr>
               <tr>
                 <td>
-                  <label for="${p_lastname/name}"><!--class="${p_lastname/class}">-->
-                    ${p_lastname/title} *
+                  <label for="${crm_p_lastname/name}"><!--class="${crm_p_lastname/class}">-->
+                    ${crm_p_lastname/title} *
                   </label>
                 </td>
-                <td>${p_lastname/widget}</td>
+                <td>${crm_p_lastname/widget}</td>
               </tr>
               <tr>
                 <td>
-                  <label for="${p_firstname/name}" class="${p_firstname/class}">
-                    ${p_firstname/title}
+                  <label for="${crm_p_firstname/name}" class="${crm_p_firstname/class}">
+                    ${crm_p_firstname/title}
                   </label>
                 </td>
-                <td>${p_firstname/widget}</td>
+                <td>${crm_p_firstname/widget}</td>
               </tr>
               <tr>
                 <td colspan="2">
@@ -48,17 +48,17 @@
                     <tbody>
                       <tr>
                         <td width="60">
-                          <label for="${p_phone/name}" class="${p_phone/class}">
-                            ${p_phone/title}
+                          <label for="${crm_p_phone/name}" class="${crm_p_phone/class}">
+                            ${crm_p_phone/title}
                           </label>
                         </td>
-                        <td>${p_phone/widget}</td>
+                        <td>${crm_p_phone/widget}</td>
                         <td>
-                          <label for="${p_mobile/name}" class="${p_mobile/class}">
-                            ${p_mobile/title}
+                          <label for="${crm_p_mobile/name}" class="${crm_p_mobile/class}">
+                            ${crm_p_mobile/title}
                           </label>
                         </td>
-                        <td>${p_mobile/widget}</td>
+                        <td>${crm_p_mobile/widget}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -66,35 +66,35 @@
               </tr>
               <tr>
                 <td>
-                  <label for="${p_email/name}" class="${p_email/class}">
-                    ${p_email/title}
+                  <label for="${crm_p_email/name}" class="${crm_p_email/class}">
+                    ${crm_p_email/title}
                   </label>
                 </td>
-                <td>${p_email/widget}</td>
+                <td>${crm_p_email/widget}</td>
               </tr>
               <tr>
                 <td>
-                  <label for="${p_position/name}" class="${p_position/class}">
-                    ${p_position/title}
+                  <label for="${crm_p_position/name}" class="${crm_p_position/class}">
+                    ${crm_p_position/title}
                   </label>
                 </td>
-                <td>${p_position/widget}</td>
+                <td>${crm_p_position/widget}</td>
               </tr>
               <tr>
                 <td>
-                  <label for="${p_status/name}"><!--class="${p_status/class}">-->
-                    ${p_status/title}
+                  <label for="${crm_p_status/name}"><!--class="${crm_p_status/class}">-->
+                    ${crm_p_status/title}
                   </label>
                 </td>
-                <td>${p_status/widget}</td>
+                <td>${crm_p_status/widget}</td>
               </tr>
               <tr>
                 <td>
-                  <label for="${p_description/name}" class="${p_description/class}">
-                    ${p_description/title}
+                  <label for="${crm_p_description/name}" class="${crm_p_description/class}">
+                    ${crm_p_description/title}
                   </label>
                 </td>
-                <td>${p_description/widget}</td>
+                <td>${crm_p_description/widget}</td>
               </tr>
             </tbody>
           </table>
@@ -109,24 +109,24 @@
       <tbody>
         <tr>
           <td>
-            <label for="${m_title/name}"><!--class="${m_title/class}">-->
-              ${m_title/title} *</label>
+            <label for="${crm_m_title/name}"><!--class="${crm_m_title/class}">-->
+              ${crm_m_title/title} *</label>
           </td>
-          <td>${m_title/widget}</td>
+          <td>${crm_m_title/widget}</td>
         </tr>
         <tr>
           <td>
-            <label for="${m_description/name}"><!--class="${m_description/class}">-->
-              ${m_description/title}</label>
+            <label for="${crm_m_description/name}"><!--class="${crm_m_description/class}">-->
+              ${crm_m_description/title}</label>
           </td>
-          <td>${m_description/widget}</td>
+          <td>${crm_m_description/widget}</td>
         </tr>
         <tr>
           <td>
-            <label for="${m_status/name}"><!--class="${m_status/class}">-->
-              ${m_status/title}</label>
+            <label for="${crm_m_status/name}"><!--class="${crm_m_status/class}">-->
+              ${crm_m_status/title}</label>
           </td>
-          <td>${m_status/widget}</td>
+          <td>${crm_m_status/widget}</td>
         </tr>
         <tr>
           <td colspan="2">
@@ -134,20 +134,20 @@
               <tbody>
                 <tr>
                   <td>
-                    <label for="${m_amount/name}"
-                      class="${m_amount/class}">${m_amount/title}</label>
+                    <label for="${crm_m_amount/name}"
+                      class="${crm_m_amount/class}">${crm_m_amount/title}</label>
                   </td>
-                  <td class="amount">${m_amount/widget}</td>
+                  <td class="amount">${crm_m_amount/widget}</td>
                   <td>
-                    <label for="${m_probability/name}"
-                      class="${m_probability/class}">${m_probability/title}</label>
+                    <label for="${crm_m_probability/name}"
+                      class="${crm_m_probability/class}">${crm_m_probability/title}</label>
                   </td>
-                  <td class="amount">${m_probability/widget} %</td>
+                  <td class="amount">${crm_m_probability/widget} %</td>
                   <td>
-                    <label for="${m_deadline/name}"
-                      class="${m_deadline/class}">${m_deadline/title}</label>
+                    <label for="${crm_m_deadline/name}"
+                      class="${crm_m_deadline/class}">${crm_m_deadline/title}</label>
                   </td>
-                  <td>${m_deadline/widget}</td>
+                  <td>${crm_m_deadline/widget}</td>
                 </tr>
               </tbody>
             </table>
@@ -160,7 +160,7 @@
     <button type="submit" class="${submit_class}">${submit_value}</button>
   </p>
   <script language="javascript">
-      crm_main('${p_company/name}', '${first_widget}');
+      crm_main('${crm_p_company/name}', '${first_widget}');
   </script>
 </form>
 </fieldset>

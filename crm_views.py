@@ -56,50 +56,60 @@ ALERT_ICON_GREEN = '1240913156_bell_go.png'
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert ?""")
 
 company_schema = {
-    'c_title': Unicode,
-    'c_address_1': Unicode, 'c_address_2': Unicode,
+    'crm_c_title': Unicode,
+    'crm_c_address_1': Unicode,
+    'crm_c_address_2': Unicode,
     # TODO Country should be CountryName (listed)
-    'c_zipcode': String, 'c_town': Unicode, 'c_country': Unicode,
-    'c_phone': Unicode, 'c_fax': Unicode, 'c_website': Unicode,
-    'c_description': Unicode, 'c_activity': Unicode,
-    'c_logo': PathDataType }
+    'crm_c_zipcode': String,
+    'crm_c_town': Unicode,
+    'crm_c_country': Unicode,
+    'crm_c_phone': Unicode,
+    'crm_c_fax': Unicode,
+    'crm_c_website': Unicode,
+    'crm_c_description': Unicode,
+    'crm_c_activity': Unicode,
+    'crm_c_logo': PathDataType }
 
 company_widgets = [
-    TextWidget('c_title', title=MSG(u'Title')),
-    TextWidget('c_address_1', title=MSG(u'Address')),
-    TextWidget('c_address_2', title=MSG(u'Address (next)')),
-    TextWidget('c_zipcode', title=MSG(u'Zip Code'), size=10),
-    TextWidget('c_town', title=MSG(u'Town')),
-    TextWidget('c_country', title=MSG(u'Country')),
-    TextWidget('c_phone', title=MSG(u'Phone'), size=15),
-    TextWidget('c_fax', title=MSG(u'Fax'), size=15),
-    LinkWidget('c_website', title=MSG(u'Website'), size=30),
-    TextWidget('c_activity', title=MSG(u'Activity'), size=30),
-    ImageSelectorWidget('c_logo', title=MSG(u'Logo'), action='add_logo'),
-    MultilineWidget('c_description', title=MSG(u'Observations'), default='',
+    TextWidget('crm_c_title', title=MSG(u'Title')),
+    TextWidget('crm_c_address_1', title=MSG(u'Address')),
+    TextWidget('crm_c_address_2', title=MSG(u'Address (next)')),
+    TextWidget('crm_c_zipcode', title=MSG(u'Zip Code'), size=10),
+    TextWidget('crm_c_town', title=MSG(u'Town')),
+    TextWidget('crm_c_country', title=MSG(u'Country')),
+    TextWidget('crm_c_phone', title=MSG(u'Phone'), size=15),
+    TextWidget('crm_c_fax', title=MSG(u'Fax'), size=15),
+    LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
+    TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
+    ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
+    MultilineWidget('crm_c_description', title=MSG(u'Observations'), default='',
                     rows=4) ]
 
 prospect_schema = {
-    'p_company': CompanyName,
+    'crm_p_company': CompanyName,
     'new_company_url': PathDataType,
-    'p_lastname': Unicode, 'p_firstname': Unicode,
-    'p_phone': Unicode, 'p_mobile': Unicode, 'p_email': Email,
-    'p_description': Unicode, 'p_position': Unicode,
-    'p_status': ProspectStatus, 'comment': Unicode }
+    'crm_p_lastname': Unicode,
+    'crm_p_firstname': Unicode,
+    'crm_p_phone': Unicode,
+    'crm_p_mobile': Unicode,
+    'crm_p_email': Email,
+    'crm_p_description': Unicode,
+    'crm_p_position': Unicode,
+    'crm_p_status': ProspectStatus, 'comment': Unicode }
 
 prospect_widgets = [
-    SelectCompanyWidget('p_company', title=MSG(u'Company')),
+    SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
     NewCompanyWidget('new_company_url', title=MSG(u' ')),
-    TextWidget('p_lastname', title=MSG(u'Last name'), default='', size=30),
-    TextWidget('p_firstname', title=MSG(u'First name'), default='',
+    TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='', size=30),
+    TextWidget('crm_p_firstname', title=MSG(u'First name'), default='',
                size=30),
-    TextWidget('p_phone', title=MSG(u'Phone'), default='', size=15),
-    TextWidget('p_mobile', title=MSG(u'Mobile'), default='', size=15),
-    EmailWidget('p_email', title=MSG(u'Email'), default='', size=30),
-    TextWidget('p_position', title=MSG(u'Position'), default='', size=15),
-    MultilineWidget('p_description', title=MSG(u'Observations'), default='',
-                    rows=4),
-    RadioWidget('p_status', title=MSG(u'Status'), has_empty_option=False,
+    TextWidget('crm_p_phone', title=MSG(u'Phone'), default='', size=15),
+    TextWidget('crm_p_mobile', title=MSG(u'Mobile'), default='', size=15),
+    EmailWidget('crm_p_email', title=MSG(u'Email'), default='', size=30),
+    TextWidget('crm_p_position', title=MSG(u'Position'), default='', size=15),
+    MultilineWidget('crm_p_description', title=MSG(u'Observations'),
+        default='', rows=4),
+    RadioWidget('crm_p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3) ]
@@ -107,29 +117,32 @@ prospect_widgets = [
 
 mission_schema = {
     # First mission
-    'm_title': Unicode, 'm_description': Unicode,
-    'm_amount': Decimal, 'm_probability': Integer,
-    'm_deadline': Date, 'm_status': MissionStatus,
+    'crm_m_title': Unicode,
+    'crm_m_description': Unicode,
+    'crm_m_amount': Decimal,
+    'crm_m_probability': Integer,
+    'crm_m_deadline': Date,
+    'crm_m_status': MissionStatus,
     'comment': Unicode, 'file': PathDataType,
     'alert_date': Date, 'alert_time': Time,
-    'm_nextaction': Unicode}
+    'crm_m_nextaction': Unicode}
 
 mission_widgets = [
     # First mission
-    TextWidget('m_title', title=MSG(u'Title')),
-    MultilineWidget('m_description', title=MSG(u'Description'), rows=4),
-    TextWidget('m_amount', title=MSG(u'Amount'), default='', size=8),
-    TextWidget('m_probability', title=MSG(u'Probability'), default='',
+    TextWidget('crm_m_title', title=MSG(u'Title')),
+    MultilineWidget('crm_m_description', title=MSG(u'Description'), rows=4),
+    TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
+    TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
                size=2),
-    DateWidget('m_deadline', title=MSG(u'Deadline'), default='', size=8),
-    RadioWidget('m_status', title=MSG(u'Status'), is_inline=True,
+    DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
+    RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
                 has_empty_option=False),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
     PathSelectorWidget('file', title=MSG(u'Attachement'), default=''),
     DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
     TimeWidget('alert_time', title=MSG(u'at')),
-    TextWidget('m_nextaction', title=MSG(u'Next action')) ]
+    TextWidget('crm_m_nextaction', title=MSG(u'Next action')) ]
 
 
 p_status_icons = {
@@ -282,13 +295,13 @@ class CRM_SearchMissions(SearchForm):
 
     table_columns = [
         ('icon', None, False),
-        ('m_title', MSG(u'Title'), True),
-        ('m_prospects', MSG(u'Prospects'), False),
-        ('m_nextaction', MSG(u'Next action'), True),
+        ('crm_m_title', MSG(u'Title'), True),
+        ('crm_m_prospects', MSG(u'Prospects'), False),
+        ('crm_m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
-        ('m_amount', MSG(u'Amount'), False),
-        ('m_probability', MSG(u'Prob.'), False),
-        ('m_deadline', MSG(u'Deadline'), False) ]
+        ('crm_m_amount', MSG(u'Amount'), False),
+        ('crm_m_probability', MSG(u'Prob.'), False),
+        ('crm_m_deadline', MSG(u'Deadline'), False) ]
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -359,10 +372,10 @@ class CRM_SearchMissions(SearchForm):
             # Status
             value = get_value('crm_m_status')
             return m_status_icons[value]
-        elif column == 'm_title':
+        elif column == 'crm_m_title':
             href = context.get_link(item_resource)
             return item_brain.crm_m_title, href
-        elif column == 'm_prospects':
+        elif column == 'crm_m_prospects':
             values = get_value('crm_m_prospect')
             query = [PhraseQuery('name', name) for name in values]
             if len(query) == 1:
@@ -378,8 +391,8 @@ class CRM_SearchMissions(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('m_nextaction', 'm_amount', 'm_probability',
-                        'm_deadline'):
+        elif column in ('crm_m_nextaction', 'crm_m_amount',
+                'crm_m_probability', 'crm_m_deadline'):
             return get_value(column)
 
 
@@ -388,7 +401,7 @@ class CRM_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
-        if sort_by in ('m_title', 'm_nextaction'):
+        if sort_by in ('crm_m_title', 'crm_m_nextaction'):
             sort_by = 'crm_%s' % sort_by
 
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
@@ -414,19 +427,19 @@ class CRM_SearchProspects(SearchForm):
 
     table_columns = [
         ('icon', None, False),
-        ('p_lastname', MSG(u'Lastname'), True),
-        ('p_firstname', MSG(u'Firstname'), False),
-        ('p_company', MSG(u'Company'), False),
-        ('p_email', MSG(u'Email'), False),
-        ('p_phone', MSG(u'Phone'), False),
-        ('p_mobile', MSG(u'mobile'), False),
-        ('p_position', MSG(u'Position'), False),
-        ('p_opportunity', MSG(u'Opp.'), True),
-        ('p_project', MSG(u'Proj.'), True),
-        ('p_nogo', MSG(u'NoGo'), True),
+        ('crm_p_lastname', MSG(u'Lastname'), True),
+        ('crm_p_firstname', MSG(u'Firstname'), False),
+        ('crm_p_company', MSG(u'Company'), False),
+        ('crm_p_email', MSG(u'Email'), False),
+        ('crm_p_phone', MSG(u'Phone'), False),
+        ('crm_p_mobile', MSG(u'mobile'), False),
+        ('crm_p_position', MSG(u'Position'), False),
+        ('crm_p_opportunity', MSG(u'Opp.'), True),
+        ('crm_p_project', MSG(u'Proj.'), True),
+        ('crm_p_nogo', MSG(u'NoGo'), True),
         ('mtime', MSG(u'Last Modified'), True),
-        ('p_assured', MSG(u'Assured'), True),
-        ('p_probable', MSG(u'In pipe'), True)]
+        ('crm_p_assured', MSG(u'Assured'), True),
+        ('crm_p_probable', MSG(u'In pipe'), True)]
 
     batch_msg1 = MSG(u'1 prospect.')
     batch_msg2 = MSG(u'{n} prospects.')
@@ -467,10 +480,10 @@ class CRM_SearchProspects(SearchForm):
         if column == 'checkbox':
             # checkbox
             return item_brain.name, False
-        elif column == 'p_assured':
+        elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
             return format_amount(value)
-        elif column == 'p_probable':
+        elif column == 'crm_p_probable':
             value = item_brain.crm_p_probable
             return format_amount(value)
         get_value = item_resource.get_value
@@ -478,7 +491,7 @@ class CRM_SearchProspects(SearchForm):
             # Status
             value = get_value('crm_p_status')
             return p_status_icons[value]
-        elif column == 'p_company':
+        elif column == 'crm_p_company':
             company = get_value(column)
             if company:
                 crm = get_crm(resource)
@@ -488,17 +501,17 @@ class CRM_SearchProspects(SearchForm):
                 return title, href
             else:
                 return ''
-        elif column == 'p_lastname':
+        elif column == 'crm_p_lastname':
             href = '%s/' % context.get_link(item_resource)
             return get_value(column), href
-        elif column == 'p_firstname':
+        elif column == 'crm_p_firstname':
             href = '%s/' % context.get_link(item_resource)
             return get_value(column), href
-        elif column == 'p_phone':
+        elif column == 'crm_p_phone':
             return get_value(column)
-        elif column == 'p_mobile':
+        elif column == 'crm_p_mobile':
             return get_value(column)
-        elif column == 'p_email':
+        elif column == 'crm_p_email':
             value = get_value(column)
             href = 'mailto:%s' % value
             return value, href
@@ -506,7 +519,7 @@ class CRM_SearchProspects(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('p_opportunity', 'p_project', 'p_nogo'):
+        elif column in ('crm_p_opportunity', 'crm_p_project', 'crm_p_nogo'):
             return getattr(item_brain, 'crm_%s' % column)
 
 
@@ -514,9 +527,6 @@ class CRM_SearchProspects(SearchForm):
         start = context.query['batch_start']
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
-        if sort_by in ('p_opportunity', 'p_project', 'p_nogo', 'p_assured',
-                       'p_probable'):
-            sort_by = 'crm_p_%s' % sort_by
         reverse = context.query['reverse']
 
         # Calculate the probable and assured amount
@@ -645,9 +655,9 @@ class Company_ViewProspects(CRM_SearchProspects):
         columns = []
         for column in self.table_columns:
             name, title, sort = column
-            if name == 'p_company':
+            if name == 'crm_p_company':
                 continue
-            if name not in ('p_email', 'p_phone', 'p_mobile'):
+            if name not in ('crm_p_email', 'crm_p_phone', 'crm_p_mobile'):
                 columns.append(column)
 
         return columns
@@ -697,10 +707,10 @@ class Prospect_AddForm(AutoForm):
     def get_schema(self, resource, context):
         # p_lastname, p_status, m_title, m_status are mandatory
         schema = {
-            'p_lastname': Unicode(mandatory=True),
-            'p_status': ProspectStatus(mandatory=True),
-            'm_title': Unicode(),
-            'm_status': MissionStatus() }
+            'crm_p_lastname': Unicode(mandatory=True),
+            'crm_p_status': ProspectStatus(mandatory=True),
+            'crm_m_title': Unicode(),
+            'crm_m_status': MissionStatus() }
         return merge_dicts(prospect_schema, mission_schema, schema)
 
 
@@ -719,10 +729,10 @@ class Prospect_AddForm(AutoForm):
                 return context.query[name]
         value = AutoForm.get_value(self, resource, context, name, datatype)
 
-        if name == 'm_deadline' and value is None:
+        if name == 'crm_m_deadline' and value is None:
             year = date.today().year
             return date(year, 12, 31)
-        elif name == 'm_status':
+        elif name == 'crm_m_status':
             print 'STATUS', repr(value)
             return value
         if value is None:
@@ -734,10 +744,10 @@ class Prospect_AddForm(AutoForm):
         form = AutoForm._get_form(self, resource, context)
 
         # If title is defined, status is required
-        m_title = form['m_title'].strip()
-        m_status = form['m_status']
+        m_title = form['crm_m_title'].strip()
+        m_status = form['crm_m_status']
         if m_title and m_status is None:
-            raise FormError(invalid=['m_status'])
+            raise FormError(invalid=['crm_m_status'])
 
         return form
 
@@ -766,15 +776,15 @@ class Prospect_AddForm(AutoForm):
         p_values = {}
         m_values = {}
         for key, value in form.iteritems():
-            if key[:2] == 'p_':
+            if key[:2] == 'crm_p_':
                 p_values[key] = value
-            elif key[:2] == 'm_':
+            elif key[:2] == 'crm_m_':
                 m_values[key] = value
         # Add prospect
         p_name = prospects.add_prospect(p_values)
         # Add mission if title is defined
-        if m_values['m_title']:
-            m_values['m_prospect'] = p_name
+        if m_values['crm_m_title']:
+            m_values['crm_m_prospect'] = p_name
             m_name = missions.add_mission(m_values)
             goto = '%s/missions/%s/' % (context.get_link(crm), m_name)
         else:
@@ -800,8 +810,8 @@ class Prospect_EditForm(AutoForm):
     def get_schema(self, resource, context):
         # p_lastname, p_status, are mandatory
         schema = {
-            'p_lastname': Unicode(mandatory=True),
-            'p_status': ProspectStatus(mandatory=True) }
+            'crm_p_lastname': Unicode(mandatory=True),
+            'crm_p_status': ProspectStatus(mandatory=True) }
         return merge_dicts(prospect_schema, schema)
 
 
@@ -856,19 +866,19 @@ class Prospect_SearchMissions(SearchForm):
     search_schema = {
         'search_text': Unicode,
         'search_type': String,
-        'm_status': MissionStatus(multiple=True) }
+        'crm_m_status': MissionStatus(multiple=True) }
     search_fields =  [
         ('title', MSG(u'Title')),
         ('text', MSG(u'Text')) ]
 
     table_columns = [
         ('icon', None, False),
-        ('m_title', MSG(u'Title'), True),
-        ('m_nextaction', MSG(u'Next action'), True),
+        ('crm_m_title', MSG(u'Title'), True),
+        ('crm_m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
-        ('m_amount', MSG(u'Amount'), False),
-        ('m_probability', MSG(u'Prob.'), False),
-        ('m_deadline', MSG(u'Deadline'), False) ]
+        ('crm_m_amount', MSG(u'Amount'), False),
+        ('crm_m_probability', MSG(u'Prob.'), False),
+        ('crm_m_deadline', MSG(u'Deadline'), False) ]
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -884,7 +894,7 @@ class Prospect_SearchMissions(SearchForm):
         query = context.query
         search_text = query['search_text'].strip()
         field = query['search_type']
-        m_status = query['m_status']
+        m_status = query['crm_m_status']
 
         # Build the query
         args = list(args)
@@ -923,7 +933,7 @@ class Prospect_SearchMissions(SearchForm):
             value = get_value('crm_m_status')
             return m_status_icons[value]
         # FIXME
-        elif column == 'm_title':
+        elif column == 'crm_m_title':
             # Title
             return get_value(column), context.get_link(item_resource)
         elif column == 'status':
@@ -933,12 +943,13 @@ class Prospect_SearchMissions(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column == 'm_amount':
+        elif column == 'crm_m_amount':
             value = get_value(column)
             if value:
                 value = u'%02.02f €' % value
             return value
-        elif column in ('m_probability', 'm_deadline', 'm_nextaction'):
+        elif column in ('crm_m_probability', 'crm_m_deadline',
+                'crm_m_nextaction'):
             value = get_value(column)
             return value
 
@@ -948,8 +959,6 @@ class Prospect_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
-        if sort_by in ('m_title', 'm_nextaction'):
-            sort_by = 'crm_%s' % sort_by
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
         return [(x, resource.get_resource(x.abspath)) for x in items]
@@ -961,13 +970,13 @@ class Prospect_SearchMissions(SearchForm):
         search_namespace = SearchForm.get_search_namespace(self, resource,
                                                            context)
         # Add status
-        default_status = ['p_opportunity', 'p_project']
-        m_status = context.query['m_status']
+        default_status = ['crm_p_opportunity', 'crm_p_project']
+        m_status = context.query['crm_m_status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckboxWidget('m_status', title=MSG(u'Status'),
+        widget = MultipleCheckboxWidget('crm_m_status', title=MSG(u'Status'),
                 datatype=MissionStatus, value=m_status)
-        search_namespace['m_status'] = widget.render()
+        search_namespace['crm_m_status'] = widget.render()
 
         return search_namespace
 
@@ -1046,8 +1055,8 @@ class Mission_EditForm(AutoForm):
     def get_schema(self, resource, context):
         # m_title, m_status are mandatory
         schema = {
-            'm_title': Unicode(mandatory=True),
-            'm_status': MissionStatus(mandatory=True) }
+            'crm_m_title': Unicode(mandatory=True),
+            'crm_m_status': MissionStatus(mandatory=True) }
         return merge_dicts(mission_schema, schema)
 
 
@@ -1132,8 +1141,8 @@ class Mission_AddForm(Mission_EditForm):
     def get_schema(self, resource, context):
         # m_title, m_status are mandatory
         schema = {
-            'm_title': Unicode(mandatory=True),
-            'm_status': MissionStatus(mandatory=True) }
+            'crm_m_title': Unicode(mandatory=True),
+            'crm_m_status': MissionStatus(mandatory=True) }
         return merge_dicts(mission_schema, schema)
 
 
@@ -1143,13 +1152,13 @@ class Mission_AddForm(Mission_EditForm):
 
     def action(self, resource, context, form):
         # Get m_prospect from the query
-        form['m_prospect'] = context.query['m_prospect']
+        form['crm_m_prospect'] = context.query['crm_m_prospect']
         values = get_form_values(form)
         name = resource.add_mission(values)
 
         # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        prospect = values.get('m_prospect')
+        prospect = values.get('crm_m_prospect')
         prospect = crm.get_resource('prospects/%s' % prospect)
         context.database.change_resource(prospect)
 
@@ -1168,8 +1177,8 @@ class Mission_ViewProspects(CRM_SearchProspects):
         columns = []
         for column in self.table_columns:
             name, title, sort = column
-            if name in ('icon', 'p_lastname', 'p_firstname', 'p_company',
-                        'p_position', 'mtime'):
+            if name in ('icon', 'crm_p_lastname', 'crm_p_firstname',
+                    'crm_p_company', 'crm_p_position', 'mtime'):
                 columns.append(column)
         return columns
 
@@ -1196,7 +1205,7 @@ class Mission_ViewProspect(Mission_ViewProspects):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        prospect = context.query['m_prospect']
+        prospect = context.query['crm_m_prospect']
         args.append(PhraseQuery('name', prospect))
         return CRM_SearchProspects.get_items(self, resource, context, *args)
 
@@ -1233,7 +1242,7 @@ class Mission_EditProspects(Mission_ViewProspects):
             msg = ERROR(u'At least one prospect is required')
         else:
             # Apply change
-            resource._update({'m_prospect': prospects})
+            resource._update({'crm_m_prospect': prospects})
             msg = MSG_CHANGES_SAVED
 
         context.message = msg
@@ -1271,7 +1280,7 @@ class Mission_AddProspects(CRM_SearchProspects):
 
         prospects = list(set(prospects))
         # Apply change
-        resource._update({'m_prospect': prospects})
+        resource._update({'crm_m_prospect': prospects})
         msg = MSG_CHANGES_SAVED
 
 
@@ -1345,8 +1354,8 @@ class CRM_ExportToCSV(BaseView):
         infos.append(get_value('crm_p_status'))
 
         # Mission
-        l = ['m_title', 'm_amount', 'm_probability', 'm_status', 'm_deadline']
-        for property in l:
+        for property in ('crm_m_title', 'crm_m_amount', 'crm_m_probability',
+                'crm_m_status', 'crm_m_deadline'):
             property = mission.get_value(property)
             infos.append(property or '')
         return infos
@@ -1418,11 +1427,11 @@ class CRM_Alerts(SearchForm):
         ('icon', None, False),
         ('alert_date', MSG(u'Date'), False),
         ('alert_time', MSG(u'Time'), False),
-        ('p_lastname', MSG(u'Lastname'), False),
-        ('p_firstname', MSG(u'Firstname'), False),
-        ('p_company', MSG(u'Company'), False),
-        ('m_title', MSG(u'Mission'), False),
-        ('m_nextaction', MSG(u'Next action'), False)]
+        ('crm_p_lastname', MSG(u'Lastname'), False),
+        ('crm_p_firstname', MSG(u'Firstname'), False),
+        ('crm_p_company', MSG(u'Company'), False),
+        ('crm_m_title', MSG(u'Mission'), False),
+        ('crm_m_nextaction', MSG(u'Next action'), False)]
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
@@ -1471,7 +1480,7 @@ class CRM_Alerts(SearchForm):
                 alert_datetime = comment.get_parameter('alert_datetime')
                 if not alert_datetime:
                     continue
-                m_nextaction = comment.get_parameter('m_nextaction')
+                m_nextaction = comment.get_parameter('crm_m_nextaction')
                 items.append((alert_datetime, m_nextaction, mission, i))
 
         return items
@@ -1497,7 +1506,7 @@ class CRM_Alerts(SearchForm):
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
             href = 'missions/%s' % mission.name
             return path_to_icon
-        elif column in ('p_lastname', 'p_firstname'):
+        elif column in ('crm_p_lastname', 'crm_p_firstname'):
             prospect = mission.get_value('crm_m_prospect')[0]
             prospect = resource.get_resource('prospects/%s' % prospect)
             value = prospect.get_value(column)
@@ -1505,14 +1514,14 @@ class CRM_Alerts(SearchForm):
                 href = context.get_link(prospect)
                 return value, href
             return value
-        elif column == 'p_company':
+        elif column == 'crm_p_company':
             prospect = mission.get_value('crm_m_prospect')[0]
             prospect = resource.get_resource('prospects/%s' % prospect)
             company_name = prospect.get_value(column)
             company = mission.get_resource('../../companies/%s' % company_name)
             title = company.get_title()
             return title
-        elif column == 'm_title':
+        elif column == 'crm_m_title':
             value = mission.get_value(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(mission)
@@ -1524,7 +1533,7 @@ class CRM_Alerts(SearchForm):
         elif column == 'alert_time':
             alert_time = alert_datetime.time()
             return Time.encode(alert_time)
-        elif column == 'm_nextaction':
+        elif column == 'crm_m_nextaction':
             return m_nextaction
 
 
@@ -1588,7 +1597,7 @@ class Mission_EditAlerts(CRM_Alerts):
         ('alert_date', MSG(u'Date'), False),
         ('alert_time', MSG(u'Time'), False),
         ('comment', MSG(u'Comment'), False),
-        ('m_nextaction', MSG(u'Next action'), False)]
+        ('crm_m_nextaction', MSG(u'Next action'), False)]
 
     def get_items(self, resource, context, *args):
         args = list(args)

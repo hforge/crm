@@ -13,22 +13,22 @@
       <!-- MISSION TITLE AND DESCRIPTION -->
       <tr id="edit-mission-title">
         <td>
-          <label for="${m_title/name}">${m_title/title}</label>
+          <label for="${crm_m_title/name}">${crm_m_title/title}</label>
         </td>
         <td>
-          <span stl:if="m_title/error"
-            class="field-error">${m_title/error}<br/></span>
-          ${m_title/widget}
+          <span stl:if="crm_m_title/error"
+            class="field-error">${crm_m_title/error}<br/></span>
+          ${crm_m_title/widget}
         </td>
       </tr>
       <tr id="edit-mission-description">
         <td>
-          <label for="${m_description/name}">${m_description/title}</label>
+          <label for="${crm_m_description/name}">${crm_m_description/title}</label>
         </td>
         <td>
-          <span stl:if="m_description/error"
-            class="field-error">${m_description/error}<br/></span>
-          ${m_description/widget}
+          <span stl:if="crm_m_description/error"
+            class="field-error">${crm_m_description/error}<br/></span>
+          ${crm_m_description/widget}
         </td>
       </tr>
       <tr>
@@ -49,12 +49,12 @@
                 </tr>
                 <tr>
                   <td>
-                    <label for="${m_nextaction/name}">
-                      ${m_nextaction/title}</label></td>
+                    <label for="${crm_m_nextaction/name}">
+                      ${crm_m_nextaction/title}</label></td>
                   <td>
-                    <span stl:if="m_nextaction/error"
-                      class="field-error">${m_nextaction/error}<br/></span>
-                    ${m_nextaction/widget}
+                    <span stl:if="crm_m_nextaction/error"
+                      class="field-error">${crm_m_nextaction/error}<br/></span>
+                    ${crm_m_nextaction/widget}
                   </td>
                 </tr>
                 <!-- ATTACHEMENT -->
@@ -86,44 +86,44 @@
       </tr>
       <tr>
         <td>
-          <label for="${m_status/name}">
-            ${m_status/title}
+          <label for="${crm_m_status/name}">
+            ${crm_m_status/title}
           </label>
         </td>
         <td>
-          <span stl:if="m_status/error"
-            class="field-error">${m_status/error}<br/></span>
-          ${m_status/widget}
+          <span stl:if="crm_m_status/error"
+            class="field-error">${crm_m_status/error}<br/></span>
+          ${crm_m_status/widget}
         </td>
       </tr>
       <tr>
         <td colspan="2">
-          <table cellpadding="0" cellspacing="5" width="90%">
+          <table cellpadding="0" cellspacing="5" width="100%">
             <tbody>
               <tr>
                 <td>
-                  <label for="${m_amount/name}">${m_amount/title}</label>
+                  <label for="${crm_m_amount/name}">${crm_m_amount/title}</label>
                 </td>
                 <td class="amount">
-                  <span stl:if="m_amount/error"
-                    class="field-error">${m_amount/error}<br/></span>
-                  ${m_amount/widget}
+                  <span stl:if="crm_m_amount/error"
+                    class="field-error">${crm_m_amount/error}<br/></span>
+                  ${crm_m_amount/widget}
                 </td>
                 <td>
-                  <label for="${m_probability/name}">${m_probability/title}</label>
+                  <label for="${crm_m_probability/name}">${crm_m_probability/title}</label>
                 </td>
                 <td class="amount">
-                  <span stl:if="m_probability/error"
-                    class="field-error">${m_probability/error}<br/></span>
-                  ${m_probability/widget} %
+                  <span stl:if="crm_m_probability/error"
+                    class="field-error">${crm_m_probability/error}<br/></span>
+                  ${crm_m_probability/widget}&nbsp;%
                 </td>
                 <td>
-                  <label for="${m_deadline/name}">${m_deadline/title}</label>
+                  <label for="${crm_m_deadline/name}">${crm_m_deadline/title}</label>
                 </td>
                 <td>
-                  <span stl:if="m_deadline/error"
-                    class="field-error">${m_deadline/error}<br/></span>
-                  ${m_deadline/widget}
+                  <span stl:if="crm_m_deadline/error"
+                    class="field-error">${crm_m_deadline/error}<br/></span>
+                  ${crm_m_deadline/widget}
                 </td>
               </tr>
             </tbody>
