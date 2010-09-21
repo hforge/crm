@@ -255,6 +255,11 @@ class Comments_View(STLView):
         ns_comments = []
         comments = resource.metadata.get_property('comment') or []
         for i, comment in enumerate(comments):
+            author = comment.get_parameter('author')
+            if author:
+                user = resource.get_resource('/users/' + author, soft=True)
+                if user:
+                    author = user.get_title()
             comment_datetime = comment.get_parameter('date')
             attachment = (comment.get_parameter('attachment') or [''])[0]
             alert_datetime = comment.get_parameter('alert_datetime')
@@ -263,6 +268,7 @@ class Comments_View(STLView):
             # TODO Add diff (useful at creation without any comment)
             ns_comment = {
                 'id': i,
+                'author': author,
                 'datetime': format_datetime(comment_datetime),
                 'attachment': str(attachment),
                 'alert_datetime': alert_datetime,

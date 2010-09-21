@@ -10,16 +10,17 @@
     <tr class="comment-header">
       <td><a name="c${comment/id}" />
         Comment <a href="#c${comment/id}">#${comment/id}</a></td>
+      <td align="center">${comment/author}</td>
       <td align="right">${comment/datetime}</td>
     </tr>
     <tr stl:if="comment/attachment" class="comment-file">
-      <td colspan="2">
+      <td colspan="3">
         Attachment: <a
           href="${path_to_resource}/${comment/attachment}/;download">${comment/attachment}</a>
       </td>
     </tr>
     <tr stl:if="comment/alert_datetime" class="comment-alert">
-      <td colspan="2">
+      <td colspan="3">
         <img src="/ui/crm/images/1240913119_bell.png" />
         ${comment/alert_datetime}
         <form action=";cancel_alert" method="POST" style="display: inline;"
@@ -32,7 +33,7 @@
       </td>
     </tr>
     <tr class="comment-text">
-      <td colspan="2">
+      <td colspan="3">
         <pre class="com">${comment/comment}</pre>
       </td>
     </tr>
