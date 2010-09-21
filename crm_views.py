@@ -252,7 +252,6 @@ class Comments_View(STLView):
     template = '/ui/crm/Comments_view.xml'
 
     def get_namespace(self, resource, context):
-
         ns_comments = []
         comments = resource.metadata.get_property('comment') or []
         for i, comment in enumerate(comments):
@@ -268,10 +267,9 @@ class Comments_View(STLView):
                 'attachment': str(attachment),
                 'alert_datetime': alert_datetime,
                 'comment': indent(comment.value)}
-            ns_comments.append((id, ns_comment))
-        # Sort comments
-        ns_comments.sort(reverse=True)
-        ns_comments = [y for x, y in ns_comments]
+            ns_comments.append(ns_comment)
+        # Sort comments from newer to older
+        ns_comments = list(reversed(ns_comments))
 
         path_to_resource = context.get_link(resource)
         namespace = {'comments': ns_comments,
