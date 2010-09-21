@@ -213,12 +213,17 @@ def format_error_message(context, widgets):
 def get_form_values(form):
     values = {}
     for key, value in form.iteritems():
+        if not value:
+            continue
         if key == 'alert_date':
             value_time = form.get('alert_time', None) or time(9, 0)
             value = datetime.combine(value, value_time)
             values['alert_datetime'] = value
         elif key != 'alert_time':
             values[key] = value
+    # Commit empty comment with attachment
+    if values.get('comment') is None and values.get('attachment') is not None:
+        values['comment'] = u"_"
     return values
 
 

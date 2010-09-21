@@ -101,9 +101,6 @@ class CRMFolder(RoleAware, Folder):
             if key == 'attachment':
                 continue
             elif key == 'comment':
-                # Commit empty comments
-                if not value:
-                    value = u"_"
                 # Date
                 date = context.timestamp
                 # Attachment
@@ -200,6 +197,8 @@ class CRMFolder(RoleAware, Folder):
                     continue
                 # XXX Default as a list
                 value = value[0]
+                if not value:
+                    continue
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -248,6 +247,8 @@ class CRMFolder(RoleAware, Folder):
                     continue
                 # XXX Default as a list
                 value = value[0]
+                if not value:
+                    continue
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -302,6 +303,8 @@ class CRMFolder(RoleAware, Folder):
                     continue
                 # XXX Default as a list
                 value = value[0]
+                if not value:
+                    continue
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
