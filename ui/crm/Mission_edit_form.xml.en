@@ -13,7 +13,9 @@
       <!-- MISSION TITLE AND DESCRIPTION -->
       <tr id="edit-mission-title">
         <td>
-          <label for="${crm_m_title/name}">${crm_m_title/title}</label>
+          <label for="${crm_m_title/name}">
+            ${crm_m_title/title}
+          </label>
         </td>
         <td>
           <span stl:if="crm_m_title/error"
@@ -23,7 +25,9 @@
       </tr>
       <tr id="edit-mission-description">
         <td>
-          <label for="${crm_m_description/name}">${crm_m_description/title}</label>
+          <label for="${crm_m_description/name}">
+            ${crm_m_description/title}
+          </label>
         </td>
         <td>
           <span stl:if="crm_m_description/error"
@@ -39,7 +43,8 @@
                 <tr>
                   <td>
                     <label for="${comment/name}">
-                      ${comment/title}</label>
+                      ${comment/title}
+                    </label>
                   </td>
                   <td>
                     <span stl:if="comment/error"
@@ -50,7 +55,9 @@
                 <tr>
                   <td>
                     <label for="${crm_m_nextaction/name}">
-                      ${crm_m_nextaction/title}</label></td>
+                      ${crm_m_nextaction/title}
+                    </label>
+                  </td>
                   <td>
                     <span stl:if="crm_m_nextaction/error"
                       class="field-error">${crm_m_nextaction/error}<br/></span>
@@ -61,7 +68,8 @@
                 <tr>
                   <td colspan="2">
                     <label for="${attachment/name}">
-                      ${attachment/title}</label>&nbsp;
+                      ${attachment/title}
+                    </label>
                     <span stl:if="attachment/error"
                       class="field-error">${attachment/error}<br/></span>
                     ${attachment/widget}
@@ -71,11 +79,15 @@
                 <tr>
                   <td colspan="2">
                     <img src="/ui/crm/images/1240913081_bell_add.png" />
-                    <label for="${alert_date/name}">${alert_date/title}</label>
+                    <label for="${alert_date/name}">
+                      ${alert_date/title}
+                    </label>
                     <span stl:if="alert_date/error"
                       class="field-error">${alert_date/error}<br/></span>
                     ${alert_date/widget}
-                    <label for="${alert_time/name}">${alert_time/title}</label>
+                    <label for="${alert_time/name}">
+                      ${alert_time/title}
+                    </label>
                     <span stl:if="alert_time/error"
                       class="field-error">${alert_time/error}<br/></span>
                     ${alert_time/widget}
@@ -104,7 +116,9 @@
             <tbody>
               <tr>
                 <td>
-                  <label for="${crm_m_amount/name}">${crm_m_amount/title}</label>
+                  <label for="${crm_m_amount/name}">
+                    ${crm_m_amount/title}
+                  </label>
                 </td>
                 <td class="amount">
                   <span stl:if="crm_m_amount/error"
@@ -112,7 +126,9 @@
                   ${crm_m_amount/widget}
                 </td>
                 <td>
-                  <label for="${crm_m_probability/name}">${crm_m_probability/title}</label>
+                  <label for="${crm_m_probability/name}">
+                    ${crm_m_probability/title}
+                  </label>
                 </td>
                 <td class="amount">
                   <span stl:if="crm_m_probability/error"
@@ -120,7 +136,9 @@
                   ${crm_m_probability/widget}&nbsp;%
                 </td>
                 <td>
-                  <label for="${crm_m_deadline/name}">${crm_m_deadline/title}</label>
+                  <label for="${crm_m_deadline/name}">
+                    ${crm_m_deadline/title}
+                  </label>
                 </td>
                 <td>
                   <span stl:if="crm_m_deadline/error"

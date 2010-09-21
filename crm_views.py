@@ -523,7 +523,7 @@ class CRM_SearchProspects(SearchForm):
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
         elif column in ('crm_p_opportunity', 'crm_p_project', 'crm_p_nogo'):
-            return getattr(item_brain, 'crm_%s' % column)
+            return getattr(item_brain, column)
 
 
     def sort_and_batch(self, resource, context, results):
