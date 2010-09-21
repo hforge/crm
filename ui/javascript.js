@@ -32,7 +32,7 @@ function crm_show_edit()
     if (selected_company != initial_company)
         if (selected_company != '')
             return false;
-    alert('The changes will apply to all prospects of this company');
+    alert('The changes will apply to all contacts of this company');
     $('fieldset#company legend').text('Edit company');
     crm_show_company_form();
     // Action on the company is an edit
@@ -42,7 +42,7 @@ function crm_show_edit()
 function crm_show_new()
 {
     $('fieldset#company legend').text('New company');
-    // As the user decided to affect a new company to a prospect, the value of
+    // As the user decided to affect a new company to a contact, the value of
     // the selector widget is re-initialized.
     $('select[name=' + widget_name  +']').val('');
     crm_show_company_form();
@@ -70,7 +70,7 @@ function company_scenario()
 
 function crm_main(select_widget, first_widget_id)
 {
-    // Get the initial affected company to the prospect
+    // Get the initial affected company to the contact
     initial_company = $('select[name=' + select_widget + ']').val();
     // Get the p_company selector name
     widget_name = select_widget;
@@ -79,7 +79,7 @@ function crm_main(select_widget, first_widget_id)
     $('#' + first_widget_id).focus();
     // Hide the company Edition/Creation form
     $('#company').hide();
-    // If the company affected to the prospect has changed
+    // If the company affected to the contact has changed
     $('#company_widget').change(
         function()
         {

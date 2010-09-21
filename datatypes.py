@@ -65,7 +65,7 @@ class MissionStatus(Enumerate):
 
 
 
-class ProspectStatus(Enumerate):
+class ContactStatus(Enumerate):
 
     options = [
         {'name': 'lead', 'value': u'Lead'},
@@ -74,7 +74,7 @@ class ProspectStatus(Enumerate):
 
 
 
-class ProspectName(Enumerate):
+class ContactName(Enumerate):
 
     @classmethod
     def get_options(cls):
@@ -84,8 +84,8 @@ class ProspectName(Enumerate):
         crm = context.resource
         while not isinstance(crm, cls_crm):
             crm = crm.parent
-        parent_path = '%s/prospects' % crm.get_abspath()
-        results = context.root.search(format='prospect',
+        parent_path = '%s/contacts' % crm.get_abspath()
+        results = context.root.search(format='contact',
                                       parent_path=parent_path)
 
         options = []

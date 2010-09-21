@@ -4,7 +4,7 @@
 <stl:block xmlns="http://www.w3.org/1999/xhtml"
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 
-<fieldset id="prospect-main">
+<fieldset id="contact-main">
   <legend>${title}</legend>
 <form id="autoform" name="autoform" action="${action}" method="post"
   enctype="multipart/form-data">

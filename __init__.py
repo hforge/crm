@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Import from the Standard Library
+from sys import argv
+
 # Import from itools
 from itools.core import get_abspath, get_version
 from itools.gettext import register_domain
@@ -25,10 +28,20 @@ import crm
 # Make the product version available to Python code
 __version__ = get_version()
 
-###############################################################################
+############################################################################
 # DOMAIN
-###############################################################################
+############################################################################
 
 # Register the crm domain
 path = get_abspath('locale')
 register_domain('crm', path)
+
+# Special for obsolete
+# Import obsolete if command is icms-update.py
+if argv[0].endswith('icms-update.py'):
+    import obsolete
+    # Silent pyflakes
+    obsolete
+
+# Silent pyflakes
+crm

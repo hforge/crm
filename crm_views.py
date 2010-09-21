@@ -44,8 +44,8 @@ from ikaaro.comments import indent
 from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
 
-# Import from here
-from datatypes import CompanyName, MissionStatus, ProspectName, ProspectStatus
+# Import from crm
+from datatypes import CompanyName, MissionStatus, ContactName, ContactStatus
 from utils import EmailWidget, MultipleCheckboxWidget
 from utils import LinkWidget, NewCompanyWidget, SelectCompanyWidget, TimeWidget
 
@@ -54,7 +54,7 @@ ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
 ALERT_ICON_ORANGE = '1240913150_bell_error.png'
 ALERT_ICON_GREEN = '1240913156_bell_go.png'
 
-REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert ?""")
+REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 
 company_schema = {
     'crm_c_title': Unicode,
@@ -86,7 +86,7 @@ company_widgets = [
     MultilineWidget('crm_c_description', title=MSG(u'Observations'),
         default='', rows=4) ]
 
-prospect_schema = {
+contact_schema = {
     'crm_p_company': CompanyName,
     'new_company_url': PathDataType,
     'crm_p_lastname': Unicode,
@@ -96,10 +96,10 @@ prospect_schema = {
     'crm_p_email': Email,
     'crm_p_description': Unicode,
     'crm_p_position': Unicode,
-    'crm_p_status': ProspectStatus,
+    'crm_p_status': ContactStatus,
     'comment': Unicode }
 
-prospect_widgets = [
+contact_widgets = [
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
     NewCompanyWidget('new_company_url', title=MSG(u' ')),
     TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='', size=30),
@@ -227,10 +227,10 @@ def get_form_values(form):
     return values
 
 
-class ButtonAddProspect(Button):
-    name = 'add_prospect'
+class ButtonAddContact(Button):
+    name = 'add_contact'
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add prospect')
+    title = MSG(u'Add contact')
 
 
 
@@ -299,7 +299,7 @@ class CRM_SearchMissions(SearchForm):
     table_columns = [
         ('icon', None, False),
         ('crm_m_title', MSG(u'Title'), True),
-        ('crm_m_prospects', MSG(u'Prospects'), False),
+        ('crm_m_contacts', MSG(u'Contacts'), False),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
@@ -378,8 +378,8 @@ class CRM_SearchMissions(SearchForm):
         elif column == 'crm_m_title':
             href = context.get_link(item_resource)
             return item_brain.crm_m_title, href
-        elif column == 'crm_m_prospects':
-            values = get_value('crm_m_prospect')
+        elif column == 'crm_m_contacts':
+            values = get_value('crm_m_contact')
             query = [PhraseQuery('name', name) for name in values]
             if len(query) == 1:
                 query = query[0]
@@ -387,7 +387,7 @@ class CRM_SearchMissions(SearchForm):
                 query = OrQuery(*query)
             crm = get_crm(resource)
             query = AndQuery(get_crm_path_query(crm), query)
-            query = AndQuery(PhraseQuery('format', 'prospect'), query)
+            query = AndQuery(PhraseQuery('format', 'contact'), query)
             values = context.root.search(query).get_documents()
             return u' '.join([x.crm_p_lastname for x in values])
         elif column == 'mtime':
@@ -413,25 +413,25 @@ class CRM_SearchMissions(SearchForm):
 
 
 
-class CRM_SearchProspects(SearchForm):
+class CRM_SearchContacts(SearchForm):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'Prospects')
+    title = MSG(u'Contacts')
     search_template = '/ui/crm/CRM_search.xml'
-    template = '/ui/crm/CRM_search_prospects.xml'
+    template = '/ui/crm/CRM_search_contacts.xml'
     styles = ['/ui/crm/style.css']
 
     search_schema = {
         'search_text': Unicode,
         'search_type': String,
-        'status': ProspectStatus(multiple=True), }
+        'status': ContactStatus(multiple=True), }
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
     table_columns = [
         ('icon', None, False),
-        ('crm_p_lastname', MSG(u'Lastname'), True),
-        ('crm_p_firstname', MSG(u'Firstname'), False),
+        ('crm_p_lastname', MSG(u'Last name'), True),
+        ('crm_p_firstname', MSG(u'First name'), False),
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_p_email', MSG(u'Email'), False),
         ('crm_p_phone', MSG(u'Phone'), False),
@@ -444,8 +444,8 @@ class CRM_SearchProspects(SearchForm):
         ('crm_p_assured', MSG(u'Assured'), True),
         ('crm_p_probable', MSG(u'In pipe'), True)]
 
-    batch_msg1 = MSG(u'1 prospect.')
-    batch_msg2 = MSG(u'{n} prospects.')
+    batch_msg1 = MSG(u'1 contact.')
+    batch_msg2 = MSG(u'{n} contacts.')
 
 
     def get_items(self, resource, context, *args):
@@ -459,7 +459,7 @@ class CRM_SearchProspects(SearchForm):
         # Build the query
         args = list(args)
         abspath = str(resource.get_canonical_path())
-        args.append(PhraseQuery('format', 'prospect'))
+        args.append(PhraseQuery('format', 'contact'))
         args.append(get_crm_path_query(crm))
         if search_text:
             args.append(PhraseQuery('text', search_text))
@@ -553,7 +553,7 @@ class CRM_SearchProspects(SearchForm):
         if not p_status:
             p_status = default_status
         widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
-                datatype=ProspectStatus, value=p_status)
+                datatype=ContactStatus, value=p_status)
         search_namespace['status'] = widget.render()
         # Add *empty* with_no_alert
         search_namespace['with_no_alert'] = None
@@ -644,12 +644,12 @@ class Company_AddForm(Company_EditForm):
         name = resource.add_company(values)
         crm = get_crm(resource)
         goto = context.get_link(crm)
-        goto = '%s/prospects/;new_prospect?p_company=%s' % (goto, name)
+        goto = '%s/contacts/;new_contact?p_company=%s' % (goto, name)
         return context.come_back(MSG_NEW_RESOURCE, goto)
 
 
 
-class Company_ViewProspects(CRM_SearchProspects):
+class Company_ViewContacts(CRM_SearchContacts):
 
     search_template = None
 
@@ -668,11 +668,11 @@ class Company_ViewProspects(CRM_SearchProspects):
     def get_items(self, resource, context, *args):
         args = list(args)
         args.append(PhraseQuery('crm_p_company', resource.name))
-        return CRM_SearchProspects.get_items(self, resource, context, *args)
+        return CRM_SearchContacts.get_items(self, resource, context, *args)
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
@@ -685,38 +685,38 @@ class Company_View(CompositeForm):
     title = MSG(u'View company')
     styles = ['/ui/crm/style.css']
 
-    subviews = [Company_EditForm(), Company_ViewProspects()]
+    subviews = [Company_EditForm(), Company_ViewContacts()]
 
 
-#############
-# Prospects #
+############
+# Contacts #
 ###########################################################################
 
-class Prospect_AddForm(AutoForm):
-    """ To add a new prospect into the crm.
+class Contact_AddForm(AutoForm):
+    """ To add a new contact into the crm.
     """
     access = 'is_allowed_to_add'
-    title = MSG(u'New prospect')
-    template = '/ui/crm/Prospect_new_instance.xml'
+    title = MSG(u'New contact')
+    template = '/ui/crm/Contact_new_instance.xml'
     styles = ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
-        return merge_dicts(prospect_schema, mission_schema)
+        return merge_dicts(contact_schema, mission_schema)
 
 
     def get_schema(self, resource, context):
         # p_lastname, p_status, m_title, m_status are mandatory
         schema = {
             'crm_p_lastname': Unicode(mandatory=True),
-            'crm_p_status': ProspectStatus(mandatory=True),
+            'crm_p_status': ContactStatus(mandatory=True),
             'crm_m_title': Unicode(),
             'crm_m_status': MissionStatus() }
-        return merge_dicts(prospect_schema, mission_schema, schema)
+        return merge_dicts(contact_schema, mission_schema, schema)
 
 
     def get_widgets(self, resource, context):
-        widgets = prospect_widgets[:] + mission_widgets[:]
+        widgets = contact_widgets[:] + mission_widgets[:]
         return widgets
 
 
@@ -771,9 +771,9 @@ class Prospect_AddForm(AutoForm):
 
     def action(self, resource, context, form):
         crm = get_crm(resource)
-        prospects = crm.get_resource('prospects')
+        contacts = crm.get_resource('contacts')
         missions = crm.get_resource('missions')
-        # Split values prospect/mission
+        # Split values contact/mission
         p_values = {}
         m_values = {}
         for key, value in form.iteritems():
@@ -781,42 +781,42 @@ class Prospect_AddForm(AutoForm):
                 p_values[key] = value
             elif key[:2] == 'crm_m_':
                 m_values[key] = value
-        # Add prospect
-        p_name = prospects.add_prospect(p_values)
+        # Add contact
+        p_name = contacts.add_contact(p_values)
         # Add mission if title is defined
         if m_values['crm_m_title']:
-            m_values['crm_m_prospect'] = p_name
+            m_values['crm_m_contact'] = p_name
             m_name = missions.add_mission(m_values)
             goto = '%s/missions/%s/' % (context.get_link(crm), m_name)
         else:
-            goto = '%s/prospects/%s/' % (context.get_link(crm), p_name)
+            goto = '%s/contacts/%s/' % (context.get_link(crm), p_name)
 
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
 
-class Prospect_EditForm(AutoForm):
+class Contact_EditForm(AutoForm):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit prospect')
-    submit_value = MSG(u'Update prospect')
+    title = MSG(u'Edit contact')
+    submit_value = MSG(u'Update contact')
     styles = ['/ui/crm/style.css']
 
 
     def get_query_schema(self):
-        return prospect_schema.copy()
+        return contact_schema.copy()
 
 
     def get_schema(self, resource, context):
         # p_lastname, p_status, are mandatory
         schema = {
             'crm_p_lastname': Unicode(mandatory=True),
-            'crm_p_status': ProspectStatus(mandatory=True) }
-        return merge_dicts(prospect_schema, schema)
+            'crm_p_status': ContactStatus(mandatory=True) }
+        return merge_dicts(contact_schema, schema)
 
 
     def get_widgets(self, resource, context):
-        widgets = prospect_widgets[:]
+        widgets = contact_widgets[:]
         return widgets
 
 
@@ -857,11 +857,11 @@ class Prospect_EditForm(AutoForm):
 
 
 
-class Prospect_SearchMissions(SearchForm):
+class Contact_SearchMissions(SearchForm):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Missions')
-    search_template = '/ui/crm/Prospect_search.xml'
+    search_template = '/ui/crm/Contact_search.xml'
 
     search_schema = {
         'search_text': Unicode,
@@ -899,7 +899,7 @@ class Prospect_SearchMissions(SearchForm):
         # Build the query
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
-        args.append(PhraseQuery('crm_m_prospect', resource.name))
+        args.append(PhraseQuery('crm_m_contact', resource.name))
         missions = resource.parent.parent.get_resource('missions')
         abspath = str(missions.get_canonical_path())
         args.append(PhraseQuery('parent_path', abspath))
@@ -982,7 +982,7 @@ class Prospect_SearchMissions(SearchForm):
 
 
 
-class Prospect_ViewMissions(Prospect_SearchMissions):
+class Contact_ViewMissions(Contact_SearchMissions):
 
     search_template = None
     search_schema = {}
@@ -993,14 +993,14 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
 
 
     def get_query_schema(self):
-        return merge_dicts(Prospect_SearchMissions.get_query_schema(self),
+        return merge_dicts(Contact_SearchMissions.get_query_schema(self),
                            batch_size=Integer(default=10))
 
 
     def get_items(self, resource, context, *args):
         # Build the query
         args = list(args)
-        args.append(PhraseQuery('crm_m_prospect', resource.name))
+        args.append(PhraseQuery('crm_m_contact', resource.name))
         if len(args) == 1:
             query = args[0]
         else:
@@ -1012,21 +1012,21 @@ class Prospect_ViewMissions(Prospect_SearchMissions):
 
 
 
-class Prospect_View(CompositeForm):
+class Contact_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'View prospect')
-    template = '/ui/crm/Prospect_view.xml'
+    title = MSG(u'View contact')
+    template = '/ui/crm/Contact_view.xml'
     styles = ['/ui/crm/style.css']
 
-    subviews = [Prospect_EditForm(), Prospect_ViewMissions(), Comments_View()]
+    subviews = [Contact_EditForm(), Contact_ViewMissions(), Comments_View()]
 
     def get_namespace(self, resource, context):
         title = resource.get_title()
         edit = resource.edit_form.GET(resource, context)
         view_missions = resource.view_missions.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
-        new_url = '../../missions/;new_mission?m_prospect=%s' % resource.name
+        new_url = '../../missions/;new_mission?crm_m_contact=%s' % resource.name
         namespace = {
             'title': title,
             'edit': edit,
@@ -1097,12 +1097,12 @@ class Mission_EditForm(AutoForm):
         values = get_form_values(form)
         resource._update(values, context)
 
-        # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
+        # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        prospects = resource.get_value('crm_m_prospect')
-        for prospect in prospects:
-            prospect = crm.get_resource('prospects/%s' % prospect)
-            context.database.change_resource(prospect)
+        contacts = resource.get_value('crm_m_contact')
+        for contact in contacts:
+            contact = crm.get_resource('contacts/%s' % contact)
+            context.database.change_resource(contact)
         context.message = MSG_CHANGES_SAVED
 
 
@@ -1132,9 +1132,9 @@ class Mission_AddForm(Mission_EditForm):
     title = MSG(u'New mission')
 
     def get_query_schema(self):
-        # Add mandatory m_prospect to query schema
+        # Add mandatory crm_m_contact to query schema
         return merge_dicts(mission_schema,
-                           m_prospect=ProspectName(mandatory=True))
+                           crm_m_contact=ContactName(mandatory=True))
 
 
     def get_schema(self, resource, context):
@@ -1150,23 +1150,23 @@ class Mission_AddForm(Mission_EditForm):
 
 
     def action(self, resource, context, form):
-        # Get m_prospect from the query
-        form['crm_m_prospect'] = context.query['crm_m_prospect']
+        # Get crm_m_contact from the query
+        form['crm_m_contact'] = context.query['crm_m_contact']
         values = get_form_values(form)
         name = resource.add_mission(values)
 
-        # Reindex prospects to update Opp/Proj/NoGo, p_assured and p_probable
+        # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        prospect = values.get('crm_m_prospect')
-        prospect = crm.get_resource('prospects/%s' % prospect)
-        context.database.change_resource(prospect)
+        contact = values.get('crm_m_contact')
+        contact = crm.get_resource('contacts/%s' % contact)
+        context.database.change_resource(contact)
 
         goto = './%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
 
-class Mission_ViewProspects(CRM_SearchProspects):
+class Mission_ViewContacts(CRM_SearchContacts):
 
     search_template = None
     batch_msg1 = MSG(' ')
@@ -1184,44 +1184,44 @@ class Mission_ViewProspects(CRM_SearchProspects):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        prospects = resource.get_value('crm_m_prospect')
-        if len(prospects) == 1:
-            args.append(PhraseQuery('name', prospects[0]))
-        elif len(prospects) > 1:
-            args.append(OrQuery(*[PhraseQuery('name', x) for x in prospects]))
-        return CRM_SearchProspects.get_items(self, resource, context, *args)
+        contacts = resource.get_value('crm_m_contact')
+        if len(contacts) == 1:
+            args.append(PhraseQuery('name', contacts[0]))
+        elif len(contacts) > 1:
+            args.append(OrQuery(*[PhraseQuery('name', x) for x in contacts]))
+        return CRM_SearchContacts.get_items(self, resource, context, *args)
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
 
 
 
-class Mission_ViewProspect(Mission_ViewProspects):
+class Mission_ViewContact(Mission_ViewContacts):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        prospect = context.query['crm_m_prospect']
-        args.append(PhraseQuery('name', prospect))
-        return CRM_SearchProspects.get_items(self, resource, context, *args)
+        contact = context.query['crm_m_contact']
+        args.append(PhraseQuery('name', contact))
+        return CRM_SearchContacts.get_items(self, resource, context, *args)
 
 
 
-class Mission_EditProspects(Mission_ViewProspects):
+class Mission_EditContacts(Mission_ViewContacts):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit prospects')
+    title = MSG(u'Edit contacts')
 
     schema = {'ids': String(multiple=True, mandatory=True)}
 
     table_actions = [
-            RemoveButton(name='remove', title=MSG(u'Remove prospect')) ]
+            RemoveButton(name='remove', title=MSG(u'Remove contact')) ]
 
     def get_table_columns(self, resource, context):
-        columns = Mission_ViewProspects.get_table_columns(self, resource,
+        columns = Mission_ViewContacts.get_table_columns(self, resource,
                                                           context)
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
@@ -1229,57 +1229,57 @@ class Mission_EditProspects(Mission_ViewProspects):
 
 
     def action_remove(self, resource, context, form):
-        prospects = resource.get_value('crm_m_prospect')
+        contacts = resource.get_value('crm_m_contact')
 
-        for prospect_id in form.get('ids', []):
+        for contact_id in form.get('ids', []):
             try:
-                prospects.remove(prospect_id)
+                contacts.remove(contact_id)
             except:
                 pass
 
-        if len(prospects) == 0:
-            msg = ERROR(u'At least one prospect is required')
+        if len(contacts) == 0:
+            msg = ERROR(u'At least one contact is required')
         else:
             # Apply change
-            resource._update({'crm_m_prospect': prospects})
+            resource._update({'crm_m_contact': contacts})
             msg = MSG_CHANGES_SAVED
 
         context.message = msg
 
 
 
-class Mission_AddProspects(CRM_SearchProspects):
+class Mission_AddContacts(CRM_SearchContacts):
 
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add prospects')
+    title = MSG(u'Add contacts')
 
     schema = {'ids': String(multiple=True, mandatory=True)}
 
-    table_actions = [ButtonAddProspect]
+    table_actions = [ButtonAddContact]
 
     def get_table_columns(self, resource, context):
-        columns = CRM_SearchProspects.get_table_columns(self, resource, context)
+        columns = CRM_SearchContacts.get_table_columns(self, resource, context)
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
         return columns
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchProspects.get_namespace(self, resource, context)
+        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
 
 
-    def action_add_prospect(self, resource, context, form):
-        prospects = resource.get_value('crm_m_prospect')
+    def action_add_contact(self, resource, context, form):
+        contacts = resource.get_value('crm_m_contact')
 
-        for prospect_id in form.get('ids', []):
-            prospects.append(prospect_id)
+        for contact_id in form.get('ids', []):
+            contacts.append(contact_id)
 
-        prospects = list(set(prospects))
+        contacts = list(set(contacts))
         # Apply change
-        resource._update({'crm_m_prospect': prospects})
+        resource._update({'crm_m_contact': contacts})
         msg = MSG_CHANGES_SAVED
 
 
@@ -1292,18 +1292,18 @@ class Mission_View(CompositeForm):
     styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
     scripts = ['/ui/crm/jquery.maskedinput-1.2.2.min.js']
 
-    subviews = [Mission_EditForm(), Mission_ViewProspects(), Comments_View()]
+    subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
 
     def get_namespace(self, resource, context):
         title = resource.get_value('crm_m_title')
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
-        view_prospects = resource.view_prospects.GET(resource, context)
+        view_contacts = resource.view_contacts.GET(resource, context)
         namespace = {
             'title': title,
             'edit': edit,
             'view_comments': view_comments,
-            'view_prospects': view_prospects }
+            'view_contacts': view_contacts }
         return namespace
 
 
@@ -1311,22 +1311,22 @@ class Mission_View(CompositeForm):
 class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
-    subviews = [Mission_ViewProspect(), Mission_AddForm()]
+    subviews = [Mission_ViewContact(), Mission_AddForm()]
 
 
     def on_query_error(self, resource, context):
-        msg = u'Please select a valid prospect before creating a mission.'
+        msg = u'Please select a valid contact before creating a mission.'
         return context.come_back(ERROR(msg), goto='..')
 
 
     def get_namespace(self, resource, context):
         add = resource.add_form.GET(resource, context)
-        view_prospect = resource.view_prospect.GET(resource, context)
+        view_contact = resource.view_contact.GET(resource, context)
         namespace = {
             'title': MSG(u'New mission'),
             'edit': add,
             'view_comments': None,
-            'view_prospects': view_prospect}
+            'view_contacts': view_contact}
         return namespace
 
 
@@ -1340,10 +1340,10 @@ class CRM_ExportToCSV(BaseView):
 
     def get_mission_infos(self, resource, mission):
         infos = []
-        prospect = mission.get_value('crm_m_prospect')[0]
-        prospect = resource.get_resource('prospects/%s' % prospect)
-        get_value = prospect.get_value
-        # Prospect
+        contact = mission.get_value('crm_m_contact')[0]
+        contact = resource.get_resource('contacts/%s' % contact)
+        get_value = contact.get_value
+        # Contact
         infos.append(get_value('crm_p_lastname'))
         infos.append(get_value('crm_p_firstname') or '')
         p_company = get_value('crm_p_company')
@@ -1383,8 +1383,8 @@ class CRM_ExportToCSV(BaseView):
         csv = CSVFile()
         # Add the header
         csv.add_row([
-            'lastname', 'firstname', 'company', 'prospect\'s status',
-            'mission\'s title', 'amount', 'probability', 'mission\'s status',
+            'lastname', 'firstname', 'company', "contact's status",
+            "mission's title", 'amount', 'probability', "mission's status",
             'deadline'])
         # Fill the CSV
         for mission in missions:
@@ -1426,8 +1426,8 @@ class CRM_Alerts(SearchForm):
         ('icon', None, False),
         ('alert_date', MSG(u'Date'), False),
         ('alert_time', MSG(u'Time'), False),
-        ('crm_p_lastname', MSG(u'Lastname'), False),
-        ('crm_p_firstname', MSG(u'Firstname'), False),
+        ('crm_p_lastname', MSG(u'Last name'), False),
+        ('crm_p_firstname', MSG(u'First name'), False),
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_m_title', MSG(u'Mission'), False),
         ('crm_m_nextaction', MSG(u'Next action'), False)]
@@ -1506,17 +1506,17 @@ class CRM_Alerts(SearchForm):
             href = 'missions/%s' % mission.name
             return path_to_icon
         elif column in ('crm_p_lastname', 'crm_p_firstname'):
-            prospect = mission.get_value('crm_m_prospect')[0]
-            prospect = resource.get_resource('prospects/%s' % prospect)
-            value = prospect.get_value(column)
+            contact = mission.get_value('crm_m_contact')[0]
+            contact = resource.get_resource('contacts/%s' % contact)
+            value = contact.get_value(column)
             if mission.is_allowed_to_edit(context.user, mission):
-                href = context.get_link(prospect)
+                href = context.get_link(contact)
                 return value, href
             return value
         elif column == 'crm_p_company':
-            prospect = mission.get_value('crm_m_prospect')[0]
-            prospect = resource.get_resource('prospects/%s' % prospect)
-            company_name = prospect.get_value(column)
+            contact = mission.get_value('crm_m_contact')[0]
+            contact = resource.get_resource('contacts/%s' % contact)
+            company_name = contact.get_value(column)
             company = mission.get_resource('../../companies/%s' % company_name)
             title = company.get_title()
             return title

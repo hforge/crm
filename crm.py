@@ -37,17 +37,17 @@ from ikaaro.resource_views import DBResource_Backlinks
 from ikaaro.skins import register_skin
 from ikaaro.utils import generate_name
 
-# Import from here
+# Import from crm
 from crm_views import Company_AddForm, Company_AddImage, Company_EditForm
 from crm_views import Company_View
-from crm_views import Prospect_AddForm, Prospect_EditForm
-from crm_views import Prospect_SearchMissions, Prospect_ViewMissions
-from crm_views import Prospect_View
+from crm_views import Contact_AddForm, Contact_EditForm
+from crm_views import Contact_SearchMissions, Contact_ViewMissions
+from crm_views import Contact_View
 from crm_views import Mission_Add, Mission_AddForm, Mission_EditForm
-from crm_views import Mission_View, Mission_ViewProspects
-from crm_views import Mission_EditProspects, Mission_AddProspects
-from crm_views import Mission_ViewProspect, Mission_EditAlerts
-from crm_views import Comments_View, CRM_Alerts, CRM_SearchProspects
+from crm_views import Mission_View, Mission_ViewContacts
+from crm_views import Mission_EditContacts, Mission_AddContacts
+from crm_views import Mission_ViewContact, Mission_EditAlerts
+from crm_views import Comments_View, CRM_Alerts, CRM_SearchContacts
 from crm_views import CancelAlert
 from crm_views import CRM_ExportToCSV, CRM_SearchMissions
 from datatypes import MissionStatus
@@ -55,7 +55,7 @@ from utils import generate_code, get_path_and_view
 
 
 class CRMFolder(RoleAware, Folder):
-    """ Base folder for Company, Prospect and Mission.
+    """ Base folder for Company, Contact and Mission.
     """
     class_document_types = []
 
@@ -76,8 +76,8 @@ class CRMFolder(RoleAware, Folder):
 
 
     def get_value(self, name, record=None, context=None):
-        # Get company values from current prospect
-        if isinstance(self, Prospect) and name[:2] == 'crm_c_':
+        # Get company values from current contact
+        if isinstance(self, Contact) and name[:2] == 'crm_c_':
             company = self.get_property('crm_p_company')
             if company:
                 company = self.get_resource('../../companies/%s' % company)
@@ -140,7 +140,7 @@ class CRMFolder(RoleAware, Folder):
         if site_root.is_allowed_to_edit(user, site_root):
             return True
 
-        # Current prospect reviewers and admins can edit it
+        # Current contact reviewers and admins can edit it
         if self.has_user_role(user.name, 'admins'):
             return True
         if self.has_user_role(user.name, 'reviewers'):
@@ -162,7 +162,7 @@ class CRMFolder(RoleAware, Folder):
         if self.is_allowed_to_edit(user, resource):
             return True
 
-        # Current prospect reviewers and admins can edit it
+        # Current contact reviewers and admins can edit it
         if self.has_user_role(user.name, 'members'):
             return True
 
@@ -294,7 +294,7 @@ class CRMFolder(RoleAware, Folder):
             self.set_property(key, Path(new_path))
 
         # comments
-        comments = self.metadata.get_property('comment')
+        comments = self.metadata.get_property('comment') or []
         for comment in comments:
             # XXX hardcoded, not typed
             for key in ('attachment',):
@@ -324,7 +324,7 @@ class CRMFolder(RoleAware, Folder):
 
     def update_20100912(self):
         from itools.core import utc
-        from obsolete import MissionTableFile, ProspectTableFile
+        from obsolete import MissionTableFile, ContactTableFile
         from obsolete import CompanyTableFile
 
         metadata = self.metadata
@@ -337,8 +337,8 @@ class CRMFolder(RoleAware, Folder):
         # Comments
         if isinstance(self, Mission):
             cls = MissionTableFile
-        elif isinstance(self, Prospect):
-            cls = ProspectTableFile
+        elif isinstance(self, Contact):
+            cls = ContactTableFile
         elif isinstance(self, Company):
             cls = CompanyTableFile
         else:
@@ -381,6 +381,7 @@ class CRMFolder(RoleAware, Folder):
         self.del_resource('comments')
 
 
+
 ###################################
 # Mission                         #
 ###################################
@@ -392,15 +393,15 @@ class Mission(CRMFolder):
     """
     class_id = 'mission'
     class_title = MSG(u'Mission')
-    class_version = '20100912'
-    class_views = ['view', 'add_prospects', 'edit_prospects', 'edit_alerts']
+    class_version = '20100921'
+    class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
 
     class_schema = merge_dicts(
         CRMFolder.class_schema,
         crm_m_title=Unicode(source='metadata', indexed=True, stored=True),
         crm_m_description=Unicode(source='metadata'),
         crm_m_nextaction=Unicode(source='metadata', stored=True),
-        crm_m_prospect=String(source='metadata', indexed=True, multiple=True),
+        crm_m_contact=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
         crm_m_has_alerts=Boolean(indexed=True),
         alert_datetime=DateTime(source='metadata'),
@@ -408,11 +409,23 @@ class Mission(CRMFolder):
         crm_m_probability=Integer(source='metadata'),
         crm_m_deadline=Date(source='metadata'))
 
+    # Views
+    add_contacts = Mission_AddContacts()
+    cancel_alert = CancelAlert()
+    browse_content = Folder_BrowseContent(access=False)
+    edit_alerts = Mission_EditAlerts()
+    edit_form = Mission_EditForm()
+    edit_contacts = Mission_EditContacts()
+    preview_content = None
+    view = Mission_View()
+    view_comments = Comments_View()
+    view_contacts = Mission_ViewContacts()
+
 
     def get_catalog_values(self):
         document = CRMFolder.get_catalog_values(self)
         crm_m_title = self.get_property('crm_m_title')
-        prospects = self.get_property('crm_m_prospect')
+        contacts = self.get_property('crm_m_contact')
         crm_m_description = self.get_property('crm_m_description')
         crm_m_nextaction  = self.get_property('crm_m_nextaction')
         # Index all comments as 'text', and check any alert
@@ -420,11 +433,11 @@ class Mission(CRMFolder):
                   crm_m_description or '',
                   crm_m_nextaction or '']
         crm = self.parent.parent
-        for p in prospects:
-            prospect = crm.get_resource('prospects/%s' % p)
-            values.append(prospect.get_value('crm_p_lastname'))
-            values.append(prospect.get_value('crm_p_firstname'))
-            c_title = prospect.get_value('crm_c_title')
+        for p in contacts:
+            contact = crm.get_resource('contacts/%s' % p)
+            values.append(contact.get_value('crm_p_lastname'))
+            values.append(contact.get_value('crm_p_firstname'))
+            c_title = contact.get_value('crm_c_title')
             if c_title:
                 values.append(c_title)
         alert_datetime = self.get_property('alert_datetime')
@@ -434,8 +447,8 @@ class Mission(CRMFolder):
         document['crm_m_title'] = crm_m_title
         # Index m_nextaction
         document['crm_m_nextaction'] = crm_m_nextaction
-        # Index prospect
-        document['crm_m_prospect'] = prospects
+        # Index contact
+        document['crm_m_contact'] = contacts
         # Index alerts
         document['crm_m_has_alerts'] = alert_datetime is not None
         # Index status
@@ -443,31 +456,27 @@ class Mission(CRMFolder):
         return document
 
 
-    add_prospects = Mission_AddProspects()
-    cancel_alert = CancelAlert()
-    browse_content = Folder_BrowseContent(access=False)
-    edit_alerts = Mission_EditAlerts()
-    edit_form = Mission_EditForm()
-    edit_prospects = Mission_EditProspects()
-    preview_content = None
-    view = Mission_View()
-    view_comments = Comments_View()
-    view_prospects = Mission_ViewProspects()
+    def update_20100921(self):
+        """'crm_m_prospects' -> 'crm_m_contact'
+        """
+        contacts = self.get_property('crm_m_prospects')
+        self.set_property('crm_m_contact', contacts)
+        self.set_property('crm_m_prospects', None)
+
 
 
 ###################################
-# Prospect                        #
+# Contact                         #
 ###################################
 
-class Prospect(CRMFolder):
-    """ A prospect is a contact.
-    """
-    class_id = 'prospect'
-    class_title = MSG(u'Prospect')
-    class_version = '20100912'
+class Contact(CRMFolder):
+    class_id = 'contact'
+    class_title = MSG(u'Contact')
+    class_version = '20100921'
 
     class_views = ['view']
 
+    # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = merge_dicts(
         CRMFolder.class_schema,
         crm_p_company=String(source='metadata', indexed=True),
@@ -484,6 +493,15 @@ class Prospect(CRMFolder):
         crm_p_opportunity=Integer(source='metadata', stored=True),
         crm_p_project=Integer(source='metadata', stored=True),
         crm_p_nogo=Integer(source='metadata', stored=True))
+
+    # Views
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    edit_mission = Mission_EditForm()
+    edit_form = Contact_EditForm()
+    view = Contact_View()
+    view_comments = Comments_View()
+    search_missions = Contact_SearchMissions()
+    view_missions = Contact_ViewMissions()
 
 
     def get_catalog_values(self):
@@ -526,10 +544,10 @@ class Prospect(CRMFolder):
         document['crm_p_project'] = 0
         document['crm_p_nogo'] = 0
         missions = crm.get_resource('missions')
-        prospect = self.name
+        contact = self.name
         for mission in missions.get_resources():
             get_value = mission.get_value
-            if prospect not in get_value('crm_m_prospect'):
+            if contact not in get_value('crm_m_contact'):
                 continue
             status = get_value('crm_m_status')
             if status:
@@ -574,13 +592,10 @@ class Prospect(CRMFolder):
         return '%s %s%s' % (lastname, firstname, company)
 
 
-    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    edit_mission = Mission_EditForm()
-    edit_form = Prospect_EditForm()
-    view = Prospect_View()
-    view_comments = Comments_View()
-    search_missions = Prospect_SearchMissions()
-    view_missions = Prospect_ViewMissions()
+    def update_20100921(self):
+        self.metadata.set_changed()
+        self.metadata.format = 'contact'
+
 
 
 ###################################
@@ -612,6 +627,12 @@ class Company(CRMFolder):
         crm_c_activity=Unicode(source='metadata'),
         crm_c_logo=PathDataType(source='metadata', default='.'))
 
+    # Views
+    add_logo = Company_AddImage()
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    edit = Company_EditForm()
+    view = Company_View()
+
 
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
@@ -627,11 +648,6 @@ class Company(CRMFolder):
         return self.get_property('crm_c_title')
 
 
-    add_logo = Company_AddImage()
-    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    edit = Company_EditForm()
-    view = Company_View()
-
 
 ###################################
 # Containers                      #
@@ -644,6 +660,11 @@ class Companies(Folder):
     class_views = ['new_company', 'browse_content']
     class_document_types = [Company]
 
+    # Views
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    new_company = Company_AddForm()
+
+
     def add_company(self, values):
         names = self.get_names()
         name = generate_code(names, 'c%06d')
@@ -651,26 +672,38 @@ class Companies(Folder):
         return name
 
 
+
+class Contacts(Folder):
+    """ Container of "contact" resources. """
+    class_id = 'contacts'
+    class_version = '20100921'
+    class_title = MSG(u'Contacts')
+    class_views = ['new_contact', 'browse_content']
+    class_document_types = [Contact]
+
+    # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    new_company = Company_AddForm()
+    new_contact = Contact_AddForm()
 
 
-
-class Prospects(Folder):
-    """ Container of "prospect" resources. """
-    class_id = 'prospects'
-    class_title = MSG(u'Prospects')
-    class_views = ['new_prospect', 'browse_content']
-    class_document_types = [Prospect]
-
-    def add_prospect(self, values):
+    def add_contact(self, values):
         names = self.get_names()
-        name = generate_code(names, 'p%06d')
-        self.make_resource(name, Prospect, **values)
+        name = generate_code(names, 'c%06d')
+        self.make_resource(name, Contact, **values)
         return name
 
-    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    new_prospect = Prospect_AddForm()
+
+    def update_20100920(self):
+        self.metadata.set_changed()
+        self.metadata.format = 'contacts'
+
+
+    def update_20100921(self):
+        """'p000001' -> 'c000001'
+        """
+        for name in self.get_names():
+            self.move_resource(name, name.replace('p', 'c'))
+
 
 
 class Missions(Folder):
@@ -681,16 +714,19 @@ class Missions(Folder):
     class_views = ['new_mission', 'browse_content']
     class_document_types = [Mission]
 
+    # Views
+    add_form = Mission_AddForm()
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    new_mission = Mission_Add()
+    view_contact = Mission_ViewContact()
+
+
     def add_mission(self, values):
         names = self.get_names()
         name = generate_code(names, 'm%06d')
         self.make_resource(name, Mission, **values)
         return name
 
-    add_form = Mission_AddForm()
-    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    new_mission = Mission_Add()
-    view_prospect = Mission_ViewProspect()
 
 
 ###################################
@@ -700,19 +736,33 @@ class Missions(Folder):
 class CRM(Folder):
     """ A CRM contains:
         - companies
-        - prospects, fed by missions.
-        - addresses (companies and prospects)
+        - contacts, fed by missions.
+        - addresses (companies and contacts)
     """
     class_id = 'crm'
-    class_version = '20100201'
+    class_version = '20100921'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['alerts', 'missions', 'prospects', 'goto_prospects',
+    class_views = ['alerts', 'missions', 'contacts', 'goto_contacts',
                    'goto_companies', 'browse_content', 'edit']
 
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'prospects',
-                                                      'missions']
+    __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'contacts',
+            'missions']
+
+    # Views
+    alerts = CRM_Alerts()
+    contacts = CRM_SearchContacts()
+    missions = CRM_SearchMissions()
+    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
+    backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
+    export_to_csv = CRM_ExportToCSV()
+    goto_contacts = GoToSpecificDocument(specific_document='contacts',
+        title=MSG(u'New contact'), access='is_allowed_to_edit')
+    goto_companies = GoToSpecificDocument(specific_document='companies',
+        title=MSG(u'New company'), access='is_allowed_to_edit')
+
 
     def init_resource(self, **kw):
         Folder.init_resource(self, **kw)
@@ -723,30 +773,23 @@ class CRM(Folder):
             title={'en': u'Companies', 'fr': u'Sociétés'})
         handler = FolderHandler()
         folder.set_handler('companies', handler)
-        # Prospects
-        self.make_resource('prospects', Prospects,
-            title={'en': u'Prospects', 'fr': u'Prospects'})
-        folder.set_handler('prospects', handler)
+        # Contacts
+        self.make_resource('contacts', Contacts,
+            title={'en': u'Contacts', 'fr': u'Contacts'})
+        folder.set_handler('contacts', handler)
         # Missions
         self.make_resource('missions', Missions,
             title={'en': u'Missions', 'fr': u'Missions'})
         folder.set_handler('missions', handler)
 
 
-    alerts = CRM_Alerts()
-    prospects = CRM_SearchProspects()
-    missions = CRM_SearchMissions()
-    browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
-    backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
-    export_to_csv = CRM_ExportToCSV()
-    goto_prospects = GoToSpecificDocument(specific_document='prospects',
-        title=MSG(u'New prospect'), access='is_allowed_to_edit')
-    goto_companies = GoToSpecificDocument(specific_document='companies',
-        title=MSG(u'New company'), access='is_allowed_to_edit')
+    def update_20100921(self):
+        """Rename prospect to contact
+        """
+        self.move_resource('prospects', 'contacts')
+
 
 
 # Register crm skin
-path = get_abspath('ui/crm')
+path = get_abspath('ui')
 register_skin('crm', path)
-

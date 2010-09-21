@@ -15,36 +15,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
-from itools.core import get_abspath, merge_dicts
-from itools.csv import Property, Table as TableFile
-from itools.datatypes import Boolean, Date, DateTime, Decimal, Email, Integer
+from itools.core import merge_dicts
+from itools.csv import Table as TableFile
+from itools.datatypes import Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.handlers import checkid, folder as FolderHandler
-from itools.fs import FileName
-from itools.uri import get_reference, Path
-from itools.web import get_context
 
 # Import from ikaaro
-from ikaaro.access import RoleAware
-from ikaaro.folder import Folder
-from ikaaro.folder_views import Folder_BrowseContent, GoToSpecificDocument
-from ikaaro.registry import get_resource_class
-from ikaaro.resource_views import DBResource_Backlinks
-from ikaaro.skins import register_skin
+from ikaaro.registry import register_resource_class
 from ikaaro.table import Table
 
-# Import from here
+# Import from crm
+from crm import Mission, Contacts, Contact
 from datatypes import CompanyName
-from datatypes import MissionStatus, ProspectStatus
+from datatypes import MissionStatus, ContactStatus
+
 
 #class CRMFolder(Folder, RoleAware):
 ##    def get_value(self, name, record=None, context=None):
 ##        comments_handler = self.get_resource('comments').handler
 ##        if record is None:
 ##            record = comments_handler.get_record(-1)
-##        # Get company values from current prospect
-##        if isinstance(self, Prospect) and name[:2] == 'c_':
+##        # Get company values from current contact
+##        if isinstance(self, Contact) and name[:2] == 'c_':
 ##            company = comments_handler.get_record_value(record, 'p_company')
 ##            if company:
 ##                company = self.get_resource('../../companies/%s' % company)
@@ -63,7 +56,7 @@ from datatypes import MissionStatus, ProspectStatus
 ##
 #
 class CommentsTableFile(TableFile):
-    """ Base comments table used by Company, Prospect and Mission.
+    """ Base comments table used by Company, Contact and Mission.
     """
     record_properties = {'comment': Unicode(mandatory=True),
                          'alert_datetime': DateTime,
@@ -93,7 +86,7 @@ class MissionTableFile(CommentsTableFile):
     record_properties = merge_dicts(CommentsTableFile.record_properties,
             # Mission title and description
             m_title=Unicode, m_description=Unicode,
-            # Prospect name
+            # Contact name
             m_prospect=String(multiple=True),
             # How many € ?
             m_amount=Decimal,
@@ -113,26 +106,45 @@ class MissionTable(Table):
     class_handler = MissionTableFile
 
 
+
+class OldMission(Mission):
+    class_schema = merge_dicts(Mission.class_schema,
+        crm_m_prospect=String(source='metadata', indexed=True,
+            multiple=True))
+
+
+
 ###################################
-# Prospect                        #
+# Contact                        #
 ###################################
 
-class ProspectTableFile(CommentsTableFile):
+class ContactTableFile(CommentsTableFile):
 
     record_properties = merge_dicts(CommentsTableFile.record_properties,
         p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
         p_phone=Unicode, p_mobile=Unicode, p_email=Email,
         p_position=Unicode, p_description=Unicode,
         # Lead/Client/Dead
-        p_status=ProspectStatus)
+        p_status=ContactStatus)
 
 
 
-class ProspectTable(Table):
+class ContactTable(Table):
 
     class_id = 'prospect-comments'
-    class_title = MSG(u'Prospect comments')
-    class_handler = ProspectTableFile
+    class_title = MSG(u'Contact comments')
+    class_handler = ContactTableFile
+
+
+
+class Prospects(Contacts):
+    class_id = 'prospects'
+
+
+
+class Prospect(Contact):
+    class_id = 'prospect'
+
 
 
 ###################################
@@ -155,3 +167,8 @@ class CompanyTable(Table):
     class_title = MSG(u'Company comments')
     class_handler = CompanyTableFile
 
+
+
+register_resource_class(OldMission)
+register_resource_class(Prospects)
+register_resource_class(Prospect)

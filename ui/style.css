@@ -1,6 +1,6 @@
 
 /**************************************************************************
- * Company is pinky purple ; Prospect is purple ; Mission is blue
+ * Company is pinky purple ; Contact is purple ; Mission is blue
  * blue : #D0DAFF
  * blue extra light: #F3F7FF
  * old blue extra light: #F0F0FF
@@ -36,7 +36,7 @@
 }
 
 /* Mission view subviews */
-#mission-view-prospect {
+#mission-view-contact {
   float: left;
   width: 100%;
 }
@@ -63,48 +63,48 @@
 }
 
 /**************************************************************************
- * Prospect *
+ * Contact *
  **************************************************************************/
-#page-prospect-view FORM fieldset legend,
-#page-prospect-view FORM fieldset,
-#page-prospects-new-prospect fieldset FORM legend,
-#page-missions-new-prospect fieldset FORM {
+#page-contact-view FORM fieldset legend,
+#page-contact-view FORM fieldset,
+#page-contacts-new-contact fieldset FORM legend,
+#page-missions-new-contact fieldset FORM {
   background-color: #CFCAEA;
 }
 
-#page-prospect-view #browse-list tr th {
+#page-contact-view #browse-list tr th {
   background-color: #D0DAFF;
 }
-#page-prospect-view #browse-list tr.odd td {
+#page-contact-view #browse-list tr.odd td {
   background-color: #F3F7FF;
 }
 
-/* Prospect view subviews */
-#prospect-view-missions {
+/* Contact view subviews */
+#contact-view-missions {
   float: left;
   width: 100%;
 }
-#prospect-view-edit {
+#contact-view-edit {
   float: left;
 }
-#prospect-view-comments {
+#contact-view-comments {
   float: left;
   width: 100%;
 }
 
 /* PREVIOUSLY *************************************************************/
 
-#prospect-main{
+#contact-main {
   background-color: #EEEEFF;
   padding: 5px 10px 0px 10px;
 }
-#prospect-main legend {
+#contact-main legend {
   background-color: #EEEEFF;
   font-size: 1.2em;
 }
 #edit-mission table td,
 #new-mission table td,
-#prospect-main table td {
+#contact-main table td {
   padding: 2px;
 }
 
