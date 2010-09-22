@@ -72,7 +72,7 @@ function crm_main(select_widget, first_widget_id)
 {
     // Get the initial affected company to the contact
     initial_company = $('select[name=' + select_widget + ']').val();
-    // Get the p_company selector name
+    // Get the crm_p_company selector name
     widget_name = select_widget;
 
     // Focus on the first_widget

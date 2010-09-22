@@ -180,36 +180,6 @@ def format_amount(str_value):
     return '%s k€' % str(value)
 
 
-def format_error_message(context, widgets):
-    """ Get an explicit message with missing and invalid fields.
-    """
-    form_error = context.form_error
-    invalid = form_error.invalid
-    missing = form_error.missing
-    invalids = []
-    missings = []
-    for widget in widgets:
-        name = widget.name
-        if name in invalid:
-            invalids.append(widget.title.message)
-        if name in missing:
-            missings.append(widget.title.message)
-
-    message = msg1 = ''
-    if missings:
-        msg1 = u'1 or more fields are missing: %s' % u', '.join(missings)
-    if invalids:
-        msg2 = u'1 or more fields are invalid: %s' % u', '.join(invalids)
-
-        if missings:
-            message = u'%s ; %s' % (msg1, msg2)
-        else:
-            message = msg2
-    else:
-        message = msg1
-    return ERROR(message)
-
-
 def get_form_values(form):
     values = {}
     for key, value in form.iteritems():
@@ -605,13 +575,15 @@ class Company_EditForm(AutoForm):
     title = MSG(u'Edit company')
     styles = ['/ui/crm/style.css']
 
+
     def get_query_schema(self):
         return company_schema.copy()
 
 
     def get_schema(self, resource, context):
-        # c_title mandatory into form
-        return merge_dicts(company_schema, c_title=Unicode(mandatory=True))
+        # crm_c_title is mandatory
+        return merge_dicts(company_schema,
+                crm_c_title=company_schema['crm_c_title'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -636,6 +608,7 @@ class Company_AddForm(Company_EditForm):
     title = MSG(u'New company')
     context_menus = []
 
+
     def get_value(self, resource, context, name, datatype):
         return context.query.get(name) or datatype.default
 
@@ -650,7 +623,7 @@ class Company_AddForm(Company_EditForm):
         name = resource.add_company(values)
         crm = get_crm(resource)
         goto = context.get_link(crm)
-        goto = '%s/contacts/;new_contact?p_company=%s' % (goto, name)
+        goto = '%s/contacts/;new_contact?crm_p_company=%s' % (goto, name)
         return context.come_back(MSG_NEW_RESOURCE, goto)
 
 
@@ -712,13 +685,10 @@ class Contact_AddForm(AutoForm):
 
 
     def get_schema(self, resource, context):
-        # p_lastname, p_status, m_title, m_status are mandatory
-        schema = {
-            'crm_p_lastname': Unicode(mandatory=True),
-            'crm_p_status': ContactStatus(mandatory=True),
-            'crm_m_title': Unicode(),
-            'crm_m_status': MissionStatus() }
-        return merge_dicts(contact_schema, mission_schema, schema)
+        # crm_p_lastname and crm_p_status are mandatory
+        return merge_dicts(contact_schema, mission_schema,
+                contact_schema['crm_p_lastname'](mandatory=True),
+                contact_schema['crm_p_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -759,12 +729,6 @@ class Contact_AddForm(AutoForm):
         return form
 
 
-    def on_form_error(self, resource, context):
-        message = format_error_message(context, self.get_widgets(resource,
-                                                                 context))
-        return context.come_back(message)
-
-
     def get_namespace(self, resource, context):
         namespace = AutoForm.get_namespace(self, resource, context)
 
@@ -783,9 +747,9 @@ class Contact_AddForm(AutoForm):
         p_values = {}
         m_values = {}
         for key, value in form.iteritems():
-            if key[:2] == 'crm_p_':
+            if key.startswith('crm_p_'):
                 p_values[key] = value
-            elif key[:2] == 'crm_m_':
+            elif key.startswith('crm_m_'):
                 m_values[key] = value
         # Add contact
         p_name = contacts.add_contact(p_values)
@@ -814,11 +778,10 @@ class Contact_EditForm(AutoForm):
 
 
     def get_schema(self, resource, context):
-        # p_lastname, p_status, are mandatory
-        schema = {
-            'crm_p_lastname': Unicode(mandatory=True),
-            'crm_p_status': ContactStatus(mandatory=True) }
-        return merge_dicts(contact_schema, schema)
+        # crm_p_lastname and crm_p_status are mandatory
+        return merge_dicts(contact_schema,
+                contact_schema['crm_p_lastname'](mandatory=True),
+                contact_schema['crm_p_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -1058,11 +1021,10 @@ class Mission_EditForm(AutoForm):
 
 
     def get_schema(self, resource, context):
-        # m_title, m_status are mandatory
-        schema = {
-            'crm_m_title': Unicode(mandatory=True),
-            'crm_m_status': MissionStatus(mandatory=True) }
-        return merge_dicts(mission_schema, schema)
+        # crm_m_title and crm_m_status are mandatory
+        return merge_dicts(mission_schema,
+                mission_schema['crm_m_title'](mandatory=True),
+                mission_schema['crm_m_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -1144,11 +1106,10 @@ class Mission_AddForm(Mission_EditForm):
 
 
     def get_schema(self, resource, context):
-        # m_title, m_status are mandatory
-        schema = {
-            'crm_m_title': Unicode(mandatory=True),
-            'crm_m_status': MissionStatus(mandatory=True) }
-        return merge_dicts(mission_schema, schema)
+        # crm_m_title and crm_m_status are mandatory
+        return merge_dicts(mission_schema,
+                mission_schema['crm_m_title'](mandatory=True),
+                mission_schema['crm_m_status'](mandatory=True))
 
 
     def get_value(self, resource, context, name, datatype):

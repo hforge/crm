@@ -77,7 +77,7 @@ class CRMFolder(RoleAware, Folder):
 
     def get_value(self, name, record=None, context=None):
         # Get company values from current contact
-        if isinstance(self, Contact) and name[:2] == 'crm_c_':
+        if isinstance(self, Contact) and name.startswith('crm_c_'):
             company = self.get_property('crm_p_company')
             if company:
                 company = self.get_resource('../../companies/%s' % company)
@@ -424,14 +424,14 @@ class Mission(CRMFolder):
 
     def get_catalog_values(self):
         document = CRMFolder.get_catalog_values(self)
-        crm_m_title = self.get_property('crm_m_title')
+        m_title = self.get_property('crm_m_title')
         contacts = self.get_property('crm_m_contact')
-        crm_m_description = self.get_property('crm_m_description')
-        crm_m_nextaction  = self.get_property('crm_m_nextaction')
+        m_description = self.get_property('crm_m_description')
+        m_nextaction  = self.get_property('crm_m_nextaction')
         # Index all comments as 'text', and check any alert
-        values = [crm_m_title or '',
-                  crm_m_description or '',
-                  crm_m_nextaction or '']
+        values = [m_title or '',
+                  m_description or '',
+                  m_nextaction or '']
         crm = self.parent.parent
         for p in contacts:
             contact = crm.get_resource('contacts/%s' % p)
@@ -444,9 +444,9 @@ class Mission(CRMFolder):
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index title
-        document['crm_m_title'] = crm_m_title
-        # Index m_nextaction
-        document['crm_m_nextaction'] = crm_m_nextaction
+        document['crm_m_title'] = m_title
+        # Index crm_m_nextaction
+        document['crm_m_nextaction'] = m_nextaction
         # Index contact
         document['crm_m_contact'] = contacts
         # Index alerts
@@ -582,14 +582,14 @@ class Contact(CRMFolder):
 
 
     def get_title(self, language=None):
-        lastname = self.get_value('crm_p_lastname')
-        firstname = self.get_value('crm_p_firstname')
-        company = self.get_value('crm_p_company') or ''
-        if company:
-            company = self.get_resource('../../companies/%s' % company,
+        p_lastname = self.get_value('crm_p_lastname')
+        p_firstname = self.get_value('crm_p_firstname')
+        p_company = self.get_value('crm_p_company') or ''
+        if p_company:
+            company = self.get_resource('../../companies/%s' % p_company,
                                             soft=True)
-            company =  u' (%s)' % company.get_title() if company else ''
-        return '%s %s%s' % (lastname, firstname, company)
+            p_company =  u' (%s)' % company.get_title() if company else ''
+        return '%s %s%s' % (p_lastname, p_firstname, p_company)
 
 
     def update_20100921(self):
