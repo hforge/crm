@@ -29,7 +29,7 @@ from ikaaro.folder_views import Folder_BrowseContent
 
 # Import from crm
 from base import CRMFolder
-from crm_views import Comments_View
+from base_views import Comments_View
 from contact_views import Contact_AddForm, Contact_EditForm, Contact_View
 from contact_views import Contact_SearchMissions, Contact_ViewMissions
 from mission_views import Mission_EditForm

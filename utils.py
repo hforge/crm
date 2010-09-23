@@ -16,11 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
-from itools.core import thingy_lazy_property
 
 # Import from ikaaro
-from ikaaro.autoform import CheckboxWidget, SelectWidget, TextWidget
-from ikaaro.autoform import make_stl_template
 from ikaaro.registry import get_resource_class
 from ikaaro.utils import get_base_path_query
 
@@ -57,6 +54,7 @@ def get_crm_path_query(crm_resource):
 
 
 
+# FIXME reuse itws one
 def get_path_and_view(path):
     view = ''
     name = path.get_name()
@@ -66,74 +64,3 @@ def get_path_and_view(path):
         path = path[:-1]
 
     return path, view
-
-
-############################################################
-# Forms
-############################################################
-class MultipleCheckboxWidget(CheckboxWidget):
-
-    template = make_stl_template("""
-        <stl:inline stl:repeat="item items">
-          <input type="checkbox" name="${name}" value="${item/name}"
-            checked="${item/selected}" />${item/value}</stl:inline>""")
-
-    def items(self):
-        items = []
-        for option in self.datatype.get_options():
-            name = option['name']
-            items.append({
-                'name': name,
-                'value': option['value'],
-                'selected': name in self.value})
-        return items
-
-
-class SelectCompanyWidget(SelectWidget):
-
-    template = make_stl_template("""
-        <select id="${id}" name="${name}" multiple="${multiple}" size="${size}"
-            class="${css}">
-          <option value="" stl:if="has_empty_option"></option>
-          <option stl:repeat="option options" value="${option/name}"
-            selected="${option/selected}">${option/value}</option>
-        </select>""")
-
-
-class EmailWidget(TextWidget):
-
-    template = make_stl_template("""
-           <input type="${type}" id="${id}" name="${name}" value="${value}"
-             size="${size}" /><a stl:if="value" href="mailto:${value}">
-             <img src="/ui/icons/16x16/mail.png" /></a>""")
-
-
-class LinkWidget(TextWidget):
-
-    template = make_stl_template("""
-           <input type="${type}" id="${id}" name="${name}" value="${value}"
-             size="${size}" /><a stl:if="value" href="${value}"
-             target="_blank"><img src="/ui/icons/16x16/website.png" /></a> """)
-
-    @thingy_lazy_property
-    def value_(self):
-        value = self.value
-        if 'http://' not in value and 'https://' not in value:
-            value = 'http://%s' % value
-        return value
-
-
-class NewCompanyWidget(TextWidget):
-
-    template = make_stl_template("""<a href="${value}">New</a>""")
-
-
-class TimeWidget(TextWidget):
-
-    template = make_stl_template("""
-        <input type="text" name="${name}" value="${value}" id="${name}"
-          size="5" />
-        <script type="text/javascript">
-          $("#${name}").mask("99:99");
-          $("#${name}").val("${value}");
-        </script>""")

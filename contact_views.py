@@ -34,13 +34,12 @@ from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from crm
-from crm_views import get_form_values, m_status_icons
-from crm_views import Comments_View
+from base_views import get_form_values, m_status_icons, Comments_View
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from mission_views import mission_schema, mission_widgets
-from utils import EmailWidget, MultipleCheckboxWidget
-from utils import NewCompanyWidget, SelectCompanyWidget
 from utils import get_crm, get_crm_path_query
+from widgets import EmailWidget, MultipleCheckboxWidget
+from widgets import NewCompanyWidget, SelectCompanyWidget
 
 
 contact_schema = {
@@ -90,8 +89,9 @@ class Contact_AddForm(AutoForm):
     def get_schema(self, resource, context):
         # crm_p_lastname and crm_p_status are mandatory
         return merge_dicts(contact_schema, mission_schema,
-                contact_schema['crm_p_lastname'](mandatory=True),
-                contact_schema['crm_p_status'](mandatory=True))
+                crm_p_lastname=contact_schema['crm_p_lastname'](
+                    mandatory=True),
+                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -183,8 +183,9 @@ class Contact_EditForm(AutoForm):
     def get_schema(self, resource, context):
         # crm_p_lastname and crm_p_status are mandatory
         return merge_dicts(contact_schema,
-                contact_schema['crm_p_lastname'](mandatory=True),
-                contact_schema['crm_p_status'](mandatory=True))
+                crm_p_lastname=contact_schema['crm_p_lastname'](
+                    mandatory=True),
+                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):

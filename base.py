@@ -32,6 +32,7 @@ from ikaaro.registry import get_resource_class
 from ikaaro.utils import generate_name
 
 # Import from crm
+from base_views import CRMFolder_AddImage
 from utils import get_path_and_view
 
 
@@ -44,6 +45,9 @@ class CRMFolder(RoleAware, Folder):
         Folder.class_schema,
         RoleAware.class_schema,
         comment=Unicode(source='metadata', mandatory=True, multiple=True))
+
+    # Views
+    add_logo = CRMFolder_AddImage()
 
 
     def init_resource(self, **kw):

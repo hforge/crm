@@ -35,10 +35,12 @@ from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from crm_views import ButtonUpdate, ButtonAddContact, get_form_values
-from crm_views import CRM_SearchContacts, CRM_Alerts, Comments_View
+from base_views import get_form_values, ButtonUpdate, ButtonAddContact
+from base_views import Comments_View
+from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
-from utils import TimeWidget, get_crm
+from utils import get_crm
+from widgets import TimeWidget
 
 
 mission_schema = {
@@ -88,8 +90,8 @@ class Mission_EditForm(AutoForm):
     def get_schema(self, resource, context):
         # crm_m_title and crm_m_status are mandatory
         return merge_dicts(mission_schema,
-                mission_schema['crm_m_title'](mandatory=True),
-                mission_schema['crm_m_status'](mandatory=True))
+                crm_m_title=mission_schema['crm_m_title'](mandatory=True),
+                crm_m_status=mission_schema['crm_m_status'](mandatory=True))
 
 
     def get_widgets(self, resource, context):
@@ -173,8 +175,8 @@ class Mission_AddForm(Mission_EditForm):
     def get_schema(self, resource, context):
         # crm_m_title and crm_m_status are mandatory
         return merge_dicts(mission_schema,
-                mission_schema['crm_m_title'](mandatory=True),
-                mission_schema['crm_m_status'](mandatory=True))
+                crm_m_title=mission_schema['crm_m_title'](mandatory=True),
+                crm_m_status=mission_schema['crm_m_status'](mandatory=True))
 
 
     def get_value(self, resource, context, name, datatype):

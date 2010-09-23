@@ -27,7 +27,8 @@ from ikaaro.folder_views import Folder_BrowseContent
 
 # Import from crm
 from base import CRMFolder
-from company_views import Company_AddForm, Company_AddImage, Company_EditForm
+from base_views import CRMFolder_AddImage
+from company_views import Company_AddForm, Company_EditForm
 from company_views import Company_View
 from utils import generate_code
 
@@ -58,7 +59,6 @@ class Company(CRMFolder):
         crm_c_logo=PathDataType(source='metadata', default='.'))
 
     # Views
-    add_logo = Company_AddImage()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     edit = Company_EditForm()
     view = Company_View()
@@ -93,6 +93,7 @@ class Companies(Folder):
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     new_company = Company_AddForm()
+    add_logo = CRMFolder_AddImage()
 
 
     def add_company(self, values):

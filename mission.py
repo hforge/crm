@@ -28,7 +28,7 @@ from ikaaro.folder_views import Folder_BrowseContent
 
 # Import from crm
 from base import CRMFolder
-from crm_views import Comments_View
+from base_views import Comments_View
 from mission_views import Mission_Add, Mission_AddForm, Mission_EditForm
 from mission_views import Mission_View, Mission_ViewContacts, CancelAlert
 from mission_views import Mission_EditContacts, Mission_AddContacts

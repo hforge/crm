@@ -21,19 +21,19 @@ from itools.core import merge_dicts
 from itools.database import PhraseQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.web import get_context
 
 # Import from ikaaro
 from ikaaro.autoform import AutoForm
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
 from ikaaro.autoform import TextWidget
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
-from ikaaro.popup import DBResource_AddImage
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from crm_views import get_form_values, CRM_SearchContacts
-from utils import LinkWidget, get_crm
+from base_views import get_form_values
+from crm_views import CRM_SearchContacts
+from utils import get_crm
+from widgets import LinkWidget
 
 
 company_schema = {
@@ -65,17 +65,6 @@ company_widgets = [
     ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
     MultilineWidget('crm_c_description', title=MSG(u'Observations'),
         default='', rows=4) ]
-
-
-class Company_AddImage(DBResource_AddImage):
-
-    def get_root(self, context):
-        return context.resource
-
-
-    def get_start(self, resource):
-        return self.get_root(get_context())
-
 
 
 class Company_EditForm(AutoForm):
