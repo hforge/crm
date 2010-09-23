@@ -52,7 +52,6 @@ class CRMFolder(RoleAware, Folder):
 
     def init_resource(self, **kw):
         Folder.init_resource(self, **kw)
-        RoleAware.init_resource(self, **kw)
 
         # Add current user as admin
         username = get_context().user.name
