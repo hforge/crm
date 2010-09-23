@@ -43,8 +43,8 @@ class Mission(CRMFolder):
         - documents related to comments
     """
     class_id = 'mission'
-    class_title = MSG(u'Mission')
     class_version = '20100921'
+    class_title = MSG(u'Mission')
     class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
 
     class_schema = merge_dicts(
@@ -106,13 +106,13 @@ class Mission(CRMFolder):
         document['crm_m_status'] = self.get_property('crm_m_status')
         return document
 
-
     def update_20100921(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """
-        contacts = self.get_property('crm_m_prospects')
+        contacts = self.get_property('crm_m_prospect')
+        contacts = [c.replace('p', 'c') for c in contacts]
         self.set_property('crm_m_contact', contacts)
-        self.set_property('crm_m_prospects', None)
+        self.set_property('crm_m_prospect', None)
 
 
 

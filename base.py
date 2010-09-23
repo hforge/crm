@@ -39,6 +39,7 @@ from utils import get_path_and_view
 class CRMFolder(RoleAware, Folder):
     """ Base folder for Company, Contact and Mission.
     """
+    class_version = '20100912'
     class_document_types = []
 
     class_schema = merge_dicts(
@@ -351,12 +352,14 @@ class CRMFolder(RoleAware, Folder):
 
         # Other metadata
         record = comments_handler.get_record(-1)
-        for key in self.class_schema.keys():
+        for key in self.class_schema.iterkeys():
             if key in ('comment', 'attachment'):
                 continue
             source_key = key
             if key[:4] == 'crm_':
                 source_key = key[4:]
+            if source_key not in cls.record_properties:
+                continue
             value = get_record_value(record, source_key)
             if value is not None:
                 metadata.set_property(key, value)

@@ -26,7 +26,8 @@ from ikaaro.registry import register_resource_class
 from ikaaro.table import Table
 
 # Import from crm
-from crm import Mission, Contacts, Contact
+from mission import Mission
+from contact import Contacts, Contact
 from datatypes import CompanyName, MissionStatus, ContactStatus
 
 
@@ -96,9 +97,14 @@ class OldMission(Mission):
 class ContactTableFile(CommentsTableFile):
 
     record_properties = merge_dicts(CommentsTableFile.record_properties,
-        p_company=CompanyName, p_lastname=Unicode, p_firstname=Unicode,
-        p_phone=Unicode, p_mobile=Unicode, p_email=Email,
-        p_position=Unicode, p_description=Unicode,
+        p_company=CompanyName,
+        p_lastname=Unicode,
+        p_firstname=Unicode,
+        p_phone=Unicode,
+        p_mobile=Unicode,
+        p_email=Email,
+        p_position=Unicode,
+        p_description=Unicode,
         # Lead/Client/Dead
         p_status=ContactStatus)
 
