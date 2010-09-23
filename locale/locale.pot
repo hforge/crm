@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2010-09-21 16:09+CET\n"
+"POT-Creation-Date: 2010-09-23 07:09+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,100 +15,83 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../crm.py:591
+#: ../contact.py:156
 msgid " (%s)"
 msgstr ""
 
-#: ../crm_views.py:949
+#: ../contact_views.py:321
 msgid "%02.02f €"
 msgstr ""
 
-#: ../crm_views.py:205
-msgid "%s ; %s"
-msgstr ""
-
-#: ../crm_views.py:200
-#: ../crm_views.py:202
-msgid ", "
-msgstr ""
-
-#: ../crm_views.py:1435
+#: ../crm_views.py:546
 msgid "1 alert."
 msgstr ""
 
-#: ../crm_views.py:447
+#: ../crm_views.py:310
 msgid "1 contact."
 msgstr ""
 
-#: ../crm_views.py:309
-#: ../crm_views.py:883
+#: ../contact_views.py:255
+#: ../crm_views.py:172
 msgid "1 mission."
 msgstr ""
 
-#: ../crm_views.py:202
-msgid "1 or more fields are invalid: %s"
-msgstr ""
-
-#: ../crm_views.py:200
-msgid "1 or more fields are missing: %s"
-msgstr ""
-
-#: ../crm_views.py:84
+#: ../company_views.py:64
 msgid "Activity"
 msgstr ""
 
-#: ../crm_views.py:233
+#: ../crm_views.py:90
 msgid "Add contact"
 msgstr ""
 
-#: ../crm_views.py:1254
+#: ../mission_views.py:286
 msgid "Add contacts"
 msgstr ""
 
-#: ../crm_views.py:76
+#: ../company_views.py:56
 msgid "Address"
 msgstr ""
 
-#: ../crm_views.py:77
+#: ../company_views.py:57
 msgid "Address (next)"
 msgstr ""
 
-#: ../crm_views.py:147
+#: ../mission_views.py:72
 msgid "Alert on"
 msgstr ""
 
-#: ../crm_views.py:1412
+#: ../crm_views.py:523
 msgid "Alerts"
 msgstr ""
 
-#: ../crm_views.py:138
-#: ../crm_views.py:305
-#: ../crm_views.py:879
+#: ../mission_views.py:63
+#: ../contact_views.py:251
+#: ../crm_views.py:168
 msgid "Amount"
 msgstr ""
 
-#: ../crm_views.py:57
+#: ../crm_views.py:50
 msgid "Are you sure you want to remove this alert?"
 msgstr ""
 
-#: ../crm_views.py:444
+#: ../crm_views.py:307
 msgid "Assured"
 msgstr ""
 
-#: ../crm_views.py:1241
+#: ../mission_views.py:273
 msgid "At least one contact is required"
 msgstr ""
 
-#: ../crm_views.py:146
+#: ../mission_views.py:71
 msgid "Attachment"
 msgstr ""
 
-#: ../crm_views.py:1446
-#: ../crm.py:744
+#: ../crm_views.py:557
+#: ../crm.py:46
 msgid "CRM"
 msgstr ""
 
-#: ../crm_views.py:1445
+#: ../crm_views.py:556
 msgid "CRM: Alerts (%s)"
 msgstr ""
 
@@ -116,53 +99,53 @@ msgstr ""
 msgid "Client"
 msgstr ""
 
-#: ../crm_views.py:1089
-#: ../crm_views.py:1598
+#: ../mission_views.py:122
+#: ../mission_views.py:378
 msgid "Comment"
 msgstr ""
 
-#: ../crm_views.py:251
+#: ../crm_views.py:108
 msgid "Comments"
 msgstr ""
 
-#: ../crm.py:658
-#: ../crm.py:773
+#: ../company.py:88
+#: ../crm.py:75
 msgid "Companies"
 msgstr ""
 
-#: ../crm_views.py:103
-#: ../crm_views.py:435
-#: ../crm_views.py:1431
-#: ../crm.py:610
+#: ../company.py:40
+#: ../crm_views.py:298
+#: ../crm_views.py:542
+#: ../contact_views.py:60
 msgid "Company"
 msgstr ""
 
-#: ../obsolete.py:167
+#: ../obsolete.py:142
 msgid "Company comments"
 msgstr ""
 
-#: ../crm.py:474
+#: ../contact.py:41
 msgid "Contact"
 msgstr ""
 
-#: ../obsolete.py:135
+#: ../obsolete.py:110
 msgid "Contact comments"
 msgstr ""
 
-#: ../crm_views.py:302
-#: ../crm_views.py:419
-#: ../crm.py:680
-#: ../crm.py:778
-#: ../crm.py:778
+#: ../crm_views.py:165
+#: ../crm_views.py:282
+#: ../contact.py:173
+#: ../crm.py:80
+#: ../crm.py:80
 msgid "Contacts"
 msgstr ""
 
-#: ../crm_views.py:80
+#: ../company_views.py:60
 msgid "Country"
 msgstr ""
 
-#: ../crm_views.py:1427
-#: ../crm_views.py:1596
+#: ../mission_views.py:376
+#: ../crm_views.py:538
 msgid "Date"
 msgstr ""
 
@@ -170,68 +153,68 @@ msgstr ""
 msgid "Dead"
 msgstr ""
 
-#: ../crm_views.py:141
-#: ../crm_views.py:307
-#: ../crm_views.py:881
+#: ../mission_views.py:66
+#: ../contact_views.py:253
+#: ../crm_views.py:170
 msgid "Deadline"
 msgstr ""
 
-#: ../crm_views.py:137
+#: ../mission_views.py:62
 msgid "Description"
 msgstr ""
 
-#: ../crm_views.py:1589
+#: ../mission_views.py:369
 msgid "Edit alerts"
 msgstr ""
 
-#: ../crm_views.py:599
+#: ../company_views.py:84
 msgid "Edit company"
 msgstr ""
 
-#: ../crm_views.py:801
+#: ../contact_views.py:174
 msgid "Edit contact"
 msgstr ""
 
-#: ../crm_views.py:1216
+#: ../mission_views.py:248
 msgid "Edit contacts"
 msgstr ""
 
-#: ../crm_views.py:1046
+#: ../mission_views.py:80
 msgid "Edit mission"
 msgstr ""
 
-#: ../crm_views.py:110
-#: ../crm_views.py:436
+#: ../contact_views.py:67
+#: ../crm_views.py:299
 msgid "Email"
 msgstr ""
 
-#: ../crm_views.py:1337
+#: ../crm_views.py:448
 msgid "Export to CSV"
 msgstr ""
 
-#: ../crm_views.py:82
+#: ../company_views.py:62
 msgid "Fax"
 msgstr ""
 
-#: ../crm_views.py:106
-#: ../crm_views.py:434
-#: ../crm_views.py:1430
+#: ../contact_views.py:63
+#: ../crm_views.py:297
+#: ../crm_views.py:541
 msgid "First name"
 msgstr ""
 
-#: ../crm_views.py:445
+#: ../crm_views.py:308
 msgid "In pipe"
 msgstr ""
 
-#: ../crm_views.py:304
-#: ../crm_views.py:443
-#: ../crm_views.py:878
+#: ../contact_views.py:250
+#: ../crm_views.py:167
+#: ../crm_views.py:306
 msgid "Last Modified"
 msgstr ""
 
-#: ../crm_views.py:105
-#: ../crm_views.py:433
-#: ../crm_views.py:1429
+#: ../contact_views.py:62
+#: ../crm_views.py:296
+#: ../crm_views.py:540
 msgid "Last name"
 msgstr ""
 
@@ -239,80 +222,80 @@ msgstr ""
 msgid "Lead"
 msgstr ""
 
-#: ../crm_views.py:85
+#: ../company_views.py:65
 msgid "Logo"
 msgstr ""
 
-#: ../crm_views.py:1432
-#: ../crm.py:395
+#: ../crm_views.py:543
+#: ../mission.py:46
 msgid "Mission"
 msgstr ""
 
-#: ../obsolete.py:105
+#: ../obsolete.py:80
 msgid "Mission comments"
 msgstr ""
 
-#: ../crm_views.py:287
-#: ../crm_views.py:863
-#: ../crm.py:712
-#: ../crm.py:782
-#: ../crm.py:782
+#: ../contact_views.py:235
+#: ../crm_views.py:150
+#: ../crm.py:84
+#: ../crm.py:84
+#: ../mission.py:125
 msgid "Missions"
 msgstr ""
 
-#: ../crm_views.py:109
+#: ../contact_views.py:66
 msgid "Mobile"
 msgstr ""
 
-#: ../crm_views.py:116
-#: ../crm_views.py:144
-#: ../crm_views.py:847
+#: ../mission_views.py:69
+#: ../contact_views.py:73
+#: ../contact_views.py:219
 msgid "New comment"
 msgstr ""
 
-#: ../crm_views.py:630
-#: ../crm.py:764
+#: ../company_views.py:117
+#: ../crm.py:66
 msgid "New company"
 msgstr ""
 
-#: ../crm_views.py:699
-#: ../crm.py:762
+#: ../contact_views.py:81
+#: ../crm.py:64
 msgid "New contact"
 msgstr ""
 
-#: ../crm_views.py:1132
-#: ../crm_views.py:1313
-#: ../crm_views.py:1326
+#: ../mission_views.py:165
+#: ../mission_views.py:345
+#: ../mission_views.py:358
 msgid "New mission"
 msgstr ""
 
-#: ../crm_views.py:149
-#: ../crm_views.py:303
-#: ../crm_views.py:877
-#: ../crm_views.py:1433
-#: ../crm_views.py:1599
+#: ../mission_views.py:74
+#: ../mission_views.py:379
+#: ../contact_views.py:249
+#: ../crm_views.py:166
+#: ../crm_views.py:544
 msgid "Next action"
 msgstr ""
 
-#: ../crm_views.py:1370
+#: ../crm_views.py:481
 msgid "No data to export."
 msgstr ""
 
-#: ../crm_views.py:442
+#: ../crm_views.py:305
 #: ../datatypes.py:64
 msgid "NoGo"
 msgstr ""
 
-#: ../crm_views.py:86
-#: ../crm_views.py:112
+#: ../contact_views.py:69
+#: ../company_views.py:66
 msgid "Observations"
 msgstr ""
 
-#: ../crm_views.py:1578
+#: ../crm_views.py:689
 msgid "One or more alert could not have been removed."
 msgstr ""
 
-#: ../crm_views.py:440
+#: ../crm_views.py:303
 msgid "Opp."
 msgstr ""
 
@@ -320,31 +303,31 @@ msgstr ""
 msgid "Opportunity"
 msgstr ""
 
-#: ../crm_views.py:81
-#: ../crm_views.py:108
-#: ../crm_views.py:437
+#: ../contact_views.py:65
+#: ../crm_views.py:300
+#: ../company_views.py:61
 msgid "Phone"
 msgstr ""
 
-#: ../crm_views.py:1318
+#: ../mission_views.py:350
 msgid "Please select a valid contact before creating a mission."
 msgstr ""
 
-#: ../crm_views.py:111
-#: ../crm_views.py:439
+#: ../contact_views.py:68
+#: ../crm_views.py:302
 msgid "Position"
 msgstr ""
 
-#: ../crm_views.py:306
-#: ../crm_views.py:880
+#: ../contact_views.py:252
+#: ../crm_views.py:169
 msgid "Prob."
 msgstr ""
 
-#: ../crm_views.py:139
+#: ../mission_views.py:64
 msgid "Probability"
 msgstr ""
 
-#: ../crm_views.py:441
+#: ../crm_views.py:304
 msgid "Proj."
 msgstr ""
 
@@ -352,333 +335,333 @@ msgstr ""
 msgid "Project"
 msgstr ""
 
-#: ../crm_views.py:1438
+#: ../crm_views.py:549
 msgid "Remove alert"
 msgstr ""
 
-#: ../crm_views.py:1221
+#: ../mission_views.py:253
 msgid "Remove contact"
 msgstr ""
 
-#: ../crm.py:773
+#: ../crm.py:75
 msgid "Sociétés"
 msgstr ""
 
-#: ../crm_views.py:114
-#: ../crm_views.py:142
-#: ../crm_views.py:321
-#: ../crm_views.py:555
-#: ../crm_views.py:977
+#: ../mission_views.py:67
+#: ../contact_views.py:71
+#: ../contact_views.py:349
+#: ../crm_views.py:184
+#: ../crm_views.py:418
 msgid "Status"
 msgstr ""
 
-#: ../crm_views.py:297
-#: ../crm_views.py:429
-#: ../crm_views.py:872
+#: ../contact_views.py:244
+#: ../crm_views.py:160
+#: ../crm_views.py:292
 msgid "Text"
 msgstr ""
 
-#: ../crm_views.py:1428
-#: ../crm_views.py:1597
+#: ../mission_views.py:377
+#: ../crm_views.py:539
 msgid "Time"
 msgstr ""
 
-#: ../crm_views.py:75
-#: ../crm_views.py:136
-#: ../crm_views.py:301
-#: ../crm_views.py:871
-#: ../crm_views.py:876
+#: ../mission_views.py:61
+#: ../contact_views.py:243
+#: ../contact_views.py:248
+#: ../crm_views.py:164
+#: ../company_views.py:55
 msgid "Title"
 msgstr ""
 
-#: ../crm_views.py:79
+#: ../company_views.py:59
 msgid "Town"
 msgstr ""
 
-#: ../crm_views.py:802
+#: ../contact_views.py:175
 msgid "Update contact"
 msgstr ""
 
-#: ../crm_views.py:240
+#: ../crm_views.py:97
 msgid "Update mission"
 msgstr ""
 
-#: ../crm_views.py:685
+#: ../company_views.py:173
 msgid "View company"
 msgstr ""
 
-#: ../crm_views.py:1018
+#: ../contact_views.py:390
 msgid "View contact"
 msgstr ""
 
-#: ../crm_views.py:1290
+#: ../mission_views.py:322
 msgid "View mission"
 msgstr ""
 
-#: ../crm_views.py:83
+#: ../company_views.py:63
 msgid "Website"
 msgstr ""
 
-#: ../crm_views.py:327
+#: ../crm_views.py:190
 msgid "With no alert only"
 msgstr ""
 
-#: ../crm_views.py:78
+#: ../company_views.py:58
 msgid "Zip Code"
 msgstr ""
 
-#: ../crm_views.py:226
+#: ../crm_views.py:83
 msgid "_"
 msgstr ""
 
-#: ../crm_views.py:148
+#: ../mission_views.py:73
 msgid "at"
 msgstr ""
 
-#: ../crm_views.py:438
+#: ../crm_views.py:301
 msgid "mobile"
 msgstr ""
 
-#: ../crm_views.py:1436
+#: ../crm_views.py:547
 msgid "{n} alerts."
 msgstr ""
 
-#: ../crm_views.py:448
+#: ../crm_views.py:311
 msgid "{n} contacts."
 msgstr ""
 
-#: ../crm_views.py:310
-#: ../crm_views.py:884
+#: ../contact_views.py:256
+#: ../crm_views.py:173
 msgid "{n} missions."
 msgstr ""
 
-#: ../ui/Contact_search.xml.en:16
+#: ../ui/contact/search.xml.en:16
 msgctxt "button"
 msgid "<g id='3'>OK</g>  <x id='4'/>  <x id='5'/> ${crm_m_status}"
 msgstr ""
 
-#: ../ui/CRM_search.xml.en:10
+#: ../ui/crm/search.xml.en:10
 msgctxt "button"
 msgid "<g id='3'>OK</g>  <x id='4'/>  <x id='5'/> ${status}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:157
+#: ../ui/mission/edit.xml.en:157
 msgctxt "button"
 msgid "<g id='35'>${action/title}</g>  <g id='36'>${action/title}</g>"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:228
+#: ../ui/contact/new.xml.en:228
 msgctxt "button"
 msgid "<g id='46'>${action/title}</g>  <g id='47'>${action/title}</g>"
 msgstr ""
 
-#: ../ui/CRM_alerts.xml.en:6
+#: ../ui/crm/alerts.xml.en:6
 msgctxt "div"
 msgid "${batch} <x id='1'/> ${table}"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:6
+#: ../ui/crm/search_contacts.xml.en:6
 msgctxt "div"
 msgid "${search} <x id='1'/> ${batch} <x id='2'/> ${table}"
 msgstr ""
 
-#: ../ui/CRM_search.xml.en:17
+#: ../ui/crm/search.xml.en:17
 msgctxt "fieldset"
 msgid "${with_no_alert} With no alert only"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:32
+#: ../ui/crm/search_contacts.xml.en:32
 msgctxt "fieldset"
 msgid "Please select encoding:"
 msgstr ""
 
-#: ../ui/Contact_view.xml.en:8
+#: ../ui/contact/view.xml.en:8
 msgctxt "heading"
 msgid "Missions (<g id='1'>New</g>)"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:150
+#: ../ui/contact/new.xml.en:150
 msgctxt "label"
 msgid "${crm_m_title/title} *"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:37
+#: ../ui/contact/new.xml.en:37
 msgctxt "label"
 msgid "${crm_p_lastname/title} *"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:70
+#: ../ui/mission/edit.xml.en:70
 msgctxt "label"
 msgid "<g id='13'> ${attachment/title} </g>  <g id='14'>${attachment/error}<x id='15'/></g> ${attachment/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:82
+#: ../ui/mission/edit.xml.en:82
 msgctxt "label"
 msgid "<g id='17'> ${alert_date/title} </g>  <g id='18'>${alert_date/error}<x id='19'/></g> ${alert_date/widget} <g id='20'> ${alert_time/title} </g>  <g id='21'>${alert_time/error}<x id='22'/></g> ${alert_time/widget}"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:34
+#: ../ui/crm/search_contacts.xml.en:34
 msgctxt "label"
 msgid "<g id='7'> For OpenOffice (Encoding: UTF-8, Separator: \",\") </g>  <x id='8'/>  <x id='9'/>  <g id='10'> For Excel (Encoding: CP1252, Separator: \";\") </g>  <x id='11'/><x id='12'/>  <g id='13'>Export</g>"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:31
+#: ../ui/crm/search_contacts.xml.en:31
 msgctxt "legend"
 msgid "Export <g id='3'>all data</g> to CSV"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:144
+#: ../ui/contact/new.xml.en:144
 msgctxt "legend"
 msgid "Mission"
 msgstr ""
 
-#: ../ui/CRM_search.xml.en:7
-#: ../ui/Contact_search.xml.en:7
+#: ../ui/crm/search.xml.en:7
+#: ../ui/contact/search.xml.en:7
 msgctxt "legend"
 msgid "Search"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:62
+#: ../ui/mission/edit.xml.en:62
 msgctxt "span"
 msgid "<g id='11'>${crm_m_nextaction/error}<x id='12'/></g> ${crm_m_nextaction/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:69
+#: ../ui/contact/new.xml.en:69
 msgctxt "span"
 msgid "<g id='11'>${crm_p_phone/error}<x id='12'/></g> ${crm_p_phone/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:79
+#: ../ui/contact/new.xml.en:79
 msgctxt "span"
 msgid "<g id='14'>${crm_p_mobile/error}<x id='15'/></g> ${crm_p_mobile/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:95
+#: ../ui/contact/new.xml.en:95
 msgctxt "span"
 msgid "<g id='17'>${crm_p_email/error}<x id='18'/></g> ${crm_p_email/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:21
+#: ../ui/mission/edit.xml.en:21
 msgctxt "span"
 msgid "<g id='2'>${crm_m_title/error}<x id='3'/></g> ${crm_m_title/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:25
+#: ../ui/contact/new.xml.en:25
 msgctxt "span"
 msgid "<g id='2'>${crm_p_company/error}<x id='3'/></g> ${crm_p_company/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:107
+#: ../ui/contact/new.xml.en:107
 msgctxt "span"
 msgid "<g id='20'>${crm_p_position/error}<x id='21'/></g> ${crm_p_position/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:119
+#: ../ui/contact/new.xml.en:119
 msgctxt "span"
 msgid "<g id='23'>${crm_p_status/error}<x id='24'/></g> ${crm_p_status/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:108
+#: ../ui/mission/edit.xml.en:108
 msgctxt "span"
 msgid "<g id='24'>${crm_m_status/error}<x id='25'/></g> ${crm_m_status/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:131
+#: ../ui/contact/new.xml.en:131
 msgctxt "span"
 msgid "<g id='26'>${crm_p_description/error}<x id='27'/></g> ${crm_p_description/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:124
+#: ../ui/mission/edit.xml.en:124
 msgctxt "span"
 msgid "<g id='27'>${crm_m_amount/error}<x id='28'/></g> ${crm_m_amount/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:154
+#: ../ui/contact/new.xml.en:154
 msgctxt "span"
 msgid "<g id='29'>${crm_title/error}<x id='30'/></g> ${crm_m_title/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:134
+#: ../ui/mission/edit.xml.en:134
 msgctxt "span"
 msgid "<g id='30'>${crm_m_probability/error}<x id='31'/></g> ${crm_m_probability/widget} %"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:166
+#: ../ui/contact/new.xml.en:166
 msgctxt "span"
 msgid "<g id='32'>${crm_m_description/error}<x id='33'/></g> ${crm_m_description/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:144
+#: ../ui/mission/edit.xml.en:144
 msgctxt "span"
 msgid "<g id='33'>${crm_m_deadline/error}<x id='34'/></g> ${crm_m_deadline/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:178
+#: ../ui/contact/new.xml.en:178
 msgctxt "span"
 msgid "<g id='35'>${crm_m_status/error}<x id='36'/></g> ${crm_m_status/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:194
+#: ../ui/contact/new.xml.en:194
 msgctxt "span"
 msgid "<g id='38'>${crm_m_amount/error}<x id='39'/></g> ${crm_m_amount/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:204
+#: ../ui/contact/new.xml.en:204
 msgctxt "span"
 msgid "<g id='41'>${crm_m_probability/error}<x id='42'/></g> ${crm_m_probability/widget} %"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:214
+#: ../ui/contact/new.xml.en:214
 msgctxt "span"
 msgid "<g id='44'>${crm_m_deadline/error}<x id='45'/></g> ${crm_m_deadline/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:33
+#: ../ui/mission/edit.xml.en:33
 msgctxt "span"
 msgid "<g id='5'>${crm_m_description/error}<x id='6'/></g> ${crm_m_description/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:41
+#: ../ui/contact/new.xml.en:41
 msgctxt "span"
 msgid "<g id='5'>${crm_p_lastname/error}<x id='6'/></g> ${crm_p_lastname/widget}"
 msgstr ""
 
-#: ../ui/Mission_edit_form.xml.en:50
+#: ../ui/mission/edit.xml.en:50
 msgctxt "span"
 msgid "<g id='8'>${comment/error}<x id='9'/></g> ${comment/widget}"
 msgstr ""
 
-#: ../ui/Contact_new_instance.xml.en:53
+#: ../ui/contact/new.xml.en:53
 msgctxt "span"
 msgid "<g id='8'>${crm_p_firstname/error}<x id='9'/></g> ${crm_p_firstname/widget}"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:16
+#: ../ui/crm/search_contacts.xml.en:16
 msgctxt "table cell"
 msgid "Assured:"
 msgstr ""
 
-#: ../ui/Comments_view.xml.en:17
+#: ../ui/comments/view.xml.en:18
 msgctxt "table cell"
 msgid "Attachment:"
 msgstr ""
 
-#: ../ui/Comments_view.xml.en:12
+#: ../ui/comments/view.xml.en:12
 msgctxt "table cell"
 msgid "Comment <g id='3'>#${comment/id}</g>"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:20
+#: ../ui/crm/search_contacts.xml.en:20
 msgctxt "table cell"
 msgid "Probable:"
 msgstr ""
 
-#: ../ui/CRM_search_prospects.xml.en:24
+#: ../ui/crm/search_contacts.xml.en:24
 msgctxt "table cell"
 msgid "Total:"
 msgstr ""
 
-#: ../ui/Comments_view.xml.en:28
+#: ../ui/comments/view.xml.en:29
 msgctxt "title attribute"
 msgid "Remove alert"
 msgstr ""

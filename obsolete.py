@@ -27,34 +27,9 @@ from ikaaro.table import Table
 
 # Import from crm
 from crm import Mission, Contacts, Contact
-from datatypes import CompanyName
-from datatypes import MissionStatus, ContactStatus
+from datatypes import CompanyName, MissionStatus, ContactStatus
 
 
-#class CRMFolder(Folder, RoleAware):
-##    def get_value(self, name, record=None, context=None):
-##        comments_handler = self.get_resource('comments').handler
-##        if record is None:
-##            record = comments_handler.get_record(-1)
-##        # Get company values from current contact
-##        if isinstance(self, Contact) and name[:2] == 'c_':
-##            company = comments_handler.get_record_value(record, 'p_company')
-##            if company:
-##                company = self.get_resource('../../companies/%s' % company)
-##                value = company.get_value(name, None, context)
-##                return value
-##            return None
-##        if name == 'alert_date':
-##            value = comments_handler.get_record_value(record, 'alert_datetime')
-##            return value.date() if value else None
-##        elif name == 'alert_time':
-##            value = comments_handler.get_record_value(record, 'alert_datetime')
-##            return value.time() if value else None
-##        value = comments_handler.get_record_value(record, name)
-##        return value
-##
-##
-#
 class CommentsTableFile(TableFile):
     """ Base comments table used by Company, Contact and Mission.
     """

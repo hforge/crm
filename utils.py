@@ -21,6 +21,8 @@ from itools.core import thingy_lazy_property
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget, SelectWidget, TextWidget
 from ikaaro.autoform import make_stl_template
+from ikaaro.registry import get_resource_class
+from ikaaro.utils import get_base_path_query
 
 
 def generate_code(names, strformat='%03d', index=None):
@@ -37,6 +39,22 @@ def generate_code(names, strformat='%03d', index=None):
         name = strformat % index
 
     return name
+
+
+
+def get_crm(resource):
+    cls_crm = get_resource_class('crm')
+    crm = resource
+    while not isinstance(crm, cls_crm):
+        crm = crm.parent
+    return crm
+
+
+
+def get_crm_path_query(crm_resource):
+    crm_path = str(crm_resource.get_abspath())
+    return get_base_path_query(crm_path, include_container=True)
+
 
 
 def get_path_and_view(path):
