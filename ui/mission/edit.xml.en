@@ -8,38 +8,39 @@
   enctype="multipart/form-data" stl:omit-tag="not actions">
   <fieldset>
     <legend>${title}</legend>
-  <table cellpadding="0" cellspacing="5">
-    <tbody>
-      <!-- MISSION TITLE AND DESCRIPTION -->
-      <tr id="edit-mission-title">
-        <td>
-          <label for="${crm_m_title/name}">
-            ${crm_m_title/title}
-          </label>
-        </td>
-        <td>
-          <span stl:if="crm_m_title/error"
-            class="field-error">${crm_m_title/error}<br/></span>
-          ${crm_m_title/widget}
-        </td>
-      </tr>
-      <tr id="edit-mission-description">
-        <td>
-          <label for="${crm_m_description/name}">
-            ${crm_m_description/title}
-          </label>
-        </td>
-        <td>
-          <span stl:if="crm_m_description/error"
-            class="field-error">${crm_m_description/error}<br/></span>
-          ${crm_m_description/widget}
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <fieldset>
-            <table cellpadding="0" cellspacing="5" width="100%">
-              <tbody>
+    <table cellpadding="0" cellspacing="5">
+      <tbody>
+        <!-- MISSION TITLE AND DESCRIPTION -->
+        <tr id="edit-mission-title">
+          <td>
+            <label for="${crm_m_title/name}">
+              ${crm_m_title/title}
+            </label>
+          </td>
+          <td colspan="5">
+            <span stl:if="crm_m_title/error"
+              class="field-error">${crm_m_title/error}<br/></span>
+            ${crm_m_title/widget}
+          </td>
+        </tr>
+        <tr id="edit-mission-description">
+          <td>
+            <label for="${crm_m_description/name}">
+              ${crm_m_description/title}
+            </label>
+          </td>
+          <td colspan="5">
+            <span stl:if="crm_m_description/error"
+              class="field-error">${crm_m_description/error}<br/></span>
+            ${crm_m_description/widget}
+          </td>
+        </tr>
+        <!-- COMMENT BLOCK -->
+        <!-- XXX couldn't apply a border on tbody -->
+        <tr>
+          <td colspan="6">
+            <fieldset id="edit-mission-comment">
+              <table cellpadding="0" cellspacing="5">
                 <tr>
                   <td>
                     <label for="${comment/name}">
@@ -66,10 +67,12 @@
                 </tr>
                 <!-- ATTACHMENT -->
                 <tr>
-                  <td colspan="2">
+                  <td>
                     <label for="${attachment/name}">
                       ${attachment/title}
                     </label>
+                  </td>
+                  <td>
                     <span stl:if="attachment/error"
                       class="field-error">${attachment/error}<br/></span>
                     ${attachment/widget}
@@ -77,11 +80,13 @@
                 </tr>
                 <!-- ALERT -->
                 <tr>
-                  <td colspan="2">
+                  <td>
                     <img src="/ui/crm/images/1240913081_bell_add.png" />
                     <label for="${alert_date/name}">
                       ${alert_date/title}
                     </label>
+                  </td>
+                  <td>
                     <span stl:if="alert_date/error"
                       class="field-error">${alert_date/error}<br/></span>
                     ${alert_date/widget}
@@ -93,78 +98,83 @@
                     ${alert_time/widget}
                   </td>
                 </tr>
-              </tbody>
-            </table>
-          </fieldset>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <label for="${crm_m_status/name}">
-            ${crm_m_status/title}
-          </label>
-        </td>
-        <td>
-          <span stl:if="crm_m_status/error"
-            class="field-error">${crm_m_status/error}<br/></span>
-          ${crm_m_status/widget}
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <table cellpadding="0" cellspacing="5" width="100%">
-            <tbody>
-              <tr>
-                <td>
-                  <label for="${crm_m_amount/name}">
-                    ${crm_m_amount/title}
-                  </label>
-                </td>
-                <td class="amount">
-                  <span stl:if="crm_m_amount/error"
-                    class="field-error">${crm_m_amount/error}<br/></span>
-                  ${crm_m_amount/widget}
-                </td>
-                <td>
-                  <label for="${crm_m_probability/name}">
-                    ${crm_m_probability/title}
-                  </label>
-                </td>
-                <td class="amount">
-                  <span stl:if="crm_m_probability/error"
-                    class="field-error">${crm_m_probability/error}<br/></span>
-                  ${crm_m_probability/widget}&nbsp;%
-                </td>
-                <td>
-                  <label for="${crm_m_deadline/name}">
-                    ${crm_m_deadline/title}
-                  </label>
-                </td>
-                <td>
-                  <span stl:if="crm_m_deadline/error"
-                    class="field-error">${crm_m_deadline/error}<br/></span>
-                  ${crm_m_deadline/widget}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <p stl:if="actions">
-      <stl:block stl:repeat="action actions">
-        <button stl:if="not action/value" type="submit"
-          class="${action/class}" onclick="${action/onclick}"
-          >${action/title}</button>
-        <button stl:if="action/value" type="submit" name="action"
-          value="${action/value}" class="${action/class}"
-          onclick="${action/onclick}">${action/title}</button>
-      </stl:block>
-  </p>
-  <script language="javascript">
-    $("#${first_widget}").focus();
-  </script>
-  </fieldset>
-</form>
-</stl:block>
+              </table>
+            </fieldset>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="${crm_m_status/name}">
+              ${crm_m_status/title}
+            </label>
+          </td>
+          <td colspan="2">
+            <span stl:if="crm_m_status/error"
+              class="field-error">${crm_m_status/error}<br/></span>
+            ${crm_m_status/widget}
+          </td>
+          <td>
+            <!--
+            <label for="${crm_m_cc/name}">
+              ${crm_m_cc/title}
+            </label>
+            -->
+          </td>
+          <td colspan="2">
+            <!--
+            <span stl:if="crm_m_cc/error"
+              class="field-error">${crm_m_cc/error}<br/></span>
+            ${crm_m_cc/widget}
+            -->
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="${crm_m_amount/name}">
+              ${crm_m_amount/title}
+            </label>
+          </td>
+          <td class="amount">
+            <span stl:if="crm_m_amount/error"
+              class="field-error">${crm_m_amount/error}<br/></span>
+            ${crm_m_amount/widget}
+          </td>
+          <td>
+            <label for="${crm_m_probability/name}">
+              ${crm_m_probability/title}
+            </label>
+          </td>
+          <td class="amount">
+            <span stl:if="crm_m_probability/error"
+              class="field-error">${crm_m_probability/error}<br/></span>
+            ${crm_m_probability/widget}&nbsp;%
+          </td>
+          <td>
+            <label for="${crm_m_deadline/name}">
+              ${crm_m_deadline/title}
+            </label>
+          </td>
+          <td>
+            <span stl:if="crm_m_deadline/error"
+              class="field-error">${crm_m_deadline/error}<br/></span>
+            ${crm_m_deadline/widget}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p stl:if="actions">
+        <stl:block stl:repeat="action actions">
+          <button stl:if="not action/value" type="submit"
+            class="${action/class}" onclick="${action/onclick}"
+            >${action/title}</button>
+          <button stl:if="action/value" type="submit" name="action"
+            value="${action/value}" class="${action/class}"
+            onclick="${action/onclick}">${action/title}</button>
+        </stl:block>
+    </p>
+    <script language="javascript">
+      $("#${first_widget}").focus();
+    </script>
+    </fieldset>
+  </form>
+  </stl:block>
