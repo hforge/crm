@@ -114,18 +114,14 @@
             ${crm_m_status/widget}
           </td>
           <td>
-            <!--
             <label for="${crm_m_cc/name}">
               ${crm_m_cc/title}
             </label>
-            -->
           </td>
           <td colspan="2">
-            <!--
             <span stl:if="crm_m_cc/error"
               class="field-error">${crm_m_cc/error}<br/></span>
             ${crm_m_cc/widget}
-            -->
           </td>
         </tr>
         <tr>

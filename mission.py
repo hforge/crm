@@ -54,6 +54,7 @@ class Mission(CRMFolder):
         crm_m_nextaction=Unicode(source='metadata', stored=True),
         crm_m_contact=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
+        crm_m_cc=String(source='metadata', indexed=True, multiple=True),
         crm_m_has_alerts=Boolean(indexed=True),
         alert_datetime=DateTime(source='metadata'),
         crm_m_amount=Decimal(source='metadata'),

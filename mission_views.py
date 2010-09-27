@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
+from datetime import datetime
 
 # Import from itools
 from itools.core import merge_dicts
@@ -22,14 +23,15 @@ from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
 from itools.datatypes import String, Unicode
 from itools.gettext import MSG
+from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.web import BaseForm, ERROR
 
 # Import from ikaaro
 from ikaaro.buttons import RemoveButton
-from ikaaro.autoform import AutoForm, DateWidget
-from ikaaro.autoform import MultilineWidget
-from ikaaro.autoform import FileWidget, RadioWidget, TextWidget
+from ikaaro.autoform import AutoForm, DateWidget, MultilineWidget
+from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
+from ikaaro.cc import UsersList
 from ikaaro.datatypes import FileDataType
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.views import CompositeForm
@@ -43,6 +45,23 @@ from utils import get_crm
 from widgets import TimeWidget
 
 
+CHANGES_LINE = MSG(u"{what:>19}|{removed:<28}|{added:<27}")
+COMMENT_LINE = MSG(u"--- Comment {n} from {user_title} <{user_email}> {date} ---")
+BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please visit:
+{mission_uri}
+
+#{mission_name} {mission_title}
+
+{user_title} <{user_email}> changed:
+
+{changes}
+
+{comment}
+
+-- 
+You are receiving this e-mail because you are in CC.''')
+
+
 mission_schema = {
     # First mission
     'crm_m_title': Unicode,
@@ -51,6 +70,7 @@ mission_schema = {
     'crm_m_probability': Integer,
     'crm_m_deadline': Date,
     'crm_m_status': MissionStatus,
+    'crm_m_cc': UsersList(multiple=True),
     'comment': Unicode,
     'attachment': FileDataType,
     'alert_date': Date,
@@ -68,6 +88,8 @@ mission_widgets = [
     DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
     RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
                 has_empty_option=False),
+    SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
+        has_empty_option=False),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
     FileWidget('attachment', title=MSG(u'Attachment'), size=35, default=''),
@@ -91,7 +113,8 @@ class Mission_EditForm(AutoForm):
         # crm_m_title and crm_m_status are mandatory
         return merge_dicts(mission_schema,
                 crm_m_title=mission_schema['crm_m_title'](mandatory=True),
-                crm_m_status=mission_schema['crm_m_status'](mandatory=True))
+                crm_m_status=mission_schema['crm_m_status'](mandatory=True),
+                crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
 
 
     def get_widgets(self, resource, context):
@@ -116,6 +139,8 @@ class Mission_EditForm(AutoForm):
 
         # Modify widgets namespace to change template
         for index, widget in enumerate(namespace['widgets']):
+            # XXX multilingual to monolingual
+            widget['widget'] = widget['widgets'][0]
             name = self.get_widgets(resource, context)[index].name
             # Reset comment
             if submit and name == 'comment':
@@ -129,6 +154,67 @@ class Mission_EditForm(AutoForm):
 
 
     def action(self, resource, context, form):
+        # First compute differences
+        root = context.root
+        changes = []
+        for key in mission_schema:
+            if key == 'comment':
+                continue
+            new_value = form[key]
+            old_value = resource.get_value(key)
+            if new_value == old_value:
+                continue
+            for widget in mission_widgets:
+                if widget.name == key:
+                    break
+            else:
+                raise ValueError, key
+            title = widget.title.gettext()
+            if key == 'crm_m_cc':
+                what = title
+                for removed in (set(old_value) - set(new_value)):
+                    user = root.get_user(removed)
+                    if user is not None:
+                        removed = user.get_title()
+                    changes.append(CHANGES_LINE.gettext(what=what,
+                        removed=removed, added=u""))
+                    # Show title only once
+                    what = u""
+                what = title
+                for added in (set(new_value) - set(old_value)):
+                    user = root.get_user(added)
+                    if user is not None:
+                        added = user.get_title()
+                    changes.append(CHANGES_LINE.gettext(what=what,
+                        removed=u"", added=added))
+                    # Show title only once
+                    what = u""
+            elif key == 'crm_m_status':
+                removed = MissionStatus.get_value(old_value)
+                added = MissionStatus.get_value(new_value)
+                changes.append(CHANGES_LINE.gettext(what=title,
+                    removed=removed, added=added))
+            elif key == 'attachment':
+                if new_value is not None:
+                    # Filename
+                    added = new_value[0]
+                    changes.append(CHANGES_LINE.gettext(what=title,
+                        removed=u"", added=added))
+            elif key == 'alert_date':
+                removed = format_date(old_value)
+                added = format_date(new_value)
+                changes.append(CHANGES_LINE.gettext(what=title,
+                    removed=removed, added=added))
+            elif key == 'alert_time':
+                removed = mission_schema['alert_time'].encode(old_value)
+                added = mission_schema['alert_time'].encode(new_value)
+                changes.append(CHANGES_LINE.gettext(what=title,
+                    removed=removed, added=added))
+            else:
+                changes.append(CHANGES_LINE.gettext(what=title,
+                    removed=old_value, added=new_value))
+
+        # Save changes
         values = get_form_values(form)
         resource._update(values, context)
 
@@ -138,7 +224,55 @@ class Mission_EditForm(AutoForm):
         for contact in contacts:
             contact = crm.get_resource('contacts/%s' % contact)
             context.database.change_resource(contact)
+
         context.message = MSG_CHANGES_SAVED
+
+        # Send notification to CC
+        # From
+        user = context.user
+        user_title = user.get_title()
+        user_email = user.get_property('email')
+        # To
+        to_addrs = set(form['crm_m_cc'])
+        # Except sender
+        if user.name in to_addrs:
+            to_addrs.remove(user.name)
+        if not to_addrs:
+            return
+        # Subject
+        crm_title = get_crm(resource).get_title() or u"CRM"
+        mission_name = resource.name
+        mission_title = resource.get_property('crm_m_title')
+        subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
+        # Body
+        mission_uri = context.uri.resolve(';view')
+        # Changes
+        changes.insert(0, u"-" * 76)
+        header = CHANGES_LINE.gettext(what=u"What", removed=u"Removed",
+                added=u"Added")
+        changes.insert(0, header)
+        changes = u"\n".join(changes)
+        # New comment
+        comment = u""
+        if form['comment'] or form['attachment']:
+            n = len(resource.get_property('comment')) - 1
+            date = format_datetime(datetime.now())
+            comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
+                user_email=user_email, date=date)]
+            comment.extend(form['comment'].splitlines())
+            comment = u"\n".join(comment)
+        body = BODY.gettext(mission_uri=mission_uri,
+                mission_name=mission_name, mission_title=mission_title,
+                user_title=user_title, user_email=user_email, changes=changes,
+                comment=comment)
+        # Send
+        root = context.root
+        for to_addr in to_addrs:
+            user = root.get_user(to_addr)
+            if not user:
+                continue
+            to_addr = user.get_property('email')
+            root.send_email(to_addr, subject, text=body)
 
 
 
