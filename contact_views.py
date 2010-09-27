@@ -37,6 +37,7 @@ from ikaaro.views import CompositeForm, SearchForm
 from base_views import get_form_values, m_status_icons, Comments_View
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from mission_views import mission_schema, mission_widgets
+from mission_views import get_changes, send_notification
 from utils import get_crm, get_crm_path_query
 from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import NewCompanyWidget, SelectCompanyWidget
@@ -162,6 +163,9 @@ class Contact_AddForm(AutoForm):
         if m_values['crm_m_title']:
             m_values['crm_m_contact'] = p_name
             m_name = missions.add_mission(m_values)
+            mission = missions.get_resource(m_name)
+            changes = get_changes(mission, context, form, new=True)
+            send_notification(mission, context, form, changes, new=True)
             goto = '%s/missions/%s/' % (context.get_link(crm), m_name)
         else:
             goto = '%s/contacts/%s/' % (context.get_link(crm), p_name)
