@@ -70,6 +70,7 @@ mission_schema = {
     'crm_m_probability': Integer,
     'crm_m_deadline': Date,
     'crm_m_status': MissionStatus,
+    # XXX must add resource in "get_schema"
     'crm_m_cc': UsersList(multiple=True),
     'comment': Unicode,
     'attachment': FileDataType,
@@ -96,6 +97,129 @@ mission_widgets = [
     DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
     TimeWidget('alert_time', title=MSG(u'at')),
     TextWidget('crm_m_nextaction', title=MSG(u'Next action')) ]
+
+
+def get_changes(resource, context, form, new=False):
+    root = context.root
+    changes = []
+    for key in mission_schema:
+        # Comment is treated separately
+        if key == 'comment':
+            continue
+        new_value = form[key]
+        if new:
+            old_value = mission_schema[key].get_default()
+        else:
+            old_value = resource.get_value(key)
+        if new_value == old_value:
+            continue
+        # Find widget title
+        for widget in mission_widgets:
+            if widget.name == key:
+                break
+        else:
+            raise ValueError, key
+        title = widget.title.gettext()
+        # Special cases for complex objects
+        if key == 'crm_m_cc':
+            what = title
+            for removed in (set(old_value) - set(new_value)):
+                user = root.get_user(removed)
+                if user is not None:
+                    removed = user.get_title()
+                changes.append(CHANGES_LINE.gettext(what=what,
+                    removed=removed, added=u""))
+                # Show title only once
+                what = u""
+            what = title
+            for added in (set(new_value) - set(old_value)):
+                user = root.get_user(added)
+                if user is not None:
+                    added = user.get_title()
+                changes.append(CHANGES_LINE.gettext(what=what,
+                    removed=u"", added=added))
+                # Show title only once
+                what = u""
+        elif key == 'crm_m_status':
+            if old_value is None:
+                removed = u""
+            else:
+                removed = MissionStatus.get_value(old_value)
+            added = MissionStatus.get_value(new_value)
+            changes.append(CHANGES_LINE.gettext(what=title,
+                removed=removed, added=added))
+        elif key == 'attachment':
+            if new_value is not None:
+                # Filename
+                added = new_value[0]
+                changes.append(CHANGES_LINE.gettext(what=title,
+                    removed=u"", added=added))
+        elif key == 'alert_date' or key == 'crm_m_deadline':
+            removed = format_date(old_value) if old_value else u""
+            added = format_date(new_value) if new_value else u""
+            changes.append(CHANGES_LINE.gettext(what=title,
+                removed=removed, added=added))
+        elif key == 'alert_time':
+            removed = mission_schema['alert_time'].encode(old_value)
+            added = mission_schema['alert_time'].encode(new_value)
+            changes.append(CHANGES_LINE.gettext(what=title,
+                removed=removed, added=added))
+        else:
+            if old_value is None:
+                old_value = u""
+            changes.append(CHANGES_LINE.gettext(what=title,
+                removed=old_value, added=new_value))
+    return changes
+
+
+def send_notification(resource, context, form, changes, new=False):
+    # From
+    user = context.user
+    user_title = user.get_title()
+    user_email = user.get_property('email')
+    # To
+    to_addrs = form['crm_m_cc']
+    to_addrs = set(form['crm_m_cc'])
+    # Except sender
+    if user.name in to_addrs:
+        to_addrs.remove(user.name)
+    if not to_addrs:
+        return
+    # Subject
+    crm_title = get_crm(resource).get_title() or u"CRM"
+    mission_name = resource.name
+    mission_title = resource.get_property('crm_m_title')
+    subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
+    # Body
+    mission_uri = context.uri.resolve(';view')
+    # Changes
+    changes.insert(0, u"-" * 76)
+    header = CHANGES_LINE.gettext(what=u"What", removed=u"Removed",
+            added=u"Added")
+    changes.insert(0, header)
+    changes = u"\n".join(changes)
+    # New comment
+    comment = u""
+    if form['comment']:
+        n = len(resource.get_property('comment')) - 1
+        date = format_datetime(datetime.now())
+        comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
+            user_email=user_email, date=date)]
+        comment.extend(form['comment'].splitlines())
+        comment = u"\n".join(comment)
+    body = BODY.gettext(mission_uri=mission_uri,
+            mission_name=mission_name, mission_title=mission_title,
+            user_title=user_title, user_email=user_email, changes=changes,
+            comment=comment)
+    # Send
+    root = context.root
+    for to_addr in to_addrs:
+        user = root.get_user(to_addr)
+        if not user:
+            continue
+        to_addr = user.get_property('email')
+        root.send_email(to_addr, subject, text=body)
+
 
 
 class Mission_EditForm(AutoForm):
@@ -139,9 +263,9 @@ class Mission_EditForm(AutoForm):
 
         # Modify widgets namespace to change template
         for index, widget in enumerate(namespace['widgets']):
+            name = self.get_widgets(resource, context)[index].name
             # XXX multilingual to monolingual
             widget['widget'] = widget['widgets'][0]
-            name = self.get_widgets(resource, context)[index].name
             # Reset comment
             if submit and name == 'comment':
                 widget['value'] = ''
@@ -155,64 +279,7 @@ class Mission_EditForm(AutoForm):
 
     def action(self, resource, context, form):
         # First compute differences
-        root = context.root
-        changes = []
-        for key in mission_schema:
-            if key == 'comment':
-                continue
-            new_value = form[key]
-            old_value = resource.get_value(key)
-            if new_value == old_value:
-                continue
-            for widget in mission_widgets:
-                if widget.name == key:
-                    break
-            else:
-                raise ValueError, key
-            title = widget.title.gettext()
-            if key == 'crm_m_cc':
-                what = title
-                for removed in (set(old_value) - set(new_value)):
-                    user = root.get_user(removed)
-                    if user is not None:
-                        removed = user.get_title()
-                    changes.append(CHANGES_LINE.gettext(what=what,
-                        removed=removed, added=u""))
-                    # Show title only once
-                    what = u""
-                what = title
-                for added in (set(new_value) - set(old_value)):
-                    user = root.get_user(added)
-                    if user is not None:
-                        added = user.get_title()
-                    changes.append(CHANGES_LINE.gettext(what=what,
-                        removed=u"", added=added))
-                    # Show title only once
-                    what = u""
-            elif key == 'crm_m_status':
-                removed = MissionStatus.get_value(old_value)
-                added = MissionStatus.get_value(new_value)
-                changes.append(CHANGES_LINE.gettext(what=title,
-                    removed=removed, added=added))
-            elif key == 'attachment':
-                if new_value is not None:
-                    # Filename
-                    added = new_value[0]
-                    changes.append(CHANGES_LINE.gettext(what=title,
-                        removed=u"", added=added))
-            elif key == 'alert_date':
-                removed = format_date(old_value)
-                added = format_date(new_value)
-                changes.append(CHANGES_LINE.gettext(what=title,
-                    removed=removed, added=added))
-            elif key == 'alert_time':
-                removed = mission_schema['alert_time'].encode(old_value)
-                added = mission_schema['alert_time'].encode(new_value)
-                changes.append(CHANGES_LINE.gettext(what=title,
-                    removed=removed, added=added))
-            else:
-                changes.append(CHANGES_LINE.gettext(what=title,
-                    removed=old_value, added=new_value))
+        changes = get_changes(resource, context, form)
 
         # Save changes
         values = get_form_values(form)
@@ -228,51 +295,7 @@ class Mission_EditForm(AutoForm):
         context.message = MSG_CHANGES_SAVED
 
         # Send notification to CC
-        # From
-        user = context.user
-        user_title = user.get_title()
-        user_email = user.get_property('email')
-        # To
-        to_addrs = set(form['crm_m_cc'])
-        # Except sender
-        if user.name in to_addrs:
-            to_addrs.remove(user.name)
-        if not to_addrs:
-            return
-        # Subject
-        crm_title = get_crm(resource).get_title() or u"CRM"
-        mission_name = resource.name
-        mission_title = resource.get_property('crm_m_title')
-        subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
-        # Body
-        mission_uri = context.uri.resolve(';view')
-        # Changes
-        changes.insert(0, u"-" * 76)
-        header = CHANGES_LINE.gettext(what=u"What", removed=u"Removed",
-                added=u"Added")
-        changes.insert(0, header)
-        changes = u"\n".join(changes)
-        # New comment
-        comment = u""
-        if form['comment'] or form['attachment']:
-            n = len(resource.get_property('comment')) - 1
-            date = format_datetime(datetime.now())
-            comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
-                user_email=user_email, date=date)]
-            comment.extend(form['comment'].splitlines())
-            comment = u"\n".join(comment)
-        body = BODY.gettext(mission_uri=mission_uri,
-                mission_name=mission_name, mission_title=mission_title,
-                user_title=user_title, user_email=user_email, changes=changes,
-                comment=comment)
-        # Send
-        root = context.root
-        for to_addr in to_addrs:
-            user = root.get_user(to_addr)
-            if not user:
-                continue
-            to_addr = user.get_property('email')
-            root.send_email(to_addr, subject, text=body)
+        send_notification(resource, context, form, changes)
 
 
 
@@ -306,13 +329,6 @@ class Mission_AddForm(Mission_EditForm):
                            crm_m_contact=ContactName(mandatory=True))
 
 
-    def get_schema(self, resource, context):
-        # crm_m_title and crm_m_status are mandatory
-        return merge_dicts(mission_schema,
-                crm_m_title=mission_schema['crm_m_title'](mandatory=True),
-                crm_m_status=mission_schema['crm_m_status'](mandatory=True))
-
-
     def get_value(self, resource, context, name, datatype):
         return context.query.get(name) or datatype.default
 
@@ -322,12 +338,18 @@ class Mission_AddForm(Mission_EditForm):
         form['crm_m_contact'] = context.query['crm_m_contact']
         values = get_form_values(form)
         name = resource.add_mission(values)
+        mission = resource.get_resource(name)
 
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
         contact = values.get('crm_m_contact')
         contact = crm.get_resource('contacts/%s' % contact)
         context.database.change_resource(contact)
+
+        # First compute differences
+        changes = get_changes(mission, context, form, new=True)
+        # Send notification to CC
+        send_notification(mission, context, form, changes, new=True)
 
         goto = './%s' % name
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)

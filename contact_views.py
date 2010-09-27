@@ -91,12 +91,12 @@ class Contact_AddForm(AutoForm):
         return merge_dicts(contact_schema, mission_schema,
                 crm_p_lastname=contact_schema['crm_p_lastname'](
                     mandatory=True),
-                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
+                crm_p_status=contact_schema['crm_p_status'](mandatory=True),
+                crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
 
 
     def get_widgets(self, resource, context):
-        widgets = contact_widgets[:] + mission_widgets[:]
-        return widgets
+        return contact_widgets + mission_widgets
 
 
     def get_value(self, resource, context, name, datatype):
@@ -137,6 +137,8 @@ class Contact_AddForm(AutoForm):
 
         # Modify widgets namespace to change template
         for widget in namespace['widgets']:
+            # XXX multilingual to monolingual
+            widget['widget'] = widget['widgets'][0]
             namespace[widget['name']] = widget
 
         return namespace
