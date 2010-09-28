@@ -367,7 +367,8 @@ class Mission_ViewContacts(CRM_SearchContacts):
         for column in self.table_columns:
             name, title, sort = column
             if name in ('icon', 'crm_p_lastname', 'crm_p_firstname',
-                    'crm_p_company', 'crm_p_position', 'mtime'):
+                    'crm_p_company', 'crm_p_position', 'crm_p_phone',
+                    'crm_p_mobile'):
                 columns.append(column)
         return columns
 

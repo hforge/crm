@@ -204,7 +204,7 @@ class CRM_SearchContacts(SearchForm):
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_p_email', MSG(u'Email'), False),
         ('crm_p_phone', MSG(u'Phone'), False),
-        ('crm_p_mobile', MSG(u'mobile'), False),
+        ('crm_p_mobile', MSG(u'Mobile'), False),
         ('crm_p_position', MSG(u'Position'), False),
         ('crm_p_opportunity', MSG(u'Opp.'), True),
         ('crm_p_project', MSG(u'Proj.'), True),
