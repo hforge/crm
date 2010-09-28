@@ -23,7 +23,7 @@ from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Email, Integer
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.i18n import format_datetime
+from itools.i18n import format_datetime, format_number
 from itools.web import FormError
 
 # Import from ikaaro
@@ -325,7 +325,8 @@ class Contact_SearchMissions(SearchForm):
         elif column == 'crm_m_amount':
             value = get_value(column)
             if value:
-                value = u'%02.02f €' % value
+                accept = context.accept_language
+                value = format_number(value, curr=u' €', accept=accept)
             return value
         elif column in ('crm_m_probability', 'crm_m_deadline',
                 'crm_m_nextaction'):

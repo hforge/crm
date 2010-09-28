@@ -155,8 +155,13 @@ def get_changes(resource, context, form, new=False):
                 changes.append(CHANGES_LINE.gettext(what=title,
                     removed=u"", added=added))
         elif key == 'alert_date' or key == 'crm_m_deadline':
-            removed = format_date(old_value) if old_value else u""
-            added = format_date(new_value) if new_value else u""
+            accept = context.accept_language
+            removed = u""
+            if old_value:
+                removed = format_date(old_value, accept=accept)
+            added = u""
+            if new_value:
+                added = format_date(new_value, accept=accept)
             changes.append(CHANGES_LINE.gettext(what=title,
                 removed=removed, added=added))
         elif key == 'alert_time':
@@ -202,7 +207,8 @@ def send_notification(resource, context, form, changes, new=False):
     comment = u""
     if form['comment']:
         n = len(resource.get_property('comment')) - 1
-        date = format_datetime(datetime.now())
+        accept = context.accept_language
+        date = format_datetime(datetime.now(), accept=accept)
         comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
             user_email=user_email, date=date)]
         comment.extend(form['comment'].splitlines())

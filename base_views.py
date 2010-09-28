@@ -16,12 +16,12 @@
 
 # Import from the Standard Library
 from datetime import datetime, time
-from decimal import Decimal as decimal
+from decimal import Decimal as dec
 
 # Import from itools
 from itools.datatypes import Decimal
 from itools.gettext import MSG
-from itools.i18n import format_datetime
+from itools.i18n import format_datetime, format_number
 from itools.web import STLView
 from itools.web import get_context
 
@@ -45,12 +45,10 @@ m_status_icons = {
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 
 
-def format_amount(str_value):
+def format_amount(str_value, accept):
     value = Decimal.decode(str_value)
-    value = value / decimal('1000')
-    if float(value).is_integer():
-        return '%d k€' % value
-    return '%s k€' % str(value)
+    value = value / dec('1000')
+    return format_number(value, curr=u' k€', accept=accept)
 
 
 def get_form_values(form):
@@ -98,6 +96,7 @@ class Comments_View(STLView):
     def get_namespace(self, resource, context):
         ns_comments = []
         comments = resource.metadata.get_property('comment') or []
+        accept = context.accept_language
         for i, comment in enumerate(comments):
             author = comment.get_parameter('author')
             if author:
@@ -108,12 +107,13 @@ class Comments_View(STLView):
             attachment = (comment.get_parameter('attachment') or [''])[0]
             alert_datetime = comment.get_parameter('alert_datetime')
             if alert_datetime:
-                alert_datetime = format_datetime(alert_datetime)
+                alert_datetime = format_datetime(alert_datetime,
+                        accept=accept)
             # TODO Add diff (useful at creation without any comment)
             ns_comment = {
                 'id': i,
                 'author': author,
-                'datetime': format_datetime(comment_datetime),
+                'datetime': format_datetime(comment_datetime, accept=accept),
                 'attachment': str(attachment),
                 'alert_datetime': alert_datetime,
                 'comment': indent(comment.value)}

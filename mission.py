@@ -107,6 +107,7 @@ class Mission(CRMFolder):
         document['crm_m_status'] = self.get_property('crm_m_status')
         return document
 
+
     def update_20100921(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """

@@ -254,10 +254,12 @@ class CRM_SearchContacts(SearchForm):
             return item_brain.name, False
         elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
-            return format_amount(value)
+            accept = context.accept_language
+            return format_amount(value, accept)
         elif column == 'crm_p_probable':
             value = item_brain.crm_p_probable
-            return format_amount(value)
+            accept = context.accept_language
+            return format_amount(value, accept)
         get_value = item_resource.get_value
         if column == 'icon':
             # Status
@@ -339,9 +341,10 @@ class CRM_SearchContacts(SearchForm):
         # TODO Filter by year or semester
         total = self.assured + self.probable
 
-        namespace['assured'] = format_amount(self.assured)
-        namespace['probable'] = format_amount(self.probable)
-        namespace['total'] = format_amount(total)
+        accept = context.accept_language
+        namespace['assured'] = format_amount(self.assured, accept)
+        namespace['probable'] = format_amount(self.probable, accept)
+        namespace['total'] = format_amount(total, accept)
         namespace['crm-infos'] = True
         namespace['export-csv'] = True
         return namespace
@@ -545,7 +548,8 @@ class CRM_Alerts(SearchForm):
             return value
         elif column == 'alert_date':
             alert_date = alert_datetime.date()
-            return format_date(alert_date)
+            accept = context.accept_language
+            return format_date(alert_date, accept=accept)
         elif column == 'alert_time':
             alert_time = alert_datetime.time()
             return Time.encode(alert_time)
