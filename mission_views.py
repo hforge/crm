@@ -326,13 +326,8 @@ class CancelAlert(BaseForm):
     schema = {'id': Integer(mandatory=True)}
 
     def action(self, resource, context, form):
-        comment_id = form['id']
         # Remove alert_datetime
-        crm = get_crm(resource)
-        mission = resource
-        comments = mission.get_property('comment')
-        comments[comment_id].set_parameter(alert_datetime=None)
-        # XXX set_property?
+        resource.set_property('alert_datetime', None)
         context.database.change_resource(resource)
 
         return context.come_back(MSG_CHANGES_SAVED, './')
@@ -565,8 +560,10 @@ class Mission_EditAlerts(CRM_Alerts):
 
 
     def get_item_value(self, resource, context, item, column):
-        alert_datetime, m_nextaction, mission, comment_id = item
+        alert_datetime, m_nextaction, mission = item
         if column == 'comment':
             comments = mission.get_property('comment')
-            return comments[comment_id]
+            if not comments:
+                return None
+            return comments[-1]
         return CRM_Alerts.get_item_value(self, resource, context, item, column)

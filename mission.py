@@ -51,7 +51,7 @@ class Mission(CRMFolder):
         CRMFolder.class_schema,
         crm_m_title=Unicode(source='metadata', indexed=True, stored=True),
         crm_m_description=Unicode(source='metadata'),
-        crm_m_nextaction=Unicode(source='metadata', stored=True),
+        crm_m_nextaction=Unicode(source='metadata'),
         crm_m_contact=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
         crm_m_cc=String(source='metadata', indexed=True, multiple=True),
@@ -80,7 +80,7 @@ class Mission(CRMFolder):
         contacts = self.get_property('crm_m_contact')
         m_description = self.get_property('crm_m_description')
         m_nextaction  = self.get_property('crm_m_nextaction')
-        # Index all comments as 'text', and check any alert
+        # Index all comments as 'text'
         values = [m_title or '',
                   m_description or '',
                   m_nextaction or '']
@@ -93,12 +93,11 @@ class Mission(CRMFolder):
             if c_title:
                 values.append(c_title)
         alert_datetime = self.get_property('alert_datetime')
+        # Comment
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index title
         document['crm_m_title'] = m_title
-        # Index crm_m_nextaction
-        document['crm_m_nextaction'] = m_nextaction
         # Index contact
         document['crm_m_contact'] = contacts
         # Index alerts

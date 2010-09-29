@@ -477,38 +477,30 @@ class CRM_Alerts(SearchForm):
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
         args.append(PhraseQuery('crm_m_has_alerts', True))
-        if len(args) == 1:
-            query = args[0]
-        else:
-            query = AndQuery(*args)
+        query = AndQuery(*args)
 
         items = []
         # Check each mission to get only alerts
         crm = get_crm(resource)
         base_path_query = get_crm_path_query(crm)
         results = context.root.search(AndQuery(query, base_path_query))
-        documents = results.get_documents()
-        for doc in documents:
+        for doc in results.get_documents():
             mission = resource.get_resource(doc.abspath)
             # Check access FIXME should be done in catalog
             if not mission.is_allowed_to_view(user, mission):
                 continue
             # Get alert
-            comments = mission.metadata.get_property('comment') or []
-            for i, comment in enumerate(comments):
-                alert_datetime = comment.get_parameter('alert_datetime')
-                if not alert_datetime:
-                    continue
-                m_nextaction = comment.get_parameter('crm_m_nextaction')
-                items.append((alert_datetime, m_nextaction, mission, i))
+            alert_datetime = mission.get_property('alert_datetime')
+            m_nextaction = mission.get_property('crm_m_nextaction')
+            items.append((alert_datetime, m_nextaction, mission))
 
         return items
 
 
     def get_item_value(self, resource, context, item, column):
-        alert_datetime, m_nextaction, mission, comment_id = item
+        alert_datetime, m_nextaction, mission = item
         if column == 'checkbox':
-            alert_id = '%s__%d' % (mission.name, comment_id)
+            alert_id = mission.name
             # checkbox
             return alert_id, False
         if column == 'icon':
@@ -563,7 +555,8 @@ class CRM_Alerts(SearchForm):
         items, past, future = [], [], []
         today = date.today()
         for result in results:
-            alert_date = result[0].date()
+            alert_datetime, m_nextaction, mission = result
+            alert_date = alert_datetime.date()
             if alert_date < today:
                 # Past alerts at the bottom
                 past.append(result)
@@ -572,32 +565,18 @@ class CRM_Alerts(SearchForm):
                 items.append(result)
             else:
                 # Future alerts between
-                items.append(result)
+                future.append(result)
         items.extend(future)
         items.extend(past)
         return items
 
 
     def action_remove(self, resource, context, form):
-        not_removed = []
         for alert_id in form.get('ids', []):
-            try:
-                mission_name, comment_id = alert_id.split('__')
-                comment_id = int(comment_id)
-            except ValueError:
-                not_removed.append(alert_id)
-                continue
+            mission_name = alert_id
             # Remove alert_datetime
             crm = get_crm(resource)
             mission = crm.get_resource('missions/%s' % mission_name)
-            comments = mission.metadata.get_property('comment')
-            comments[comment_id].set_parameter(alert_datetime=None)
-            # XXX set_property?
-            context.database.change_resource(mission)
+            mission.set_property('alert_datetime', None)
 
-        if not_removed:
-            msg = ERROR(u'One or more alert could not have been removed.')
-        else:
-            msg = MSG_CHANGES_SAVED
-
-        context.message = msg
+        context.message = MSG_CHANGES_SAVED

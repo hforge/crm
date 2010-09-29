@@ -90,7 +90,7 @@ class Comments_View(STLView):
                     author = user.get_title()
             comment_datetime = comment.get_parameter('date')
             attachment = (comment.get_parameter('attachment') or [''])[0]
-            alert_datetime = comment.get_parameter('alert_datetime')
+            alert_datetime = resource.get_property('alert_datetime')
             if alert_datetime:
                 alert_datetime = format_datetime(alert_datetime,
                         accept=accept)
