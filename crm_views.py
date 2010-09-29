@@ -209,9 +209,9 @@ class CRM_SearchContacts(SearchForm):
         ('crm_p_opportunity', MSG(u'Opp.'), True),
         ('crm_p_project', MSG(u'Proj.'), True),
         ('crm_p_nogo', MSG(u'NoGo'), True),
-        ('mtime', MSG(u'Last Modified'), True),
         ('crm_p_assured', MSG(u'Assured'), True),
-        ('crm_p_probable', MSG(u'In pipe'), True)]
+        ('crm_p_probable', MSG(u'In pipe'), True),
+        ('mtime', MSG(u'Last Modified'), True)]
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')

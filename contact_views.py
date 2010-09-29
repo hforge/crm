@@ -254,10 +254,10 @@ class Contact_SearchMissions(SearchForm):
         ('icon', None, False),
         ('crm_m_title', MSG(u'Title'), True),
         ('crm_m_nextaction', MSG(u'Next action'), True),
-        ('mtime', MSG(u'Last Modified'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
-        ('crm_m_deadline', MSG(u'Deadline'), False) ]
+        ('crm_m_deadline', MSG(u'Deadline'), False),
+        ('mtime', MSG(u'Last Modified'), True)]
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
