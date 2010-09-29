@@ -196,7 +196,7 @@ def send_notification(resource, context, form, changes, new=False):
     mission_title = resource.get_property('crm_m_title')
     subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
     # Body
-    mission_uri = context.uri.resolve(';view')
+    mission_uri = '%s/;view' % context.get_link(resource)
     # Changes
     changes.insert(0, u"-" * 76)
     header = CHANGES_LINE.gettext(what=u"What", removed=u"Removed",
@@ -551,6 +551,7 @@ class Mission_EditAlerts(CRM_Alerts):
         ('alert_time', MSG(u'Time'), False),
         ('comment', MSG(u'Comment'), False),
         ('crm_m_nextaction', MSG(u'Next action'), False)]
+
 
     def get_items(self, resource, context, *args):
         args = list(args)
