@@ -26,7 +26,6 @@ from itools.web import STLView
 from itools.web import get_context
 
 # Import from ikaaro
-from ikaaro.buttons import Button
 from ikaaro.comments import indent
 from ikaaro.popup import DBResource_AddImage
 
@@ -66,20 +65,6 @@ def get_form_values(form):
     if values.get('comment') is None and values.get('attachment') is not None:
         values['comment'] = u"_"
     return values
-
-
-
-class ButtonAddContact(Button):
-    name = 'add_contact'
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Add contact')
-
-
-
-class ButtonUpdate(Button):
-    name = 'update_mission'
-    access = 'is_allowed_to_edit'
-    title = MSG(u"Update mission")
 
 
 

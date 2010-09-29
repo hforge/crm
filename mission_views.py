@@ -28,7 +28,7 @@ from itools.ical import Time
 from itools.web import BaseForm, ERROR
 
 # Import from ikaaro
-from ikaaro.buttons import RemoveButton
+from ikaaro.buttons import Button, BrowseButton, RemoveButton
 from ikaaro.autoform import AutoForm, DateWidget, MultilineWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
 from ikaaro.cc import UsersList
@@ -37,7 +37,7 @@ from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import get_form_values, ButtonUpdate, ButtonAddContact
+from base_views import get_form_values
 from base_views import Comments_View
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
@@ -225,6 +225,20 @@ def send_notification(resource, context, form, changes, new=False):
             continue
         to_addr = user.get_property('email')
         root.send_email(to_addr, subject, text=body)
+
+
+
+class ButtonAddContact(BrowseButton):
+    name = 'add_contact'
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Add contact')
+
+
+
+class ButtonUpdate(Button):
+    name = 'update_mission'
+    access = 'is_allowed_to_edit'
+    title = MSG(u"Update mission")
 
 
 
