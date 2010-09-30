@@ -169,7 +169,7 @@ class Contact(CRMFolder):
 class Contacts(Folder):
     """ Container of "contact" resources. """
     class_id = 'contacts'
-    class_version = '20100921'
+    class_version = '20100922'
     class_title = MSG(u'Contacts')
     class_views = ['new_contact', 'browse_content']
     class_document_types = [Contact]
@@ -186,12 +186,12 @@ class Contacts(Folder):
         return name
 
 
-    def update_20100920(self):
+    def update_20100921(self):
         self.metadata.set_changed()
         self.metadata.format = 'contacts'
 
 
-    def update_20100921(self):
+    def update_20100922(self):
         """'p000001' -> 'c000001'
         """
         for name in self.get_names():

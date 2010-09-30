@@ -19,7 +19,7 @@
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import Property
-from itools.datatypes import PathDataType, Unicode
+from itools.datatypes import PathDataType, Unicode, DateTime
 from itools.handlers import checkid
 from itools.fs import FileName
 from itools.uri import get_reference, Path
@@ -72,11 +72,15 @@ class CRMFolder(RoleAware, Folder):
             return None
         # Return date or time only
         if name == 'alert_date':
-            value = self.get_property('alert_datetime')
-            return value.date() if value else None
+            alert_datetime = self.find_alert_datetime()
+            if alert_datetime:
+                return alert_datetime.date()
+            return None
         elif name == 'alert_time':
-            value = self.get_property('alert_datetime')
-            return value.time() if value else None
+            alert_datetime = self.find_alert_datetime()
+            if alert_datetime:
+                return alert_datetime.time()
+            return None
         # Return value
         return self.get_property(name)
 
@@ -245,9 +249,8 @@ class CRMFolder(RoleAware, Folder):
                     # Build the new path with the right path
                     new_path = str(new_base.get_pathto(target)) + view
                     comment.set_parameter(key, new_path)
-                    # XXX set_property?
 
-        get_context().database.change_resource(self)
+        self.set_property('comment', comments)
 
 
     def update_relative_links(self, source):
@@ -305,7 +308,8 @@ class CRMFolder(RoleAware, Folder):
                 new_path = str(target.get_pathto(new_abs_path)) + view
                 # Update the record
                 comment.set_parameter(key, new_path)
-                # XXX set_property?
+
+        self.set_property('comment', comments)
 
 
     def update_20100912(self):
@@ -339,14 +343,30 @@ class CRMFolder(RoleAware, Folder):
         for record in comments_handler.get_records():
             comment = get_record_value(record, 'comment')
             if comment:
+                # mtime
                 date = get_record_value(record, 'ts')
                 if date is None:
                     raise ValueError, self.get_abspath()
                 date = date.replace(tzinfo=utc)
+                # attachment
                 attachment = get_record_value(record, 'file')
                 if not attachment or attachment == '.':
                     attachment = None
                 comment = Property(comment, date=date, attachment=attachment)
+                if cls is MissionTableFile:
+                    # alert_datetime
+                    alert_datetime = get_record_value(record,
+                            'alert_datetime')
+                    # XXX no schema
+                    alert_datetime = DateTime.encode(alert_datetime) or None
+                    # XXX default as a list
+                    comment.set_parameter('alert_datetime', [alert_datetime])
+                    # next action
+                    m_nextaction = get_record_value(record, 'm_nextaction')
+                    # XXX no schema
+                    m_nextaction = Unicode.encode(m_nextaction) or None
+                    # XXX default as a list
+                    comment.set_parameter('crm_m_nextaction', [m_nextaction])
                 item_comments.append(comment)
         metadata.set_property('comment', item_comments)
 

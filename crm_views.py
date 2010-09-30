@@ -21,8 +21,7 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal
-from itools.datatypes import String, Unicode
+from itools.datatypes import Boolean, Decimal, DateTime, String, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
@@ -490,17 +489,28 @@ class CRM_Alerts(SearchForm):
             if not mission.is_allowed_to_view(user, mission):
                 continue
             # Get alert
-            alert_datetime = mission.get_property('alert_datetime')
-            m_nextaction = mission.get_property('crm_m_nextaction')
-            items.append((alert_datetime, m_nextaction, mission))
+            comments = mission.metadata.get_property('comment') or []
+            for comment_id, comment in enumerate(comments):
+                # XXX list
+                alert_datetime = comment.get_parameter('alert_datetime')[0]
+                if not alert_datetime:
+                    continue
+                # XXX no schema
+                alert_datetime = DateTime.decode(alert_datetime)
+                # XXX list
+                m_nextaction = comment.get_parameter('crm_m_nextaction')[0]
+                # XXX no schema
+                m_nextaction = Unicode.decode(m_nextaction)
+                items.append((alert_datetime, m_nextaction, mission,
+                    comment_id))
 
         return items
 
 
     def get_item_value(self, resource, context, item, column):
-        alert_datetime, m_nextaction, mission = item
+        alert_datetime, m_nextaction, mission, comment_id = item
         if column == 'checkbox':
-            alert_id = mission.name
+            alert_id = '%s__%d' % (mission.name, comment_id)
             # checkbox
             return alert_id, False
         if column == 'icon':
@@ -555,7 +565,7 @@ class CRM_Alerts(SearchForm):
         items, past, future = [], [], []
         today = date.today()
         for result in results:
-            alert_datetime, m_nextaction, mission = result
+            alert_datetime, m_nextaction, mission, comment_id = result
             alert_date = alert_datetime.date()
             if alert_date < today:
                 # Past alerts at the bottom
@@ -572,11 +582,24 @@ class CRM_Alerts(SearchForm):
 
 
     def action_remove(self, resource, context, form):
+        not_removed = []
         for alert_id in form.get('ids', []):
-            mission_name = alert_id
+            try:
+                mission_name, comment_id = alert_id.split('__')
+                comment_id = int(comment_id)
+            except ValueError:
+                not_removed.append(alert_id)
+                continue
             # Remove alert_datetime
             crm = get_crm(resource)
             mission = crm.get_resource('missions/%s' % mission_name)
-            mission.set_property('alert_datetime', None)
+            comments = mission.metadata.get_property('comment')
+            comments[comment_id].set_parameter(alert_datetime=None)
+            mission.set_property('comment', comments)
 
-        context.message = MSG_CHANGES_SAVED
+        if not_removed:
+            msg = ERROR(u'One or more alert could not have been removed.')
+        else:
+            msg = MSG_CHANGES_SAVED
+
+        context.message = msg

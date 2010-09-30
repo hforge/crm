@@ -19,7 +19,7 @@ from datetime import datetime, time
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.datatypes import Decimal
+from itools.datatypes import Decimal, DateTime
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import STLView
@@ -90,8 +90,11 @@ class Comments_View(STLView):
                     author = user.get_title()
             comment_datetime = comment.get_parameter('date')
             attachment = (comment.get_parameter('attachment') or [''])[0]
-            alert_datetime = resource.get_property('alert_datetime')
+            # XXX list
+            alert_datetime = comment.get_parameter('alert_datetime')[0]
             if alert_datetime:
+                # XXX no schema
+                alert_datetime = DateTime.decode(alert_datetime)
                 alert_datetime = format_datetime(alert_datetime,
                         accept=accept)
             # TODO Add diff (useful at creation without any comment)

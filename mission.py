@@ -43,7 +43,7 @@ class Mission(CRMFolder):
         - documents related to comments
     """
     class_id = 'mission'
-    class_version = '20100921'
+    class_version = '20100923'
     class_title = MSG(u'Mission')
     class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
 
@@ -51,15 +51,13 @@ class Mission(CRMFolder):
         CRMFolder.class_schema,
         crm_m_title=Unicode(source='metadata', indexed=True, stored=True),
         crm_m_description=Unicode(source='metadata'),
-        crm_m_nextaction=Unicode(source='metadata'),
         crm_m_contact=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
         crm_m_cc=String(source='metadata', indexed=True, multiple=True),
-        crm_m_has_alerts=Boolean(indexed=True),
-        alert_datetime=DateTime(source='metadata'),
         crm_m_amount=Decimal(source='metadata'),
         crm_m_probability=Integer(source='metadata'),
-        crm_m_deadline=Date(source='metadata'))
+        crm_m_deadline=Date(source='metadata'),
+        crm_m_has_alerts=Boolean(indexed=True))
 
     # Views
     add_contacts = Mission_AddContacts()
@@ -79,7 +77,7 @@ class Mission(CRMFolder):
         m_title = self.get_property('crm_m_title')
         contacts = self.get_property('crm_m_contact')
         m_description = self.get_property('crm_m_description')
-        m_nextaction  = self.get_property('crm_m_nextaction')
+        m_nextaction  = self.find_next_action()
         # Index all comments as 'text'
         values = [m_title or '',
                   m_description or '',
@@ -92,7 +90,7 @@ class Mission(CRMFolder):
             c_title = contact.get_value('crm_c_title')
             if c_title:
                 values.append(c_title)
-        alert_datetime = self.get_property('alert_datetime')
+        alert_datetime = self.find_alert_datetime()
         # Comment
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
@@ -107,7 +105,33 @@ class Mission(CRMFolder):
         return document
 
 
-    def update_20100921(self):
+    def find_alert_datetime(self):
+        """Last alert
+        """
+        comments = self.metadata.get_property('comment') or []
+        for comment in reversed(comments):
+            # XXX list
+            alert_datetime = comment.get_parameter('alert_datetime')[0]
+            if alert_datetime:
+                # XXX no schema
+                return DateTime.decode(alert_datetime)
+        return None
+
+
+    def find_next_action(self):
+        """Last next action
+        """
+        comments = self.metadata.get_property('comment') or []
+        for comment in reversed(comments):
+            # XXX list
+            m_nextaction = comment.get_parameter('crm_m_nextaction')[0]
+            if m_nextaction:
+                # XXX no schema
+                return Unicode.decode(m_nextaction)
+        return None
+
+
+    def update_20100923(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """
         contacts = self.get_property('crm_m_prospect')

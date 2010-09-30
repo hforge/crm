@@ -42,7 +42,7 @@ class CRM(Folder):
         - addresses (companies and contacts)
     """
     class_id = 'crm'
-    class_version = '20100921'
+    class_version = '20100920'
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
@@ -85,7 +85,7 @@ class CRM(Folder):
         folder.set_handler('missions', handler)
 
 
-    def update_20100921(self):
+    def update_20100920(self):
         """Rename prospect to contact
         """
         self.move_resource('prospects', 'contacts')
