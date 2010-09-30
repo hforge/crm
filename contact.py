@@ -24,6 +24,7 @@ from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 
 # Import from ikaaro
+from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
@@ -59,7 +60,8 @@ class Contact(CRMFolder):
         crm_p_probable=Decimal(source='metadata', stored=True),
         crm_p_opportunity=Integer(source='metadata', stored=True),
         crm_p_project=Integer(source='metadata', stored=True),
-        crm_p_nogo=Integer(source='metadata', stored=True))
+        crm_p_nogo=Integer(source='metadata', stored=True),
+        comment=comment_datatype)
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')

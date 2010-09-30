@@ -89,13 +89,9 @@ class Comments_View(STLView):
                 if user:
                     author = user.get_title()
             comment_datetime = comment.get_parameter('date')
-            attachment = (comment.get_parameter('attachment') or [''])[0]
+            attachment = comment.get_parameter('attachment')
             alert_datetime = comment.get_parameter('alert_datetime')
-            # XXX list
-            alert_datetime = alert_datetime and alert_datetime[0] or None
             if alert_datetime:
-                # XXX no schema
-                alert_datetime = DateTime.decode(alert_datetime)
                 alert_datetime = format_datetime(alert_datetime,
                         accept=accept)
             # TODO Add diff (useful at creation without any comment)
@@ -103,7 +99,7 @@ class Comments_View(STLView):
                 'id': i,
                 'author': author,
                 'datetime': format_datetime(comment_datetime, accept=accept),
-                'attachment': str(attachment),
+                'attachment': attachment,
                 'alert_datetime': alert_datetime,
                 'comment': indent(comment.value)}
             ns_comments.append(ns_comment)

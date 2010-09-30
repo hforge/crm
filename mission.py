@@ -23,6 +23,7 @@ from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 
 # Import from ikaaro
+from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
@@ -57,6 +58,11 @@ class Mission(CRMFolder):
         crm_m_amount=Decimal(source='metadata'),
         crm_m_probability=Integer(source='metadata'),
         crm_m_deadline=Date(source='metadata'),
+        comment=comment_datatype(property_schema=merge_dicts(
+            comment_datatype.property_schema,
+            attachment=String,
+            alert_datetime=DateTime,
+            crm_m_nextaction=Unicode)),
         crm_m_has_alerts=Boolean(indexed=True))
 
     # Views
@@ -111,11 +117,8 @@ class Mission(CRMFolder):
         comments = self.metadata.get_property('comment') or []
         for comment in reversed(comments):
             alert_datetime = comment.get_parameter('alert_datetime')
-            # XXX list
-            alert_datetime = alert_datetime and alert_datetime[0] or None
             if alert_datetime:
-                # XXX no schema
-                return DateTime.decode(alert_datetime)
+                return alert_datetime
         return None
 
 
@@ -125,11 +128,8 @@ class Mission(CRMFolder):
         comments = self.metadata.get_property('comment') or []
         for comment in reversed(comments):
             m_nextaction = comment.get_parameter('crm_m_nextaction')
-            # XXX list
-            m_nextaction = m_nextaction and m_nextaction[0] or None
             if m_nextaction:
-                # XXX no schema
-                return Unicode.decode(m_nextaction)
+                return m_nextaction
         return None
 
 

@@ -87,10 +87,11 @@ class CRMFolder(RoleAware, Folder):
 
     def _update(self, values, context=None):
         """ Update metadata. """
-        for key, value in values.iteritems():
-            if key == 'attachment':
+        for key in self.class_schema:
+            value = values.get(key)
+            if value is None:
                 continue
-            elif key == 'comment':
+            if key == 'comment':
                 # Date
                 date = context.timestamp
                 # Attachment
@@ -111,8 +112,8 @@ class CRMFolder(RoleAware, Folder):
                 # Author
                 user = context.user
                 author = user.name if user else None
-                value = Property(value, date=date, attachment=[attachment],
-                        author=author)
+                value = Property(value, date=date, author=author,
+                        attachment=attachment)
             self.metadata.set_property(key, value)
 
         if context is not None:
@@ -185,10 +186,6 @@ class CRMFolder(RoleAware, Folder):
                 value = comment.get_parameter(key)
                 if not value:
                     continue
-                # XXX Default as a list
-                value = value[0]
-                if not value:
-                    continue
                 ref = get_reference(value)
                 if ref.scheme:
                     continue
@@ -233,10 +230,6 @@ class CRMFolder(RoleAware, Folder):
             # XXX hardcoded, not typed
             for key in ('attachment',):
                 value = comment.get_parameter(key)
-                if not value:
-                    continue
-                # XXX Default as a list
-                value = value[0]
                 if not value:
                     continue
                 ref = get_reference(value)
@@ -288,10 +281,6 @@ class CRMFolder(RoleAware, Folder):
             # XXX hardcoded, not typed
             for key in ('attachment',):
                 value = comment.get_parameter(key)
-                if not value:
-                    continue
-                # XXX Default as a list
-                value = value[0]
                 if not value:
                     continue
                 ref = get_reference(value)
@@ -357,16 +346,10 @@ class CRMFolder(RoleAware, Folder):
                     # alert_datetime
                     alert_datetime = get_record_value(record,
                             'alert_datetime')
-                    # XXX no schema
-                    alert_datetime = DateTime.encode(alert_datetime) or None
-                    # XXX default as a list
-                    comment.set_parameter('alert_datetime', [alert_datetime])
+                    comment.set_parameter('alert_datetime', alert_datetime)
                     # next action
                     m_nextaction = get_record_value(record, 'm_nextaction')
-                    # XXX no schema
-                    m_nextaction = Unicode.encode(m_nextaction) or None
-                    # XXX default as a list
-                    comment.set_parameter('crm_m_nextaction', [m_nextaction])
+                    comment.set_parameter('crm_m_nextaction', m_nextaction)
                 item_comments.append(comment)
         metadata.set_property('comment', item_comments)
 

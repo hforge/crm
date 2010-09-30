@@ -492,17 +492,9 @@ class CRM_Alerts(SearchForm):
             comments = mission.metadata.get_property('comment') or []
             for comment_id, comment in enumerate(comments):
                 alert_datetime = comment.get_parameter('alert_datetime')
-                # XXX list
-                alert_datetime = alert_datetime and alert_datetime[0] or None
                 if not alert_datetime:
                     continue
-                # XXX no schema
-                alert_datetime = DateTime.decode(alert_datetime)
                 m_nextaction = comment.get_parameter('crm_m_nextaction')
-                # XXX list
-                m_nextaction = m_nextaction and m_nextaction[0] or None
-                # XXX no schema
-                m_nextaction = Unicode.decode(m_nextaction)
                 items.append((alert_datetime, m_nextaction, mission,
                     comment_id))
 
