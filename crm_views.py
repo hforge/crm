@@ -491,14 +491,16 @@ class CRM_Alerts(SearchForm):
             # Get alert
             comments = mission.metadata.get_property('comment') or []
             for comment_id, comment in enumerate(comments):
+                alert_datetime = comment.get_parameter('alert_datetime')
                 # XXX list
-                alert_datetime = comment.get_parameter('alert_datetime')[0]
+                alert_datetime = alert_datetime and alert_datetime[0] or None
                 if not alert_datetime:
                     continue
                 # XXX no schema
                 alert_datetime = DateTime.decode(alert_datetime)
+                m_nextaction = comment.get_parameter('crm_m_nextaction')
                 # XXX list
-                m_nextaction = comment.get_parameter('crm_m_nextaction')[0]
+                m_nextaction = m_nextaction and m_nextaction[0] or None
                 # XXX no schema
                 m_nextaction = Unicode.decode(m_nextaction)
                 items.append((alert_datetime, m_nextaction, mission,
@@ -594,7 +596,7 @@ class CRM_Alerts(SearchForm):
             crm = get_crm(resource)
             mission = crm.get_resource('missions/%s' % mission_name)
             comments = mission.metadata.get_property('comment')
-            comments[comment_id].set_parameter(alert_datetime=None)
+            comments[comment_id].set_parameter('alert_datetime', None)
             mission.set_property('comment', comments)
 
         if not_removed:

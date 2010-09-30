@@ -110,8 +110,9 @@ class Mission(CRMFolder):
         """
         comments = self.metadata.get_property('comment') or []
         for comment in reversed(comments):
+            alert_datetime = comment.get_parameter('alert_datetime')
             # XXX list
-            alert_datetime = comment.get_parameter('alert_datetime')[0]
+            alert_datetime = alert_datetime and alert_datetime[0] or None
             if alert_datetime:
                 # XXX no schema
                 return DateTime.decode(alert_datetime)
@@ -123,8 +124,9 @@ class Mission(CRMFolder):
         """
         comments = self.metadata.get_property('comment') or []
         for comment in reversed(comments):
+            m_nextaction = comment.get_parameter('crm_m_nextaction')
             # XXX list
-            m_nextaction = comment.get_parameter('crm_m_nextaction')[0]
+            m_nextaction = m_nextaction and m_nextaction[0] or None
             if m_nextaction:
                 # XXX no schema
                 return Unicode.decode(m_nextaction)

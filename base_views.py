@@ -90,8 +90,9 @@ class Comments_View(STLView):
                     author = user.get_title()
             comment_datetime = comment.get_parameter('date')
             attachment = (comment.get_parameter('attachment') or [''])[0]
+            alert_datetime = comment.get_parameter('alert_datetime')
             # XXX list
-            alert_datetime = comment.get_parameter('alert_datetime')[0]
+            alert_datetime = alert_datetime and alert_datetime[0] or None
             if alert_datetime:
                 # XXX no schema
                 alert_datetime = DateTime.decode(alert_datetime)

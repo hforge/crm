@@ -330,7 +330,7 @@ class CancelAlert(BaseForm):
         # Remove alert_datetime
         mission = resource
         comments = mission.metadata.get_property('comment')
-        comments[comment_id].set_parameter(alert_datetime=None)
+        comments[comment_id].set_parameter('alert_datetime', None)
         resource.set_property('comment', comments)
 
         return context.come_back(MSG_CHANGES_SAVED, './')
