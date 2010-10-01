@@ -19,7 +19,7 @@
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import Property
-from itools.datatypes import PathDataType, Unicode, DateTime
+from itools.datatypes import PathDataType, Unicode
 from itools.handlers import checkid
 from itools.fs import FileName
 from itools.uri import get_reference, Path

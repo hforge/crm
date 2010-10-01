@@ -21,7 +21,7 @@ from decimal import Decimal as decimal
 # Import from itools
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, DateTime, String, Unicode
+from itools.datatypes import Boolean, Decimal, String, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time

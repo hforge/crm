@@ -162,14 +162,14 @@
         </tr>
         <tr>
           <td>
-            <label for="${crm_m_status/name}">
-              ${crm_m_status/title}
+            <label for="${crm_m_assigned/name}">
+              ${crm_m_assigned/title}
             </label>
           </td>
           <td colspan="2">
-            <span stl:if="crm_m_status/error"
-              class="field-error">${crm_m_status/error}<br/></span>
-            ${crm_m_status/widget}
+            <span stl:if="crm_m_assigned/error"
+              class="field-error">${crm_m_assigned/error}<br/></span>
+            ${crm_m_assigned/widget}
           </td>
           <td>
             <label for="${crm_m_cc/name}">
@@ -180,6 +180,28 @@
             <span stl:if="crm_m_cc/error"
               class="field-error">${crm_m_cc/error}<br/></span>
             ${crm_m_cc/widget}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="${crm_m_status/name}">
+              ${crm_m_status/title}
+            </label>
+          </td>
+          <td colspan="2">
+            <span stl:if="crm_m_status/error"
+              class="field-error">${crm_m_status/error}<br/></span>
+            ${crm_m_status/widget}
+          </td>
+          <td>
+            <label for="${crm_m_deadline/name}">
+              ${crm_m_deadline/title}
+            </label>
+          </td>
+          <td>
+            <span stl:if="crm_m_deadline/error"
+              class="field-error">${crm_m_deadline/error}<br/></span>
+            ${crm_m_deadline/widget}
           </td>
         </tr>
         <tr>
@@ -202,16 +224,6 @@
             <span stl:if="crm_m_probability/error"
               class="field-error">${crm_m_probability/error}<br/></span>
             ${crm_m_probability/widget} %
-          </td>
-          <td>
-            <label for="${crm_m_deadline/name}">
-              ${crm_m_deadline/title}
-            </label>
-          </td>
-          <td>
-            <span stl:if="crm_m_deadline/error"
-              class="field-error">${crm_m_deadline/error}<br/></span>
-            ${crm_m_deadline/widget}
           </td>
         </tr>
       </tbody>

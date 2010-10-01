@@ -19,7 +19,7 @@ from datetime import datetime, time
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.datatypes import Decimal, DateTime
+from itools.datatypes import Decimal
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import STLView

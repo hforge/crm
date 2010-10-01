@@ -93,6 +93,8 @@ class Contact_AddForm(AutoForm):
                 crm_p_lastname=contact_schema['crm_p_lastname'](
                     mandatory=True),
                 crm_p_status=contact_schema['crm_p_status'](mandatory=True),
+                crm_m_assigned=mission_schema['crm_m_assigned'](
+                    resource=resource),
                 crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
 
 

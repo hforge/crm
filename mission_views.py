@@ -66,37 +66,40 @@ mission_schema = {
     # First mission
     'crm_m_title': Unicode,
     'crm_m_description': Unicode,
-    'crm_m_amount': Decimal,
-    'crm_m_probability': Integer,
-    'crm_m_deadline': Date,
-    'crm_m_status': MissionStatus,
-    # XXX must add resource in "get_schema"
-    'crm_m_cc': UsersList(multiple=True),
     'comment': Unicode,
+    'crm_m_nextaction': Unicode,
     'attachment': FileDataType,
     'alert_date': Date,
     'alert_time': Time,
-    'crm_m_nextaction': Unicode}
+    # XXX must add resource in "get_schema"
+    'crm_m_assigned': UsersList,
+    'crm_m_cc': UsersList(multiple=True),
+    'crm_m_status': MissionStatus,
+    'crm_m_deadline': Date,
+    'crm_m_amount': Decimal,
+    'crm_m_probability': Integer}
 
 
 mission_widgets = [
     # First mission
     TextWidget('crm_m_title', title=MSG(u'Title')),
     MultilineWidget('crm_m_description', title=MSG(u'Description'), rows=4),
-    TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
-    TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
-               size=2),
-    DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
-    RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
-                has_empty_option=False),
-    SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
-        has_empty_option=False),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
+    TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
     FileWidget('attachment', title=MSG(u'Attachment'), size=35, default=''),
     DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
     TimeWidget('alert_time', title=MSG(u'at')),
-    TextWidget('crm_m_nextaction', title=MSG(u'Next action')) ]
+    SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
+        has_empty_option=True),
+    SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
+        has_empty_option=False),
+    RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
+                has_empty_option=False),
+    DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
+    TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
+    TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
+               size=2)]
 
 
 def get_changes(resource, context, form, new=False):
@@ -121,7 +124,24 @@ def get_changes(resource, context, form, new=False):
             raise ValueError, key
         title = widget.title.gettext()
         # Special cases for complex objects
-        if key == 'crm_m_cc':
+        if key == 'crm_m_assigned':
+            if old_value:
+                removed = old_value
+                user = root.get_user(old_value)
+                if user is not None:
+                    removed = user.get_title()
+            else:
+                removed = u""
+            if new_value:
+                added = new_value
+                user = root.get_user(new_value)
+                if user is not None:
+                    added = user.get_title()
+            else:
+                added = u""
+            changes.append(CHANGES_LINE.gettext(what=title, removed=removed,
+                added=added))
+        elif key == 'crm_m_cc':
             what = title
             for removed in (set(old_value) - set(new_value)):
                 user = root.get_user(removed)
@@ -183,8 +203,9 @@ def send_notification(resource, context, form, changes, new=False):
     user_title = user.get_title()
     user_email = user.get_property('email')
     # To
-    to_addrs = form['crm_m_cc']
     to_addrs = set(form['crm_m_cc'])
+    if form['crm_m_assigned']:
+        to_addrs.add(form['crm_m_assigned'])
     # Except sender
     if user.name in to_addrs:
         to_addrs.remove(user.name)
@@ -258,6 +279,8 @@ class Mission_EditForm(AutoForm):
         return merge_dicts(mission_schema,
                 crm_m_title=mission_schema['crm_m_title'](mandatory=True),
                 crm_m_status=mission_schema['crm_m_status'](mandatory=True),
+                crm_m_assigned=mission_schema['crm_m_assigned'](
+                    resource=resource),
                 crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
 
 
