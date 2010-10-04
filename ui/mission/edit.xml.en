@@ -96,6 +96,8 @@
                     <span stl:if="alert_time/error"
                       class="field-error">${alert_time/error}<br/></span>
                     ${alert_time/widget}
+                    <input type="checkbox" name="remove_previous_alerts"
+                    value="1" checked="checked"/>Remove previous alerts
                   </td>
                 </tr>
               </table>

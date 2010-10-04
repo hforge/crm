@@ -21,7 +21,7 @@ from datetime import datetime
 from itools.core import merge_dicts
 from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
-from itools.datatypes import String, Unicode
+from itools.datatypes import String, Unicode, Boolean
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
@@ -31,6 +31,7 @@ from itools.web import BaseForm, ERROR, get_context
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
 from ikaaro.autoform import AutoForm, DateWidget, MultilineWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
+from ikaaro.autoform import CheckboxWidget
 from ikaaro.cc import UsersList
 from ikaaro.datatypes import FileDataType
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
@@ -71,6 +72,7 @@ mission_schema = {
     'attachment': FileDataType,
     'alert_date': Date,
     'alert_time': Time,
+    'remove_previous_alerts': Boolean,
     # XXX must add resource in "get_schema"
     'crm_m_assigned': UsersList,
     'crm_m_cc': UsersList(multiple=True),
@@ -90,6 +92,8 @@ mission_widgets = [
     FileWidget('attachment', title=MSG(u'Attachment'), size=35, default=''),
     DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
     TimeWidget('alert_time', title=MSG(u'at')),
+    CheckboxWidget('remove_previous_alerts', default=True,
+        title=MSG(u"Remove previous alerts")),
     SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
         has_empty_option=True),
     SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
@@ -331,8 +335,8 @@ class Mission_EditForm(AutoForm):
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
         contacts = crm.get_resource('contacts')
-        for contact in resource.get_value('crm_m_contact'):
-            contact = crm.get_resource(contact)
+        for contact_id in resource.get_value('crm_m_contact'):
+            contact = contacts.get_resource(contact_id)
             context.database.change_resource(contact)
 
         context.message = MSG_CHANGES_SAVED

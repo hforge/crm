@@ -92,8 +92,17 @@ class CRMFolder(RoleAware, Folder):
             if value is None:
                 continue
             if key == 'comment':
+                # Reset alerts?
+                if values['remove_previous_alerts']:
+                    comments = self.metadata.get_property('comment') or []
+                    for comment in comments:
+                        comment.set_parameter('alert_datetime', None)
+                    self.metadata.set_property('comment', comments)
                 # Date
                 date = context.timestamp
+                # Author
+                user = context.user
+                author = user.name if user else None
                 # Attachment
                 attachment = values.get('attachment') or None
                 if attachment is not None:
@@ -109,11 +118,14 @@ class CRMFolder(RoleAware, Folder):
                         format=mimetype)
                     # Link
                     attachment = name
-                # Author
-                user = context.user
-                author = user.name if user else None
+                # Next action
+                crm_m_nextaction = values.get('crm_m_nextaction')
+                # Alert
+                alert_datetime = values.get('alert_datetime')
                 value = Property(value, date=date, author=author,
-                        attachment=attachment)
+                        attachment=attachment,
+                        crm_m_nextaction=crm_m_nextaction,
+                        alert_datetime=alert_datetime)
             self.metadata.set_property(key, value)
 
         if context is not None:
