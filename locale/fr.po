@@ -43,7 +43,7 @@ msgstr "${search} <x id='1'/> ${batch} <x id='2'/> ${table}"
 #: ../ui/crm/search.xml.en:17
 msgctxt "fieldset"
 msgid "${with_no_alert} With no alert only"
-msgstr "{with_no_alert} Sans alerte uniquement"
+msgstr "${with_no_alert} Sans alerte uniquement"
 
 #: ../contact_views.py:328
 msgid "%02.02f €"

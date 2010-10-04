@@ -19,9 +19,10 @@ from datetime import datetime, date
 from decimal import Decimal as decimal
 
 # Import from itools
+from itools.core import merge_dicts
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String, Unicode
+from itools.datatypes import Boolean, Decimal, String
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
@@ -56,11 +57,9 @@ class CRM_SearchMissions(SearchForm):
     search_template = '/ui/crm/crm/search.xml'
     styles = ['/ui/crm/style.css']
 
-    search_schema = {
-        'search_text': Unicode,
-        'search_type': String,
-        'status': MissionStatus(multiple=True),
-        'with_no_alert': Boolean }
+    search_schema = merge_dicts(SearchForm.search_schema,
+        status=MissionStatus(multiple=True),
+        with_no_alert=Boolean)
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
@@ -104,7 +103,7 @@ class CRM_SearchMissions(SearchForm):
         crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
-        search_text = query['search_text'].strip()
+        search_term = query['search_term'].strip()
         m_status = query['status']
         with_no_alert = query['with_no_alert']
 
@@ -113,8 +112,8 @@ class CRM_SearchMissions(SearchForm):
         abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'mission'))
         args.append(get_crm_path_query(crm))
-        if search_text:
-            args.append(PhraseQuery('text', search_text))
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
         # Insert status filter
         if m_status:
             status_query = []
@@ -124,10 +123,7 @@ class CRM_SearchMissions(SearchForm):
         # Insert with_no_alert filter
         if with_no_alert:
             args.append(PhraseQuery('crm_m_has_alerts', False))
-        if len(args) == 1:
-            query = args[0]
-        else:
-            query = AndQuery(*args)
+        query = AndQuery(*args)
 
         # Ok
         return context.root.search(query)
@@ -189,10 +185,8 @@ class CRM_SearchContacts(SearchForm):
     template = '/ui/crm/crm/search_contacts.xml'
     styles = ['/ui/crm/style.css']
 
-    search_schema = {
-        'search_text': Unicode,
-        'search_type': String,
-        'status': ContactStatus(multiple=True), }
+    search_schema = merge_dicts(SearchForm.search_schema,
+        status=ContactStatus(multiple=True))
     search_fields =  [
         ('text', MSG(u'Text')), ]
 
@@ -221,7 +215,7 @@ class CRM_SearchContacts(SearchForm):
         crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
-        search_text = query['search_text'].strip()
+        search_term = query['search_term'].strip()
         p_status = query['status']
 
         # Build the query
@@ -229,8 +223,8 @@ class CRM_SearchContacts(SearchForm):
         abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'contact'))
         args.append(get_crm_path_query(crm))
-        if search_text:
-            args.append(PhraseQuery('text', search_text))
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
         # Insert status filter
         if p_status:
             status_query = []
@@ -431,12 +425,6 @@ class CRM_Alerts(SearchForm):
     title = MSG(u'Alerts')
     template = '/ui/crm/crm/alerts.xml'
     styles = ['/ui/crm/style.css']
-
-    search_schema = {
-        'search_text': Unicode,
-        'search_type': String,
-    }
-    search_fields =  []
 
     schema = {'ids': String(multiple=True, mandatory=True)}
 

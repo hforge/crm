@@ -59,8 +59,8 @@ class Mission(CRMFolder):
         crm_m_amount=Decimal(source='metadata'),
         crm_m_probability=Integer(source='metadata'),
         crm_m_deadline=Date(source='metadata'),
-        comment=comment_datatype(property_schema=merge_dicts(
-            comment_datatype.property_schema,
+        comment=comment_datatype(parameters_schema=merge_dicts(
+            comment_datatype.parameters_schema,
             attachment=String,
             alert_datetime=DateTime,
             crm_m_nextaction=Unicode)),
