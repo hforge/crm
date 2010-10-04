@@ -25,7 +25,7 @@ from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.web import BaseForm, ERROR
+from itools.web import BaseForm, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
@@ -489,8 +489,23 @@ class Mission_AddContacts(CRM_SearchContacts):
 
     table_actions = [ButtonAddContact]
 
+
+    def get_query_schema(self):
+        # Filter by same company
+        company = u""
+        resource = get_context().resource
+        m_contact = resource.get_property('crm_m_contact')
+        if m_contact:
+            crm = get_crm(resource)
+            contact = crm.get_resource('contacts/' + m_contact[0])
+            company = contact.get_value('crm_c_title')
+        return merge_dicts(CRM_SearchContacts.get_query_schema(self),
+                search_term=Unicode(default=company))
+
+
     def get_table_columns(self, resource, context):
-        columns = CRM_SearchContacts.get_table_columns(self, resource, context)
+        columns = CRM_SearchContacts.get_table_columns(self, resource,
+                context)
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
         return columns
