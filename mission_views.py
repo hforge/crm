@@ -330,9 +330,9 @@ class Mission_EditForm(AutoForm):
 
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        contacts = resource.get_value('crm_m_contact')
-        for contact in contacts:
-            contact = crm.get_resource('contacts/%s' % contact)
+        contacts = crm.get_resource('contacts')
+        for contact in resource.get_value('crm_m_contact'):
+            contact = crm.get_resource(contact)
             context.database.change_resource(contact)
 
         context.message = MSG_CHANGES_SAVED
@@ -504,15 +504,19 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 
     def action_add_contact(self, resource, context, form):
-        contacts = resource.get_value('crm_m_contact')
+        # Save changes
+        m_contact = resource.get_value('crm_m_contact')
+        m_contact = list(set(m_contact + form['ids']))
+        resource._update({'crm_m_contact': m_contact})
 
-        for contact_id in form.get('ids', []):
-            contacts.append(contact_id)
+        # Reindex contacts so they know about the mission
+        crm = get_crm(resource)
+        contacts = crm.get_resource('contacts')
+        for contact_id in form['ids']:
+            contact = contacts.get_resource(contact_id)
+            context.database.change_resource(contact)
 
-        contacts = list(set(contacts))
-        # Apply change
-        resource._update({'crm_m_contact': contacts})
-        msg = MSG_CHANGES_SAVED
+        context.message = MSG_CHANGES_SAVED
 
 
 
