@@ -394,6 +394,7 @@ class CRMFolder(RoleAware, Folder):
         # Set mtime
         ts = get_record_value(record, 'ts')
         if ts is not None:
+            ts = ts.replace(tzinfo=utc)
             metadata.set_property('mtime', ts)
 
         # Remove table comments
