@@ -65,7 +65,7 @@ class CRM_SearchMissions(SearchForm):
 
     table_columns = [
         ('icon', None, False),
-        ('crm_m_title', MSG(u'Title'), True),
+        ('title', MSG(u'Title'), True),
         ('crm_m_contacts', MSG(u'Contacts'), False),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
@@ -139,9 +139,9 @@ class CRM_SearchMissions(SearchForm):
             # Status
             value = get_value('crm_m_status')
             return m_status_icons[value]
-        elif column == 'crm_m_title':
+        elif column == 'title':
             href = context.get_link(item_resource)
-            return item_brain.crm_m_title, href
+            return item_brain.title, href
         elif column == 'crm_m_contacts':
             values = get_value('crm_m_contact')
             query = [PhraseQuery('name', name) for name in values]
@@ -168,8 +168,6 @@ class CRM_SearchMissions(SearchForm):
         size = context.query['batch_size']
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
-        if sort_by in ('crm_m_title', 'crm_m_nextaction'):
-            sort_by = 'crm_%s' % sort_by
 
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
                                       start=start, size=size)
@@ -362,11 +360,11 @@ class CRM_ExportToCSV(BaseView):
         p_company = get_value('crm_p_company')
         if p_company:
             company = resource.get_resource('companies/%s' % p_company)
-            infos.append(company.get_value('crm_c_title'))
+            infos.append(company.get_value('title'))
         infos.append(get_value('crm_p_status'))
 
         # Mission
-        for property in ('crm_m_title', 'crm_m_amount', 'crm_m_probability',
+        for property in ('title', 'crm_m_amount', 'crm_m_probability',
                 'crm_m_status', 'crm_m_deadline'):
             property = mission.get_value(property)
             infos.append(property or '')
@@ -436,7 +434,7 @@ class CRM_Alerts(SearchForm):
         ('crm_p_lastname', MSG(u'Last name'), False),
         ('crm_p_firstname', MSG(u'First name'), False),
         ('crm_p_company', MSG(u'Company'), False),
-        ('crm_m_title', MSG(u'Mission'), False),
+        ('title', MSG(u'Mission'), False),
         ('crm_m_nextaction', MSG(u'Next action'), False)]
 
     batch_msg1 = MSG(u'1 alert.')
@@ -524,7 +522,7 @@ class CRM_Alerts(SearchForm):
             company = mission.get_resource('../../companies/%s' % company_name)
             title = company.get_title()
             return title
-        elif column == 'crm_m_title':
+        elif column == 'title':
             value = mission.get_value(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(mission)

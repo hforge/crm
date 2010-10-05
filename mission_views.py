@@ -65,8 +65,8 @@ You are receiving this e-mail because you are in CC.''')
 
 mission_schema = {
     # First mission
-    'crm_m_title': Unicode,
-    'crm_m_description': Unicode,
+    'title': Unicode,
+    'description': Unicode,
     'comment': Unicode,
     'crm_m_nextaction': Unicode,
     'attachment': FileDataType,
@@ -84,8 +84,8 @@ mission_schema = {
 
 mission_widgets = [
     # First mission
-    TextWidget('crm_m_title', title=MSG(u'Title')),
-    MultilineWidget('crm_m_description', title=MSG(u'Description'), rows=4),
+    TextWidget('title', title=MSG(u'Title')),
+    MultilineWidget('description', title=MSG(u'Description'), rows=4),
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
     TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
@@ -218,7 +218,7 @@ def send_notification(resource, context, form, changes, new=False):
     # Subject
     crm_title = get_crm(resource).get_title() or u"CRM"
     mission_name = resource.name
-    mission_title = resource.get_property('crm_m_title')
+    mission_title = resource.get_property('title')
     subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
     # Body
     mission_uri = '%s/;view' % context.get_link(resource)
@@ -279,9 +279,9 @@ class Mission_EditForm(AutoForm):
 
 
     def get_schema(self, resource, context):
-        # crm_m_title and crm_m_status are mandatory
+        # title and crm_m_status are mandatory
         return merge_dicts(mission_schema,
-                crm_m_title=mission_schema['crm_m_title'](mandatory=True),
+                title=mission_schema['title'](mandatory=True),
                 crm_m_status=mission_schema['crm_m_status'](mandatory=True),
                 crm_m_assigned=mission_schema['crm_m_assigned'](
                     resource=resource),
@@ -387,8 +387,8 @@ class Mission_AddForm(Mission_EditForm):
 
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
-        contact = values.get('crm_m_contact')
-        contact = crm.get_resource('contacts/%s' % contact)
+        contact_id = values.get('crm_m_contact')
+        contact = crm.get_resource('contacts/' + contact_id)
         context.database.change_resource(contact)
 
         # First compute differences
@@ -420,11 +420,12 @@ class Mission_ViewContacts(CRM_SearchContacts):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        contacts = resource.get_value('crm_m_contact')
-        if len(contacts) == 1:
-            args.append(PhraseQuery('name', contacts[0]))
-        elif len(contacts) > 1:
-            args.append(OrQuery(*[PhraseQuery('name', x) for x in contacts]))
+        m_contact = resource.get_value('crm_m_contact')
+        if len(m_contact) == 1:
+            args.append(PhraseQuery('name', m_contact[0]))
+        elif len(m_contact) > 1:
+            query = [PhraseQuery('name', c) for c in m_contact]
+            args.append(OrQuery(*query))
         return CRM_SearchContacts.get_items(self, resource, context, *args)
 
 
@@ -465,19 +466,19 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 
     def action_remove(self, resource, context, form):
-        contacts = resource.get_value('crm_m_contact')
+        m_contact = resource.get_value('crm_m_contact')
 
         for contact_id in form.get('ids', []):
             try:
-                contacts.remove(contact_id)
+                m_contact.remove(contact_id)
             except:
                 pass
 
-        if len(contacts) == 0:
+        if len(m_contact) == 0:
             msg = ERROR(u'At least one contact is required')
         else:
             # Apply change
-            resource._update({'crm_m_contact': contacts})
+            resource._update({'crm_m_contact': m_contact})
             msg = MSG_CHANGES_SAVED
 
         context.message = msg
@@ -502,7 +503,7 @@ class Mission_AddContacts(CRM_SearchContacts):
         if m_contact:
             crm = get_crm(resource)
             contact = crm.get_resource('contacts/' + m_contact[0])
-            company = contact.get_value('crm_c_title')
+            company = contact.get_value('title')
         return merge_dicts(CRM_SearchContacts.get_query_schema(self),
                 search_term=Unicode(default=company))
 
@@ -550,7 +551,7 @@ class Mission_View(CompositeForm):
     subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
 
     def get_namespace(self, resource, context):
-        title = resource.get_value('crm_m_title')
+        title = resource.get_value('title')
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_contacts = resource.view_contacts.GET(resource, context)

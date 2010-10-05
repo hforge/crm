@@ -43,9 +43,9 @@ class CompanyName(Enumerate):
                                       parent_path=parent_path)
 
         options = []
-        for brain in results.get_documents(sort_by='crm_c_title'):
+        for brain in results.get_documents(sort_by='title'):
             name = brain.name
-            value = brain.crm_c_title
+            value = brain.title
             # Reduce the length of the title
             if len(value) > 63:
                 value = '%s...%s' % (value[:30], value[-30:])

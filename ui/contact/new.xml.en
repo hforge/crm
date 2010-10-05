@@ -138,26 +138,26 @@
       <tbody>
         <tr>
           <td>
-            <label for="${crm_m_title/name}">
-              ${crm_m_title/title} *
+            <label for="${title/name}">
+              ${title/title} *
             </label>
           </td>
           <td colspan="5">
-            <span stl:if="crm_m_title/error"
-              class="field-error">${crm_title/error}<br/></span>
-            ${crm_m_title/widget}
+            <span stl:if="title/error"
+              class="field-error">${title/error}<br/></span>
+            ${title/widget}
           </td>
         </tr>
         <tr>
           <td>
-            <label for="${crm_m_description/name}">
-              ${crm_m_description/title}
+            <label for="${description/name}">
+              ${description/title}
             </label>
           </td>
           <td colspan="5">
-            <span stl:if="crm_m_description/error"
-              class="field-error">${crm_m_description/error}<br/></span>
-            ${crm_m_description/widget}
+            <span stl:if="description/error"
+              class="field-error">${description/error}<br/></span>
+            ${description/widget}
           </td>
         </tr>
         <tr>

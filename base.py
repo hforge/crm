@@ -368,17 +368,29 @@ class CRMFolder(RoleAware, Folder):
 
         # Other metadata
         record = comments_handler.get_record(-1)
-        for key in self.class_schema.iterkeys():
+        for key, datatype in self.class_schema.iteritems():
+            if getattr(datatype, 'source', None) != 'metadata':
+                continue
             if key in ('comment', 'attachment'):
                 continue
-            source_key = key
-            if key[:4] == 'crm_':
-                source_key = key[4:]
+            # Standard metadata were reused
+            source_key = {MissionTableFile: {'title': 'm_title',
+                        'description': 'm_description'},
+                    ContactTableFile: {'description': 'p_description'},
+                    CompanyTableFile: {'title': 'c_title',
+                        'description': 'c_description'}}[cls].get(key, key)
+            # A "crm_" prefix was added
+            if source_key[:4] == 'crm_':
+                source_key = source_key[4:]
             if source_key not in cls.record_properties:
                 continue
             value = get_record_value(record, source_key)
-            if value is not None:
-                metadata.set_property(key, value)
+            if value is None:
+                continue
+            # XXX language
+            if key in ('title', 'description'):
+                value = Property(value, lang='en')
+            metadata.set_property(key, value)
         # Set mtime
         ts = get_record_value(record, 'ts')
         if ts is not None:

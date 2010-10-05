@@ -37,7 +37,7 @@ from widgets import LinkWidget
 
 
 company_schema = {
-    'crm_c_title': Unicode,
+    'title': Unicode,
     'crm_c_address_1': Unicode,
     'crm_c_address_2': Unicode,
     # TODO Country should be CountryName (listed)
@@ -47,12 +47,12 @@ company_schema = {
     'crm_c_phone': Unicode,
     'crm_c_fax': Unicode,
     'crm_c_website': Unicode,
-    'crm_c_description': Unicode,
     'crm_c_activity': Unicode,
-    'crm_c_logo': PathDataType }
+    'crm_c_logo': PathDataType,
+    'description': Unicode}
 
 company_widgets = [
-    TextWidget('crm_c_title', title=MSG(u'Title')),
+    TextWidget('title', title=MSG(u'Title')),
     TextWidget('crm_c_address_1', title=MSG(u'Address')),
     TextWidget('crm_c_address_2', title=MSG(u'Address (next)')),
     TextWidget('crm_c_zipcode', title=MSG(u'Zip Code'), size=10),
@@ -63,7 +63,7 @@ company_widgets = [
     LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
     TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
     ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
-    MultilineWidget('crm_c_description', title=MSG(u'Observations'),
+    MultilineWidget('description', title=MSG(u'Observations'),
         default='', rows=4) ]
 
 
@@ -79,9 +79,9 @@ class Company_EditForm(AutoForm):
 
 
     def get_schema(self, resource, context):
-        # crm_c_title is mandatory
+        # title is mandatory
         return merge_dicts(company_schema,
-                crm_c_title=company_schema['crm_c_title'](mandatory=True))
+                title=company_schema['title'](mandatory=True))
 
 
     def get_widgets(self, resource, context):

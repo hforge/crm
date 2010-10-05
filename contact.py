@@ -81,22 +81,21 @@ class Contact(CRMFolder):
         document['crm_p_lastname'] = get_value('crm_p_lastname')
         # Index company name and index company title as text
         company_name = get_value('crm_p_company')
-        c_title = u''
+        title = u''
         if company_name:
-            company = crm.get_resource('companies/%s' % company_name)
-            get_c_value = company.get_value
             document['crm_p_company'] = company_name
+            company = crm.get_resource('companies/%s' % company_name)
             try:
-                c_title = get_c_value('crm_c_title')
+                title = company.get_value('title')
             except AttributeError:
                 pass
         # Index lastname, firstname, email and comment as text
-        values = [c_title or '']
-        values.append(get_value('crm_p_lastname') or '')
-        values.append(get_value('crm_p_firstname') or '')
-        values.append(get_value('crm_p_email') or '')
-        values.append(get_value('crm_p_description') or '')
-        values.append(get_value('crm_p_comment') or '')
+        values = [title or u'']
+        values.append(get_value('crm_p_lastname') or u'')
+        values.append(get_value('crm_p_firstname') or u'')
+        values.append(get_value('crm_p_email') or u'')
+        values.append(get_value('crm_p_description') or u'')
+        values.append(get_value('crm_p_comment') or u'')
         # Index all comments as 'text', and check any alert
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)

@@ -61,7 +61,8 @@ class MissionTableFile(CommentsTableFile):
 
     record_properties = merge_dicts(CommentsTableFile.record_properties,
             # Mission title and description
-            m_title=Unicode, m_description=Unicode,
+            m_title=Unicode,
+            m_description=Unicode,
             # Contact name
             m_prospect=String(multiple=True),
             # How many € ?

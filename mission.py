@@ -50,8 +50,6 @@ class Mission(CRMFolder):
 
     class_schema = merge_dicts(
         CRMFolder.class_schema,
-        crm_m_title=Unicode(source='metadata', indexed=True, stored=True),
-        crm_m_description=Unicode(source='metadata'),
         crm_m_contact=String(source='metadata', indexed=True, multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
         crm_m_assigned=String(source='metadata'),
@@ -81,30 +79,28 @@ class Mission(CRMFolder):
 
     def get_catalog_values(self):
         document = CRMFolder.get_catalog_values(self)
-        m_title = self.get_property('crm_m_title')
-        contacts = self.get_property('crm_m_contact')
-        m_description = self.get_property('crm_m_description')
+        title = self.get_property('title')
+        description = self.get_property('description')
         m_nextaction  = self.find_next_action()
         # Index all comments as 'text'
-        values = [m_title or '',
-                  m_description or '',
-                  m_nextaction or '']
-        crm = self.parent.parent
-        for p in contacts:
-            contact = crm.get_resource('contacts/%s' % p)
+        values = [title or u'',
+                  description or u'',
+                  m_nextaction or u'']
+        m_contact = self.get_property('crm_m_contact')
+        contacts = self.parent.parent.get_resource('contacts')
+        for contact_id in m_contact:
+            contact = contacts.get_resource(contact_id)
             values.append(contact.get_value('crm_p_lastname'))
             values.append(contact.get_value('crm_p_firstname'))
-            c_title = contact.get_value('crm_c_title')
-            if c_title:
-                values.append(c_title)
+            title = contact.get_value('title')
+            if title:
+                values.append(title)
         alert_datetime = self.find_alert_datetime()
         # Comment
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
-        # Index title
-        document['crm_m_title'] = m_title
         # Index contact
-        document['crm_m_contact'] = contacts
+        document['crm_m_contact'] = m_contact
         # Index alerts
         document['crm_m_has_alerts'] = alert_datetime is not None
         # Index status
@@ -137,9 +133,9 @@ class Mission(CRMFolder):
     def update_20100923(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """
-        contacts = self.get_property('crm_m_prospect')
-        contacts = [c.replace('p', 'c') for c in contacts]
-        self.set_property('crm_m_contact', contacts)
+        m_contact = self.get_property('crm_m_prospect')
+        m_contact = [c.replace('p', 'c') for c in m_contact]
+        self.set_property('crm_m_contact', m_contact)
         self.set_property('crm_m_prospect', None)
 
 

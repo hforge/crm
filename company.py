@@ -44,7 +44,6 @@ class Company(CRMFolder):
 
     class_schema = merge_dicts(
         CRMFolder.class_schema,
-        crm_c_title=Unicode(source='metadata', stored=True, indexed=True),
         crm_c_address_1=Unicode(source='metadata'),
         crm_c_address_2=Unicode(source='metadata'),
         crm_c_zipcode=String(source='metadata'),
@@ -53,7 +52,6 @@ class Company(CRMFolder):
         crm_c_phone=Unicode(source='metadata'),
         crm_c_fax=Unicode(source='metadata'),
         crm_c_website=Unicode(source='metadata'),
-        crm_c_description=Unicode(source='metadata'),
         crm_c_activity=Unicode(source='metadata'),
         crm_c_logo=PathDataType(source='metadata', default='.'))
 
@@ -65,16 +63,11 @@ class Company(CRMFolder):
 
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
-        crm_c_title = self.get_title()
-        crm_c_description = self.get_value('crm_c_description')
-        document['crm_c_title'] = crm_c_title
-        values = [crm_c_title or '', crm_c_description or '']
+        title = self.get_title()
+        description = self.get_value('description')
+        values = [title or u'', description or u'']
         document['text'] = u' '.join(values)
         return document
-
-
-    def get_title(self, language=None):
-        return self.get_property('crm_c_title')
 
 
 

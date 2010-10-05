@@ -127,9 +127,9 @@ class Contact_AddForm(AutoForm):
         form = AutoForm._get_form(self, resource, context)
 
         # If title is defined, status is required
-        m_title = form['crm_m_title'].strip()
+        title = form['title'].strip()
         m_status = form['crm_m_status']
-        if m_title and m_status is None:
+        if title and m_status is None:
             raise FormError(invalid=['crm_m_status'])
 
         return form
@@ -162,7 +162,7 @@ class Contact_AddForm(AutoForm):
         # Add contact
         p_name = contacts.add_contact(p_values)
         # Add mission if title is defined
-        if m_values['crm_m_title']:
+        if m_values['title']:
             m_values['crm_m_contact'] = p_name
             m_name = missions.add_mission(m_values)
             mission = missions.get_resource(m_name)
@@ -254,7 +254,7 @@ class Contact_SearchMissions(SearchForm):
 
     table_columns = [
         ('icon', None, False),
-        ('crm_m_title', MSG(u'Title'), True),
+        ('title', MSG(u'Title'), True),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
@@ -314,7 +314,7 @@ class Contact_SearchMissions(SearchForm):
             value = get_value('crm_m_status')
             return m_status_icons[value]
         # FIXME
-        elif column == 'crm_m_title':
+        elif column == 'title':
             # Title
             return get_value(column), context.get_link(item_resource)
         elif column == 'status':
