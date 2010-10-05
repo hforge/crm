@@ -93,7 +93,8 @@ class CRMFolder(RoleAware, Folder):
                 continue
             if key == 'comment':
                 # Reset alerts?
-                if values['remove_previous_alerts']:
+                if (values['remove_previous_alerts']
+                        and values.get('alert_datetime')):
                     comments = self.metadata.get_property('comment') or []
                     for comment in comments:
                         comment.set_parameter('alert_datetime', None)
