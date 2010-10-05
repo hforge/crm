@@ -61,8 +61,9 @@ def get_form_values(form):
             values['alert_datetime'] = value
         elif key != 'alert_time':
             values[key] = value
-    # Commit empty comment with attachment
-    if values.get('comment') is None and values.get('attachment') is not None:
+    # Commit empty comment with attachment or alert
+    if values.get('comment') is None and (
+            values.get('attachment') or values.get('alert_datetime')):
         values['comment'] = u"_"
     return values
 
