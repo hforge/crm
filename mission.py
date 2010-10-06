@@ -90,9 +90,9 @@ class Mission(CRMFolder):
         contacts = self.parent.parent.get_resource('contacts')
         for contact_id in m_contact:
             contact = contacts.get_resource(contact_id)
-            values.append(contact.get_value('crm_p_lastname'))
-            values.append(contact.get_value('crm_p_firstname'))
-            title = contact.get_value('title')
+            values.append(contact.get_property('crm_p_lastname'))
+            values.append(contact.get_property('crm_p_firstname'))
+            title = contact.get_property('title')
             if title:
                 values.append(title)
         alert_datetime = self.find_alert_datetime()

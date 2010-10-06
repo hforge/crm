@@ -64,7 +64,7 @@ class Company(CRMFolder):
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
         title = self.get_title()
-        description = self.get_value('description')
+        description = self.get_property('description')
         values = [title or u'', description or u'']
         document['text'] = u' '.join(values)
         return document

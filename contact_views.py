@@ -202,16 +202,15 @@ class Contact_EditForm(AutoForm):
 
     def get_value(self, resource, context, name, datatype):
         if name == 'new_company_url':
-            value = '../../companies/;new_company'
-            return value
+            return '../../companies/;new_company'
         if name in self.get_query_schema():
             value = context.query[name]
             if value:
                 return context.query[name]
         if name == 'comment':
             return u''
-        value = resource.get_value(name)
-        return value if value is not None else datatype.default
+        value = resource.get_property(name)
+        return value if value is not None else datatype.get_default()
 
 
     def get_namespace(self, resource, context):
@@ -307,31 +306,31 @@ class Contact_SearchMissions(SearchForm):
         if column == 'checkbox':
             # checkbox
             return item_brain.name, False
-        get_value = item_resource.get_value
+        get_property = item_resource.get_property
         if column == 'icon':
             # Status
-            value = get_value('crm_m_status')
+            value = get_property('crm_m_status')
             return m_status_icons[value]
         # FIXME
         elif column == 'title':
             # Title
-            return get_value(column), context.get_link(item_resource)
+            return get_property(column), context.get_link(item_resource)
         elif column == 'status':
             # Status
-            return MissionStatus.get_value(get_value('crm_m_status'))
+            return MissionStatus.get_value(get_property('crm_m_status'))
         elif column == 'mtime':
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
         elif column == 'crm_m_amount':
-            value = get_value(column)
+            value = get_property(column)
             if value:
                 accept = context.accept_language
                 value = format_number(value, curr=u' €', accept=accept)
             return value
         elif column in ('crm_m_probability', 'crm_m_deadline',
                 'crm_m_nextaction'):
-            value = get_value(column)
+            value = get_property(column)
             return value
 
 

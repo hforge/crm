@@ -134,16 +134,16 @@ class CRM_SearchMissions(SearchForm):
         if column == 'checkbox':
             # checkbox
             return item_brain.name, False
-        get_value = item_resource.get_value
+        get_property = item_resource.get_property
         if column == 'icon':
             # Status
-            value = get_value('crm_m_status')
+            value = get_property('crm_m_status')
             return m_status_icons[value]
         elif column == 'title':
             href = context.get_link(item_resource)
             return item_brain.title, href
         elif column == 'crm_m_contacts':
-            values = get_value('crm_m_contact')
+            values = get_property('crm_m_contact')
             query = [PhraseQuery('name', name) for name in values]
             if len(query) == 1:
                 query = query[0]
@@ -160,7 +160,7 @@ class CRM_SearchMissions(SearchForm):
             return format_datetime(item_brain.mtime, accept=accept)
         elif column in ('crm_m_nextaction', 'crm_m_amount',
                 'crm_m_probability', 'crm_m_deadline'):
-            return get_value(column)
+            return get_property(column)
 
 
     def sort_and_batch(self, resource, context, results):
@@ -251,13 +251,13 @@ class CRM_SearchContacts(SearchForm):
             value = item_brain.crm_p_probable
             accept = context.accept_language
             return format_amount(value, accept)
-        get_value = item_resource.get_value
+        get_property = item_resource.get_property
         if column == 'icon':
             # Status
-            value = get_value('crm_p_status')
+            value = get_property('crm_p_status')
             return p_status_icons[value]
         elif column == 'crm_p_company':
-            company = get_value(column)
+            company = get_property(column)
             if company:
                 crm = get_crm(resource)
                 company_resource = crm.get_resource('companies/%s' % company)
@@ -265,19 +265,17 @@ class CRM_SearchContacts(SearchForm):
                 title = company_resource.get_title()
                 return title, href
             else:
-                return ''
+                return u''
         elif column == 'crm_p_lastname':
             href = '%s/' % context.get_link(item_resource)
-            return get_value(column), href
+            return get_property(column), href
         elif column == 'crm_p_firstname':
             href = '%s/' % context.get_link(item_resource)
-            return get_value(column), href
-        elif column == 'crm_p_phone':
-            return get_value(column)
-        elif column == 'crm_p_mobile':
-            return get_value(column)
+            return get_property(column), href
+        elif column in ('crm_p_phone', 'crm_p_mobile'):
+            return get_property(column)
         elif column == 'crm_p_email':
-            value = get_value(column)
+            value = get_property(column)
             href = 'mailto:%s' % value
             return value, href
         elif column == 'mtime':
@@ -351,23 +349,23 @@ class CRM_ExportToCSV(BaseView):
 
     def get_mission_infos(self, resource, mission):
         infos = []
-        contact = mission.get_value('crm_m_contact')[0]
+        contact = mission.get_property('crm_m_contact')[0]
         contact = resource.get_resource('contacts/%s' % contact)
-        get_value = contact.get_value
+        get_property = contact.get_property
         # Contact
-        infos.append(get_value('crm_p_lastname'))
-        infos.append(get_value('crm_p_firstname') or '')
-        p_company = get_value('crm_p_company')
+        infos.append(get_property('crm_p_lastname'))
+        infos.append(get_property('crm_p_firstname') or '')
+        p_company = get_property('crm_p_company')
         if p_company:
             company = resource.get_resource('companies/%s' % p_company)
-            infos.append(company.get_value('title'))
-        infos.append(get_value('crm_p_status'))
+            infos.append(company.get_property('title'))
+        infos.append(get_property('crm_p_status'))
 
         # Mission
-        for property in ('title', 'crm_m_amount', 'crm_m_probability',
+        for name in ('title', 'crm_m_amount', 'crm_m_probability',
                 'crm_m_status', 'crm_m_deadline'):
-            property = mission.get_value(property)
-            infos.append(property or '')
+            value = mission.get_property(name) or u''
+            infos.append(value)
         return infos
 
 
@@ -508,22 +506,22 @@ class CRM_Alerts(SearchForm):
             href = 'missions/%s' % mission.name
             return path_to_icon
         elif column in ('crm_p_lastname', 'crm_p_firstname'):
-            contact = mission.get_value('crm_m_contact')[0]
+            contact = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/%s' % contact)
-            value = contact.get_value(column)
+            value = contact.get_property(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(contact)
                 return value, href
             return value
         elif column == 'crm_p_company':
-            contact = mission.get_value('crm_m_contact')[0]
+            contact = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/%s' % contact)
-            company_name = contact.get_value(column)
+            company_name = contact.get_property(column)
             company = mission.get_resource('../../companies/%s' % company_name)
             title = company.get_title()
             return title
         elif column == 'title':
-            value = mission.get_value(column)
+            value = mission.get_property(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(mission)
                 return value, href

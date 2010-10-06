@@ -76,31 +76,31 @@ class Contact(CRMFolder):
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
         crm = self.parent.parent
-        get_value = self.get_value
+        get_property = self.get_property
 
-        document['crm_p_lastname'] = get_value('crm_p_lastname')
+        document['crm_p_lastname'] = get_property('crm_p_lastname')
         # Index company name and index company title as text
-        company_name = get_value('crm_p_company')
+        company_name = get_property('crm_p_company')
         title = u''
         if company_name:
             document['crm_p_company'] = company_name
             company = crm.get_resource('companies/%s' % company_name)
             try:
-                title = company.get_value('title')
+                title = company.get_property('title')
             except AttributeError:
                 pass
         # Index lastname, firstname, email and comment as text
         values = [title or u'']
-        values.append(get_value('crm_p_lastname') or u'')
-        values.append(get_value('crm_p_firstname') or u'')
-        values.append(get_value('crm_p_email') or u'')
-        values.append(get_value('crm_p_description') or u'')
-        values.append(get_value('crm_p_comment') or u'')
+        values.append(get_property('crm_p_lastname') or u'')
+        values.append(get_property('crm_p_firstname') or u'')
+        values.append(get_property('crm_p_email') or u'')
+        values.append(get_property('crm_p_description') or u'')
+        values.append(get_property('crm_p_comment') or u'')
         # Index all comments as 'text', and check any alert
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index status
-        document['crm_p_status'] = get_value('crm_p_status')
+        document['crm_p_status'] = get_property('crm_p_status')
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
@@ -112,22 +112,22 @@ class Contact(CRMFolder):
         missions = crm.get_resource('missions')
         contact = self.name
         for mission in missions.get_resources():
-            get_value = mission.get_value
-            if contact not in get_value('crm_m_contact'):
+            get_property = mission.get_property
+            if contact not in get_property('crm_m_contact'):
                 continue
-            status = get_value('crm_m_status')
+            status = get_property('crm_m_status')
             if status:
                 key = 'crm_p_%s' % status
                 document[key] += 1
             if status == 'nogo':
                 continue
             # Get mission amount
-            m_amount = (get_value('crm_m_amount') or 0)
+            m_amount = (get_property('crm_m_amount') or 0)
             if status == 'project':
                 p_assured += m_amount
             else:
                 # Get mission probability
-                m_probability = (get_value('crm_m_probability')or 0)
+                m_probability = (get_property('crm_m_probability')or 0)
                 value = (m_probability * m_amount) / cent
                 p_probable += value
         document['crm_p_assured'] = p_assured
@@ -148,14 +148,14 @@ class Contact(CRMFolder):
 
 
     def get_title(self, language=None):
-        p_lastname = self.get_value('crm_p_lastname')
-        p_firstname = self.get_value('crm_p_firstname')
-        p_company = self.get_value('crm_p_company') or ''
+        p_lastname = self.get_property('crm_p_lastname')
+        p_firstname = self.get_property('crm_p_firstname')
+        p_company = self.get_property('crm_p_company') or u''
         if p_company:
             company = self.get_resource('../../companies/%s' % p_company,
-                                            soft=True)
-            p_company =  u' (%s)' % company.get_title() if company else ''
-        return '%s %s%s' % (p_lastname, p_firstname, p_company)
+                    soft=True)
+            p_company =  u' (%s)' % company.get_title() if company else u''
+        return u'%s %s%s' % (p_lastname, p_firstname, p_company)
 
 
     def update_20100921(self):

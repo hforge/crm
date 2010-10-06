@@ -57,31 +57,6 @@ class CRMFolder(RoleAware, Folder):
         self.set_property('admins', tuple(admins))
 
 
-    def get_value(self, name, record=None, context=None):
-        cls_contact = get_resource_class('contact')
-        # Get company values from current contact
-        if isinstance(self, cls_contact) and name.startswith('crm_c_'):
-            company = self.get_property('crm_p_company')
-            if company:
-                company = self.get_resource('../../companies/%s' % company)
-                value = company.get_value(name, None, context)
-                return value
-            return None
-        # Return date or time only
-        if name == 'alert_date':
-            alert_datetime = self.find_alert_datetime()
-            if alert_datetime:
-                return alert_datetime.date()
-            return None
-        elif name == 'alert_time':
-            alert_datetime = self.find_alert_datetime()
-            if alert_datetime:
-                return alert_datetime.time()
-            return None
-        # Return value
-        return self.get_property(name)
-
-
     def is_allowed_to_edit(self, user, resource):
         # Anonymous can touch nothing
         if user is None:
