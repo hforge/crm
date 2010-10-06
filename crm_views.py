@@ -506,8 +506,8 @@ class CRM_Alerts(SearchForm):
             href = 'missions/%s' % mission.name
             return path_to_icon
         elif column in ('crm_p_lastname', 'crm_p_firstname'):
-            contact = mission.get_property('crm_m_contact')[0]
-            contact = resource.get_resource('contacts/%s' % contact)
+            contact_id = mission.get_property('crm_m_contact')[0]
+            contact = resource.get_resource('contacts/%s' % contact_id)
             value = contact.get_property(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(contact)

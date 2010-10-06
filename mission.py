@@ -127,7 +127,7 @@ class Mission(CRMFolder):
             m_nextaction = comment.get_parameter('crm_m_nextaction')
             if m_nextaction:
                 return m_nextaction
-        return None
+        return u""
 
 
     def remove_alerts(self):
