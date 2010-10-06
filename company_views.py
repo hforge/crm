@@ -88,11 +88,6 @@ class Company_EditForm(AutoForm):
         return company_widgets[:]
 
 
-    def get_value(self, resource, context, name, datatype):
-        value = resource.get_value(name)
-        return value if value is not None else datatype.default
-
-
     def action(self, resource, context, form):
         values = get_form_values(form)
         resource._update(values, context)

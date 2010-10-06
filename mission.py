@@ -130,6 +130,13 @@ class Mission(CRMFolder):
         return None
 
 
+    def remove_alerts(self):
+        comments = self.metadata.get_property('comment') or []
+        for comment in comments:
+            comment.set_parameter('alert_datetime', None)
+        self.metadata.set_property('comment', comments)
+
+
     def update_20100923(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """
@@ -158,8 +165,7 @@ class Missions(Folder):
     view_contact = Mission_ViewContact()
 
 
-    def add_mission(self, values):
+    def add_mission(self, **kw):
         names = self.get_names()
         name = generate_code(names, 'm%06d')
-        self.make_resource(name, Mission, **values)
-        return name
+        return self.make_resource(name, Mission, **kw)

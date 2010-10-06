@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import datetime, time
 from decimal import Decimal as dec
 
 # Import from itools
@@ -50,21 +49,13 @@ def format_amount(str_value, accept):
     return format_number(value, curr=u' k€', accept=accept)
 
 
+# TODO delete
 def get_form_values(form):
     values = {}
     for key, value in form.iteritems():
         if not value:
             continue
-        if key == 'alert_date':
-            value_time = form.get('alert_time', None) or time(9, 0)
-            value = datetime.combine(value, value_time)
-            values['alert_datetime'] = value
-        elif key != 'alert_time':
-            values[key] = value
-    # Commit empty comment with attachment or alert
-    if values.get('comment') is None and (
-            values.get('attachment') or values.get('alert_datetime')):
-        values['comment'] = u"_"
+        values[key] = value
     return values
 
 

@@ -20,8 +20,6 @@
 from itools.core import merge_dicts
 from itools.csv import Property
 from itools.datatypes import PathDataType, Unicode
-from itools.handlers import checkid
-from itools.fs import FileName
 from itools.uri import get_reference, Path
 from itools.web import get_context
 
@@ -29,7 +27,6 @@ from itools.web import get_context
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 from ikaaro.registry import get_resource_class
-from ikaaro.utils import generate_name
 
 # Import from crm
 from base_views import CRMFolder_AddImage
@@ -83,55 +80,6 @@ class CRMFolder(RoleAware, Folder):
             return None
         # Return value
         return self.get_property(name)
-
-
-    def _update(self, values, context=None):
-        """ Update metadata. """
-        for key in self.class_schema:
-            value = values.get(key)
-            if value is None:
-                continue
-            if key == 'comment':
-                # Reset alerts?
-                if (values['remove_previous_alerts']
-                        and values.get('alert_datetime')):
-                    comments = self.metadata.get_property('comment') or []
-                    for comment in comments:
-                        comment.set_parameter('alert_datetime', None)
-                    self.metadata.set_property('comment', comments)
-                # Date
-                date = context.timestamp
-                # Author
-                user = context.user
-                author = user.name if user else None
-                # Attachment
-                attachment = values.get('attachment') or None
-                if attachment is not None:
-                    filename, mimetype, body = attachment
-                    # Find a non used name
-                    name = checkid(filename)
-                    name, extension, language = FileName.decode(name)
-                    name = generate_name(name, self.get_names())
-                    # Add attachment
-                    cls = get_resource_class(mimetype)
-                    self.make_resource(name, cls, body=body,
-                        filename=filename, extension=extension,
-                        format=mimetype)
-                    # Link
-                    attachment = name
-                # Next action
-                crm_m_nextaction = values.get('crm_m_nextaction')
-                # Alert
-                alert_datetime = values.get('alert_datetime')
-                value = Property(value, date=date, author=author,
-                        attachment=attachment,
-                        crm_m_nextaction=crm_m_nextaction,
-                        alert_datetime=alert_datetime)
-            self.metadata.set_property(key, value)
-
-        if context is not None:
-            context.database.change_resource(self)
-
 
 
     def is_allowed_to_edit(self, user, resource):

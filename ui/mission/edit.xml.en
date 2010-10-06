@@ -8,31 +8,32 @@
   enctype="multipart/form-data" stl:omit-tag="not actions">
   <fieldset>
     <legend>${title}</legend>
+    ${widgets/timestamp/widget}
     <table cellpadding="0" cellspacing="5">
       <tbody>
         <!-- MISSION TITLE AND DESCRIPTION -->
         <tr id="edit-mission-title">
           <td>
-            <label for="${title/name}">
-              ${title/title}
+            <label for="${widgets/title/name}">
+              ${widgets/title/title}
             </label>
           </td>
           <td colspan="5">
-            <span stl:if="title/error"
-              class="field-error">${title/error}<br/></span>
-            ${title/widget}
+            <span stl:if="widgets/title/error"
+              class="field-error">${widgets/title/error}<br/></span>
+            ${widgets/title/widget}
           </td>
         </tr>
         <tr id="edit-mission-description">
           <td>
-            <label for="${description/name}">
-              ${description/title}
+            <label for="${widgets/description/name}">
+              ${widgets/description/title}
             </label>
           </td>
           <td colspan="5">
-            <span stl:if="description/error"
-              class="field-error">${description/error}<br/></span>
-            ${description/widget}
+            <span stl:if="widgets/description/error"
+              class="field-error">${widgets/description/error}<br/></span>
+            ${widgets/description/widget}
           </td>
         </tr>
         <!-- COMMENT BLOCK -->
@@ -43,59 +44,59 @@
               <table cellpadding="0" cellspacing="5">
                 <tr>
                   <td>
-                    <label for="${comment/name}">
-                      ${comment/title}
+                    <label for="${widgets/comment/name}">
+                      ${widgets/comment/title}
                     </label>
                   </td>
                   <td>
-                    <span stl:if="comment/error"
-                      class="field-error">${comment/error}<br/></span>
-                    ${comment/widget}
+                    <span stl:if="widgets/comment/error"
+                      class="field-error">${widgets/comment/error}<br/></span>
+                    ${widgets/comment/widget}
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <label for="${crm_m_nextaction/name}">
-                      ${crm_m_nextaction/title}
+                    <label for="${widgets/crm_m_nextaction/name}">
+                      ${widgets/crm_m_nextaction/title}
                     </label>
                   </td>
                   <td>
-                    <span stl:if="crm_m_nextaction/error"
-                      class="field-error">${crm_m_nextaction/error}<br/></span>
-                    ${crm_m_nextaction/widget}
+                    <span stl:if="widgets/crm_m_nextaction/error"
+                      class="field-error">${widgets/crm_m_nextaction/error}<br/></span>
+                    ${widgets/crm_m_nextaction/widget}
                   </td>
                 </tr>
                 <!-- ATTACHMENT -->
                 <tr>
                   <td>
-                    <label for="${attachment/name}">
-                      ${attachment/title}
+                    <label for="${widgets/attachment/name}">
+                      ${widgets/attachment/title}
                     </label>
                   </td>
                   <td>
-                    <span stl:if="attachment/error"
-                      class="field-error">${attachment/error}<br/></span>
-                    ${attachment/widget}
+                    <span stl:if="widgets/attachment/error"
+                      class="field-error">${widgets/attachment/error}<br/></span>
+                    ${widgets/attachment/widget}
                   </td>
                 </tr>
                 <!-- ALERT -->
                 <tr>
                   <td>
                     <img src="/ui/crm/images/1240913081_bell_add.png" />
-                    <label for="${alert_date/name}">
-                      ${alert_date/title}
+                    <label for="${widgets/alert_date/name}">
+                      ${widgets/alert_date/title}
                     </label>
                   </td>
                   <td>
-                    <span stl:if="alert_date/error"
-                      class="field-error">${alert_date/error}<br/></span>
-                    ${alert_date/widget}
-                    <label for="${alert_time/name}">
-                      ${alert_time/title}
+                    <span stl:if="widgets/alert_date/error"
+                      class="field-error">${widgets/alert_date/error}<br/></span>
+                    ${widgets/alert_date/widget}
+                    <label for="${widgets/alert_time/name}">
+                      ${widgets/alert_time/title}
                     </label>
-                    <span stl:if="alert_time/error"
-                      class="field-error">${alert_time/error}<br/></span>
-                    ${alert_time/widget}
+                    <span stl:if="widgets/alert_time/error"
+                      class="field-error">${widgets/alert_time/error}<br/></span>
+                    ${widgets/alert_time/widget}
                     <input type="checkbox" name="remove_previous_alerts"
                     value="1" checked="checked"/>Remove previous alerts
                   </td>
@@ -106,68 +107,68 @@
         </tr>
         <tr>
           <td>
-            <label for="${crm_m_assigned/name}">
-              ${crm_m_assigned/title}
+            <label for="${widgets/crm_m_assigned/name}">
+              ${widgets/crm_m_assigned/title}
             </label>
           </td>
           <td colspan="2">
-            <span stl:if="crm_m_assigned/error"
-              class="field-error">${crm_m_assigned/error}<br/></span>
-            ${crm_m_assigned/widget}
+            <span stl:if="widgets/crm_m_assigned/error"
+              class="field-error">${widgets/crm_m_assigned/error}<br/></span>
+            ${widgets/crm_m_assigned/widget}
           </td>
           <td>
-            <label for="${crm_m_cc/name}">
-              ${crm_m_cc/title}
+            <label for="${widgets/crm_m_cc/name}">
+              ${widgets/crm_m_cc/title}
             </label>
           </td>
           <td colspan="2">
-            <span stl:if="crm_m_cc/error"
-              class="field-error">${crm_m_cc/error}<br/></span>
-            ${crm_m_cc/widget}
+            <span stl:if="widgets/crm_m_cc/error"
+              class="field-error">${widgets/crm_m_cc/error}<br/></span>
+            ${widgets/crm_m_cc/widget}
           </td>
         </tr>
         <tr>
           <td>
-            <label for="${crm_m_status/name}">
-              ${crm_m_status/title}
+            <label for="${widgets/crm_m_status/name}">
+              ${widgets/crm_m_status/title}
             </label>
           </td>
           <td colspan="2">
-            <span stl:if="crm_m_status/error"
-              class="field-error">${crm_m_status/error}<br/></span>
-            ${crm_m_status/widget}
+            <span stl:if="widgets/crm_m_status/error"
+              class="field-error">${widgets/crm_m_status/error}<br/></span>
+            ${widgets/crm_m_status/widget}
           </td>
           <td>
-            <label for="${crm_m_deadline/name}">
-              ${crm_m_deadline/title}
+            <label for="${widgets/crm_m_deadline/name}">
+              ${widgets/crm_m_deadline/title}
             </label>
           </td>
           <td>
-            <span stl:if="crm_m_deadline/error"
-              class="field-error">${crm_m_deadline/error}<br/></span>
-            ${crm_m_deadline/widget}
+            <span stl:if="widgets/crm_m_deadline/error"
+              class="field-error">${widgets/crm_m_deadline/error}<br/></span>
+            ${widgets/crm_m_deadline/widget}
           </td>
         </tr>
         <tr>
           <td>
-            <label for="${crm_m_amount/name}">
-              ${crm_m_amount/title}
+            <label for="${widgets/crm_m_amount/name}">
+              ${widgets/crm_m_amount/title}
             </label>
           </td>
           <td class="amount">
-            <span stl:if="crm_m_amount/error"
-              class="field-error">${crm_m_amount/error}<br/></span>
-            ${crm_m_amount/widget}
+            <span stl:if="widgets/crm_m_amount/error"
+              class="field-error">${widgets/crm_m_amount/error}<br/></span>
+            ${widgets/crm_m_amount/widget}
           </td>
           <td>
-            <label for="${crm_m_probability/name}">
-              ${crm_m_probability/title}
+            <label for="${widgets/crm_m_probability/name}">
+              ${widgets/crm_m_probability/title}
             </label>
           </td>
           <td class="amount">
-            <span stl:if="crm_m_probability/error"
-              class="field-error">${crm_m_probability/error}<br/></span>
-            ${crm_m_probability/widget}&nbsp;%
+            <span stl:if="widgets/crm_m_probability/error"
+              class="field-error">${widgets/crm_m_probability/error}<br/></span>
+            ${widgets/crm_m_probability/widget}&nbsp;%
           </td>
         </tr>
       </tbody>

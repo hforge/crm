@@ -106,7 +106,7 @@ class Contact_AddForm(AutoForm):
         if name == 'new_company_url':
             value = '../companies/;new_company'
             return value
-        if name in self.get_query_schema():
+        elif name in self.get_query_schema():
             value = context.query[name]
             if value is not None:
                 return context.query[name]
@@ -160,17 +160,16 @@ class Contact_AddForm(AutoForm):
             elif key.startswith('crm_m_'):
                 m_values[key] = value
         # Add contact
-        p_name = contacts.add_contact(p_values)
+        contact = contacts.add_contact(p_values)
         # Add mission if title is defined
         if m_values['title']:
-            m_values['crm_m_contact'] = p_name
-            m_name = missions.add_mission(m_values)
-            mission = missions.get_resource(m_name)
+            m_values['crm_m_contact'] = contact.name
+            mission = missions.add_mission(**m_values)
             changes = get_changes(mission, context, form, new=True)
             send_notification(mission, context, form, changes, new=True)
-            goto = '%s/missions/%s/' % (context.get_link(crm), m_name)
+            goto = context.get_link(mission)
         else:
-            goto = '%s/contacts/%s/' % (context.get_link(crm), p_name)
+            goto = context.get_link(contact)
 
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 

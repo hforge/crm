@@ -15,14 +15,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import datetime
+from datetime import datetime, time
 
 # Import from itools
 from itools.core import merge_dicts
+from itools.csv import Property
 from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
 from itools.datatypes import String, Unicode, Boolean
 from itools.gettext import MSG
+from itools.handlers import checkid
+from itools.fs import FileName
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.web import BaseForm, ERROR, get_context
@@ -33,12 +36,14 @@ from ikaaro.autoform import AutoForm, DateWidget, MultilineWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
 from ikaaro.autoform import CheckboxWidget
 from ikaaro.cc import UsersList
-from ikaaro.datatypes import FileDataType
+from ikaaro.datatypes import FileDataType, Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
+from ikaaro.registry import get_resource_class
+from ikaaro.resource_views import DBResource_Edit
+from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import get_form_values
 from base_views import Comments_View
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
@@ -63,29 +68,24 @@ BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 You are receiving this e-mail because you are in CC.''')
 
 
-mission_schema = {
-    # First mission
-    'title': Unicode,
-    'description': Unicode,
-    'comment': Unicode,
-    'crm_m_nextaction': Unicode,
-    'attachment': FileDataType,
-    'alert_date': Date,
-    'alert_time': Time,
-    'remove_previous_alerts': Boolean,
+mission_schema = merge_dicts(DBResource_Edit.schema,
+    description=Multilingual(hidden_by_default=False),
+    comment=Unicode,
+    crm_m_nextaction=Unicode,
+    attachment=FileDataType,
+    alert_date=Date,
+    alert_time=Time,
+    remove_previous_alerts=Boolean,
     # XXX must add resource in "get_schema"
-    'crm_m_assigned': UsersList,
-    'crm_m_cc': UsersList(multiple=True),
-    'crm_m_status': MissionStatus,
-    'crm_m_deadline': Date,
-    'crm_m_amount': Decimal,
-    'crm_m_probability': Integer}
+    crm_m_assigned=UsersList,
+    crm_m_cc=UsersList(multiple=True),
+    crm_m_status=MissionStatus,
+    crm_m_deadline=Date,
+    crm_m_amount=Decimal,
+    crm_m_probability=Integer)
 
 
-mission_widgets = [
-    # First mission
-    TextWidget('title', title=MSG(u'Title')),
-    MultilineWidget('description', title=MSG(u'Description'), rows=4),
+mission_widgets = DBResource_Edit.widgets[:3] + [
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
     TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
@@ -109,15 +109,17 @@ mission_widgets = [
 def get_changes(resource, context, form, new=False):
     root = context.root
     changes = []
-    for key in mission_schema:
+    for key, datatype in mission_schema.iteritems():
         # Comment is treated separately
-        if key == 'comment':
+        if key in ('comment', 'subject', 'timestamp'):
             continue
         new_value = form[key]
+        if type(new_value) is dict:
+            language, new_value = new_value.popitem()
         if new:
-            old_value = mission_schema[key].get_default()
+            old_value = datatype.get_default()
         else:
-            old_value = resource.get_value(key)
+            old_value = resource.get_property(key)
         if new_value == old_value:
             continue
         # Find widget title
@@ -189,8 +191,8 @@ def get_changes(resource, context, form, new=False):
             changes.append(CHANGES_LINE.gettext(what=title,
                 removed=removed, added=added))
         elif key == 'alert_time':
-            removed = mission_schema['alert_time'].encode(old_value)
-            added = mission_schema['alert_time'].encode(new_value)
+            removed = datatype.encode(old_value)
+            added = datatype.encode(new_value)
             changes.append(CHANGES_LINE.gettext(what=title,
                 removed=removed, added=added))
         else:
@@ -260,6 +262,13 @@ class ButtonAddContact(BrowseButton):
 
 
 
+class ButtonAddMission(Button):
+    name = 'add_mission'
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Add mission')
+
+
+
 class ButtonUpdate(Button):
     name = 'update_mission'
     access = 'is_allowed_to_edit'
@@ -267,9 +276,7 @@ class ButtonUpdate(Button):
 
 
 
-class Mission_EditForm(AutoForm):
-
-    access = 'is_allowed_to_edit'
+class Mission_EditForm(DBResource_Edit):
     title = MSG(u'Edit mission')
     template = '/ui/crm/mission/edit.xml'
     actions = [ButtonUpdate()]
@@ -278,7 +285,7 @@ class Mission_EditForm(AutoForm):
         return mission_schema.copy()
 
 
-    def get_schema(self, resource, context):
+    def _get_schema(self, resource, context):
         # title and crm_m_status are mandatory
         return merge_dicts(mission_schema,
                 title=mission_schema['title'](mandatory=True),
@@ -288,39 +295,46 @@ class Mission_EditForm(AutoForm):
                 crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
 
 
-    def get_widgets(self, resource, context):
+    def _get_widgets(self, resource, context):
         return mission_widgets[:]
 
 
     def get_value(self, resource, context, name, datatype):
         if name in ('alert_date', 'alert_time'):
-            return datatype.default
-        elif name == 'comment':
-            return context.query.get(name) or u''
-        elif name == 'attachment':
-            return context.query.get(name) or ''
-        value = resource.get_value(name)
-        return value if value is not None else datatype.default
+            return datatype.get_default()
+        elif name in ('comment', 'attachment'):
+            return context.query.get(name) or datatype.get_default()
+        elif name == 'crm_m_nextaction':
+            return resource.find_next_action()
+        elif name == 'remove_previous_alerts':
+            return True
+        return DBResource_Edit.get_value(self, resource, context, name,
+                datatype)
+
+
+    def is_edit(self, context):
+        return context.method == 'POST'
 
 
     def get_namespace(self, resource, context):
         # Build namespace
         namespace = AutoForm.get_namespace(self, resource, context)
-        submit = (context.method == 'POST')
 
         # Modify widgets namespace to change template
-        for index, widget in enumerate(namespace['widgets']):
-            name = self.get_widgets(resource, context)[index].name
+        widgets = {}
+        for widget in namespace['widgets']:
             # XXX multilingual to monolingual
-            widget['widget'] = widget['widgets'][0]
+            name = widget['name'].split(':')[0]
+            widget['widget'] = widget['widgets'].pop(0)
             # Reset comment
-            if submit and name == 'comment':
+            if name == 'comment' and self.is_edit(context):
                 widget['value'] = ''
                 comment_widget = MultilineWidget('comment',
                         title=MSG(u'Comment'), rows=3, datatype=Unicode,
                         value=u'')
                 widget['widget'] = comment_widget.render()
-            namespace[name] = widget
+            widgets[name] = widget
+        namespace['widgets'] = widgets
         return namespace
 
 
@@ -329,20 +343,66 @@ class Mission_EditForm(AutoForm):
         changes = get_changes(resource, context, form)
 
         # Save changes
-        values = get_form_values(form)
-        resource._update(values, context)
+        DBResource_Edit.action(self, resource, context, form)
+        if type(context.message) is ERROR:
+            return
 
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
         crm = get_crm(resource)
         contacts = crm.get_resource('contacts')
-        for contact_id in resource.get_value('crm_m_contact'):
+        for contact_id in resource.get_property('crm_m_contact'):
             contact = contacts.get_resource(contact_id)
             context.database.change_resource(contact)
 
-        context.message = MSG_CHANGES_SAVED
-
         # Send notification to CC
         send_notification(resource, context, form, changes)
+
+
+    def set_value(self, resource, context, name, form):
+        if name in ('attachment', 'crm_m_nextaction', 'alert_date',
+                'alert_time', 'remove_previous_alerts'):
+            return False
+        elif name == 'comment':
+            # Attachment
+            attachment = form['attachment']
+            if attachment is not None:
+                filename, mimetype, body = attachment
+                # Find a non used name
+                attachment = checkid(filename)
+                attachment, extension, language = FileName.decode(attachment)
+                attachment = generate_name(attachment, resource.get_names())
+                # Add attachment
+                cls = get_resource_class(mimetype)
+                resource.make_resource(attachment, cls, body=body,
+                    filename=filename, extension=extension,
+                    format=mimetype)
+            # Next action
+            m_nextaction = form['crm_m_nextaction'] or None
+            # Alert
+            alert_date = form['alert_date']
+            if alert_date:
+                alert_time = form['alert_time'] or time(9, 0)
+                alert_datetime = datetime.combine(alert_date, alert_time)
+            else:
+                alert_datetime = None
+            # Value
+            value = form[name]
+            if not value:
+                if attachment or m_nextaction or alert_time:
+                    value = u"_"
+                else:
+                    return False
+            # Reset alerts?
+            if form['remove_previous_alerts'] and form['alert_date']:
+                resource.remove_alerts()
+            user = context.user
+            author = user.name if user else None
+            value = Property(value, date=context.timestamp, author=author,
+                    attachment=attachment, crm_m_nextaction=m_nextaction,
+                    alert_datetime=alert_datetime)
+            resource.metadata.set_property(name, value)
+            return False
+        return DBResource_Edit.set_value(self, resource, context, name, form)
 
 
 
@@ -365,38 +425,44 @@ class CancelAlert(BaseForm):
 
 
 class Mission_AddForm(Mission_EditForm):
-
     title = MSG(u'New mission')
+    actions = [ButtonAddMission()]
+
 
     def get_query_schema(self):
         # Add mandatory crm_m_contact to query schema
         return merge_dicts(mission_schema,
-                           crm_m_contact=ContactName(mandatory=True))
+                crm_m_contact=ContactName(mandatory=True, multiple=True))
 
 
     def get_value(self, resource, context, name, datatype):
-        return context.query.get(name) or datatype.default
+        query = context.query
+        if not getattr(datatype, 'multilingual', False):
+            return query.get(name) or datatype.get_default()
+
+        value = {}
+        for language in resource.get_edit_languages(context):
+            value[language] = query.get(name) or datatype.get_default()
+        return value
+
+
+    def check_edit_conflict(self, resource, context, form):
+        context.edit_conflict = False
+
+
+    def is_edit(self, context):
+        return False
 
 
     def action(self, resource, context, form):
-        # Get crm_m_contact from the query
-        form['crm_m_contact'] = context.query['crm_m_contact']
-        values = get_form_values(form)
-        name = resource.add_mission(values)
-        mission = resource.get_resource(name)
+        m_values = {'crm_m_contact': context.query['crm_m_contact']}
+        mission = resource.add_mission(**m_values)
 
-        # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
-        crm = get_crm(resource)
-        contact_id = values.get('crm_m_contact')
-        contact = crm.get_resource('contacts/' + contact_id)
-        context.database.change_resource(contact)
+        Mission_EditForm.action(self, mission, context, form)
+        if type(context.message) is ERROR:
+            return
 
-        # First compute differences
-        changes = get_changes(mission, context, form, new=True)
-        # Send notification to CC
-        send_notification(mission, context, form, changes, new=True)
-
-        goto = './%s' % name
+        goto = context.get_link(mission)
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
 
 
@@ -420,7 +486,7 @@ class Mission_ViewContacts(CRM_SearchContacts):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        m_contact = resource.get_value('crm_m_contact')
+        m_contact = resource.get_property('crm_m_contact')
         if len(m_contact) == 1:
             args.append(PhraseQuery('name', m_contact[0]))
         elif len(m_contact) > 1:
@@ -466,7 +532,7 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 
     def action_remove(self, resource, context, form):
-        m_contact = resource.get_value('crm_m_contact')
+        m_contact = resource.metadata.get_property('crm_m_contact')
 
         for contact_id in form.get('ids', []):
             try:
@@ -475,13 +541,12 @@ class Mission_EditContacts(Mission_ViewContacts):
                 pass
 
         if len(m_contact) == 0:
-            msg = ERROR(u'At least one contact is required')
-        else:
-            # Apply change
-            resource._update({'crm_m_contact': m_contact})
-            msg = MSG_CHANGES_SAVED
+            context.message = ERROR(u'At least one contact is required')
+            return
 
-        context.message = msg
+        # Apply change
+        resource.metadata.set_property('crm_m_contact', m_contact)
+        context.message = MSG_CHANGES_SAVED
 
 
 
@@ -503,7 +568,7 @@ class Mission_AddContacts(CRM_SearchContacts):
         if m_contact:
             crm = get_crm(resource)
             contact = crm.get_resource('contacts/' + m_contact[0])
-            company = contact.get_value('title')
+            company = contact.get_property('title')
         return merge_dicts(CRM_SearchContacts.get_query_schema(self),
                 search_term=Unicode(default=company))
 
@@ -525,7 +590,7 @@ class Mission_AddContacts(CRM_SearchContacts):
 
     def action_add_contact(self, resource, context, form):
         # Save changes
-        m_contact = resource.get_value('crm_m_contact')
+        m_contact = resource.get_property('crm_m_contact')
         m_contact = list(set(m_contact + form['ids']))
         resource._update({'crm_m_contact': m_contact})
 
@@ -551,7 +616,7 @@ class Mission_View(CompositeForm):
     subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
 
     def get_namespace(self, resource, context):
-        title = resource.get_value('title')
+        title = resource.get_property('title')
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_contacts = resource.view_contacts.GET(resource, context)

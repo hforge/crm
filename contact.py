@@ -34,7 +34,7 @@ from base_views import Comments_View
 from contact_views import Contact_AddForm, Contact_EditForm, Contact_View
 from contact_views import Contact_SearchMissions, Contact_ViewMissions
 from mission_views import Mission_EditForm
-from utils import generate_code, get_crm
+from utils import generate_code
 
 
 class Contact(CRMFolder):
@@ -75,7 +75,7 @@ class Contact(CRMFolder):
 
     def get_catalog_values(self):
         document = Folder.get_catalog_values(self)
-        crm = get_crm(self)
+        crm = self.parent.parent
         get_value = self.get_value
 
         document['crm_p_lastname'] = get_value('crm_p_lastname')
@@ -183,8 +183,7 @@ class Contacts(Folder):
     def add_contact(self, values):
         names = self.get_names()
         name = generate_code(names, 'c%06d')
-        self.make_resource(name, Contact, **values)
-        return name
+        return self.make_resource(name, Contact, **values)
 
 
     def update_20100921(self):
