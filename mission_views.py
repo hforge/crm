@@ -44,7 +44,7 @@ from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import Comments_View
+from base_views import Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
 from utils import get_crm
@@ -424,7 +424,7 @@ class CancelAlert(BaseForm):
 
 
 
-class Mission_AddForm(Mission_EditForm):
+class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
     title = MSG(u'New mission')
     actions = [ButtonAddMission()]
 
@@ -433,21 +433,6 @@ class Mission_AddForm(Mission_EditForm):
         # Add mandatory crm_m_contact to query schema
         return merge_dicts(mission_schema,
                 crm_m_contact=ContactName(mandatory=True, multiple=True))
-
-
-    def get_value(self, resource, context, name, datatype):
-        query = context.query
-        if not getattr(datatype, 'multilingual', False):
-            return query.get(name) or datatype.get_default()
-
-        value = {}
-        for language in resource.get_edit_languages(context):
-            value[language] = query.get(name) or datatype.get_default()
-        return value
-
-
-    def check_edit_conflict(self, resource, context, form):
-        context.edit_conflict = False
 
 
     def is_edit(self, context):
@@ -507,7 +492,7 @@ class Mission_ViewContact(Mission_ViewContacts):
 
     def get_items(self, resource, context, *args):
         args = list(args)
-        contact = context.query['crm_m_contact']
+        contact = context.query['crm_m_contact'][0]
         args.append(PhraseQuery('name', contact))
         return CRM_SearchContacts.get_items(self, resource, context, *args)
 

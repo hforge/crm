@@ -26,7 +26,6 @@ from itools.web import get_context
 # Import from ikaaro
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
-from ikaaro.registry import get_resource_class
 
 # Import from crm
 from base_views import CRMFolder_AddImage

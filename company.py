@@ -88,8 +88,7 @@ class Companies(Folder):
     add_logo = CRMFolder_AddImage()
 
 
-    def add_company(self, values):
+    def add_company(self, **values):
         names = self.get_names()
         name = generate_code(names, 'c%06d')
-        self.make_resource(name, Company, **values)
-        return name
+        return self.make_resource(name, Company, **values)

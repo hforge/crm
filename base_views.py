@@ -118,3 +118,23 @@ class CRMFolder_AddImage(DBResource_AddImage):
 
     def get_start(self, resource):
         return self.get_root(get_context())
+
+
+
+class CRMFolder_AddForm(object):
+    access = 'is_allowed_to_add'
+
+
+    def get_value(self, resource, context, name, datatype):
+        query = context.query
+        if not getattr(datatype, 'multilingual', False):
+            return query.get(name) or datatype.get_default()
+
+        value = {}
+        for language in resource.get_edit_languages(context):
+            value[language] = query.get(name) or datatype.get_default()
+        return value
+
+
+    def check_edit_conflict(self, resource, context, form):
+        context.edit_conflict = False
