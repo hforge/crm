@@ -103,7 +103,7 @@ class Company_AddForm(Company_EditForm):
 
 
     def get_value(self, resource, context, name, datatype):
-        return context.query.get(name) or datatype.default
+        return context.query.get(name) or datatype.get_default()
 
 
     def get_namespace(self, resource, context):

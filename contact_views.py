@@ -119,7 +119,7 @@ class Contact_AddForm(AutoForm):
             print 'STATUS', repr(value)
             return value
         if value is None:
-            return datatype.default
+            return datatype.get_default()
         return value
 
 
