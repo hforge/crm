@@ -45,8 +45,7 @@ class Contact(CRMFolder):
     class_views = ['view']
 
     # The class used to be named "Prospect" so the prefix is "p_"
-    class_schema = merge_dicts(
-        CRMFolder.class_schema,
+    class_schema = merge_dicts(CRMFolder.class_schema,
         crm_p_company=String(source='metadata', indexed=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
         crm_p_firstname=Unicode(source='metadata'),
@@ -180,7 +179,7 @@ class Contacts(Folder):
     new_contact = Contact_AddForm()
 
 
-    def add_contact(self, values):
+    def add_contact(self, **values):
         names = self.get_names()
         name = generate_code(names, 'c%06d')
         return self.make_resource(name, Contact, **values)

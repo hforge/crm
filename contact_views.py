@@ -21,20 +21,20 @@ from datetime import date
 from itools.core import merge_dicts
 from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Email, Integer
-from itools.datatypes import PathDataType, String, Unicode
+from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import FormError
 
 # Import from ikaaro
-from ikaaro.autoform import AutoForm
-from ikaaro.autoform import MultilineWidget
-from ikaaro.autoform import RadioWidget, TextWidget
-from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
+from ikaaro.autoform import MultilineWidget, RadioWidget, TextWidget
+from ikaaro.autoform import timestamp_widget
+from ikaaro.messages import MSG_NEW_RESOURCE
+from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from crm
-from base_views import get_form_values, m_status_icons, Comments_View
+from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from mission_views import mission_schema, mission_widgets
 from mission_views import get_changes, send_notification
@@ -43,22 +43,21 @@ from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import NewCompanyWidget, SelectCompanyWidget
 
 
-contact_schema = {
-    'crm_p_company': CompanyName,
-    'new_company_url': PathDataType,
-    'crm_p_lastname': Unicode,
-    'crm_p_firstname': Unicode,
-    'crm_p_phone': Unicode,
-    'crm_p_mobile': Unicode,
-    'crm_p_email': Email,
-    'crm_p_description': Unicode,
-    'crm_p_position': Unicode,
-    'crm_p_status': ContactStatus,
-    'comment': Unicode }
+contact_schema = merge_dicts(DBResource_Edit.schema,
+    crm_p_company=CompanyName,
+    crm_p_lastname=Unicode,
+    crm_p_firstname=Unicode,
+    crm_p_phone=Unicode,
+    crm_p_mobile=Unicode,
+    crm_p_email=Email,
+    crm_p_description=Unicode,
+    crm_p_position=Unicode,
+    crm_p_status=ContactStatus,
+    comment=Unicode)
 
-contact_widgets = [
+
+contact_widgets = [timestamp_widget,
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
-    NewCompanyWidget('new_company_url', title=MSG(u' ')),
     TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='', size=30),
     TextWidget('crm_p_firstname', title=MSG(u'First name'), default='',
                size=30),
@@ -66,18 +65,69 @@ contact_widgets = [
     TextWidget('crm_p_mobile', title=MSG(u'Mobile'), default='', size=15),
     EmailWidget('crm_p_email', title=MSG(u'Email'), default='', size=30),
     TextWidget('crm_p_position', title=MSG(u'Position'), default='', size=15),
+    # TODO reuse description
     MultilineWidget('crm_p_description', title=MSG(u'Observations'),
-        default='', rows=4),
+        default=u'', rows=4),
     RadioWidget('crm_p_status', title=MSG(u'Status'), has_empty_option=False,
                 is_inline=True),
-    MultilineWidget('comment', title=MSG(u'New comment'), default='',
-                    rows=3) ]
+    MultilineWidget('comment', title=MSG(u'New comment'), rows=3)]
 
 
-class Contact_AddForm(AutoForm):
+class Contact_EditForm(DBResource_Edit):
+    access = 'is_allowed_to_edit'
+    title = MSG(u'Edit contact')
+    submit_value = MSG(u'Update contact')
+    styles = ['/ui/crm/style.css']
+
+
+    def get_query_schema(self):
+        return contact_schema.copy()
+
+
+    def _get_schema(self, resource, context):
+        # crm_p_lastname and crm_p_status are mandatory
+        return merge_dicts(contact_schema,
+                crm_p_lastname=contact_schema['crm_p_lastname'](
+                    mandatory=True),
+                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
+
+
+    def _get_widgets(self, resource, context):
+        return contact_widgets[:]
+
+
+    def get_value(self, resource, context, name, datatype):
+        if name == 'comment':
+            return u''
+        return DBResource_Edit.get_value(self, resource, context, name,
+                datatype)
+
+
+    def is_edit(self, context):
+        return context.method == 'POST'
+
+
+    def get_namespace(self, resource, context):
+        # Build namespace
+        namespace = DBResource_Edit.get_namespace(self, resource, context)
+
+        # Modify widgets namespace to change template
+        for widget in namespace['widgets']:
+            # Reset comment
+            if widget['name'] == 'comment' and self.is_edit(context):
+                widget['value'] = u''
+                comment_widget = MultilineWidget('comment',
+                        title=MSG(u'Comment'), rows=3, datatype=Unicode,
+                        value=u'')
+                widget['widget'] = comment_widget.render()
+
+        return namespace
+
+
+
+class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     """ To add a new contact into the crm.
     """
-    access = 'is_allowed_to_add'
     title = MSG(u'New contact')
     template = '/ui/crm/contact/new.xml'
     styles = ['/ui/crm/style.css']
@@ -87,62 +137,75 @@ class Contact_AddForm(AutoForm):
         return merge_dicts(contact_schema, mission_schema)
 
 
-    def get_schema(self, resource, context):
-        # crm_p_lastname and crm_p_status are mandatory
-        return merge_dicts(contact_schema, mission_schema,
+    def _get_schema(self, resource, context):
+        schema = merge_dicts(contact_schema,
                 crm_p_lastname=contact_schema['crm_p_lastname'](
                     mandatory=True),
-                crm_p_status=contact_schema['crm_p_status'](mandatory=True),
-                crm_m_assigned=mission_schema['crm_m_assigned'](
-                    resource=resource),
-                crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
+                crm_p_status=contact_schema['crm_p_status'](
+                    mandatory=True))
+        for name, datatype in mission_schema.iteritems():
+            if name in ('title', 'description'):
+                # Prefix double title and description
+                schema['mission_%s' % name] = datatype
+            elif name in ('crm_m_assigned', 'crm_m_cc'):
+                schema[name] = datatype(resource=resource)
+            else:
+                schema[name] = datatype
+        return schema
 
 
-    def get_widgets(self, resource, context):
-        return contact_widgets + mission_widgets
+    def _get_widgets(self, resource, context):
+        widgets = contact_widgets[:]
+        for widget in mission_widgets:
+            if widget.name in ('timestamp', 'comment', 'crm_m_nextaction',
+                    'attachment', 'alert_date', 'alert_time'):
+                # Skip double timestamp and comment
+                continue
+            elif widget.name in ('title', 'description'):
+                # Prefix double title and description
+                widget.name = 'mission_%s' % widget.name
+            widgets.append(widget)
+        return widgets
+
+
+    def is_edit(self, context):
+        return False
 
 
     def get_value(self, resource, context, name, datatype):
-        if name == 'new_company_url':
-            value = '../companies/;new_company'
+        if name == 'crm_m_deadline':
+            value = context.query['crm_m_deadline']
+            if value is None:
+                year = date.today().year
+                value = date(year, 12, 31)
             return value
-        elif name in self.get_query_schema():
-            value = context.query[name]
-            if value is not None:
-                return context.query[name]
-        value = AutoForm.get_value(self, resource, context, name, datatype)
-
-        if name == 'crm_m_deadline' and value is None:
-            year = date.today().year
-            return date(year, 12, 31)
-        elif name == 'crm_m_status':
-            print 'STATUS', repr(value)
-            return value
-        if value is None:
-            return datatype.get_default()
-        return value
+        return CRMFolder_AddForm.get_value(self, resource, context, name,
+                datatype)
 
 
     def _get_form(self, resource, context):
-        form = AutoForm._get_form(self, resource, context)
+        form = DBResource_Edit._get_form(self, resource, context)
 
         # If title is defined, status is required
-        title = form['title'].strip()
+        language, title = form['mission_title'].popitem()
         m_status = form['crm_m_status']
-        if title and m_status is None:
+        if title.strip() and m_status is None:
             raise FormError(invalid=['crm_m_status'])
 
         return form
 
 
     def get_namespace(self, resource, context):
-        namespace = AutoForm.get_namespace(self, resource, context)
+        namespace = DBResource_Edit.get_namespace(self, resource, context)
 
         # Modify widgets namespace to change template
+        widgets = {}
         for widget in namespace['widgets']:
             # XXX multilingual to monolingual
-            widget['widget'] = widget['widgets'][0]
-            namespace[widget['name']] = widget
+            name = widget['name'].split(':')[0]
+            widget['widget'] = widget['widgets'].pop(0)
+            widgets[name] = widget
+        namespace['widgets'] = widgets
 
         return namespace
 
@@ -159,8 +222,15 @@ class Contact_AddForm(AutoForm):
                 p_values[key] = value
             elif key.startswith('crm_m_'):
                 m_values[key] = value
+            elif key.startswith('mission_'):
+                m_values[key[8:]] = value
+        from pprint import pprint
+        print "p_values"
+        pprint(p_values)
+        print "m_values"
+        pprint(m_values)
         # Add contact
-        contact = contacts.add_contact(p_values)
+        contact = contacts.add_contact(**p_values)
         # Add mission if title is defined
         if m_values['title']:
             m_values['crm_m_contact'] = contact.name
@@ -172,67 +242,6 @@ class Contact_AddForm(AutoForm):
             goto = context.get_link(contact)
 
         return context.come_back(MSG_NEW_RESOURCE, goto=goto)
-
-
-
-class Contact_EditForm(AutoForm):
-
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Edit contact')
-    submit_value = MSG(u'Update contact')
-    styles = ['/ui/crm/style.css']
-
-
-    def get_query_schema(self):
-        return contact_schema.copy()
-
-
-    def get_schema(self, resource, context):
-        # crm_p_lastname and crm_p_status are mandatory
-        return merge_dicts(contact_schema,
-                crm_p_lastname=contact_schema['crm_p_lastname'](
-                    mandatory=True),
-                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
-
-
-    def get_widgets(self, resource, context):
-        widgets = contact_widgets[:]
-        return widgets
-
-
-    def get_value(self, resource, context, name, datatype):
-        if name == 'new_company_url':
-            return '../../companies/;new_company'
-        if name in self.get_query_schema():
-            value = context.query[name]
-            if value:
-                return context.query[name]
-        if name == 'comment':
-            return u''
-        value = resource.get_property(name)
-        return value if value is not None else datatype.get_default()
-
-
-    def get_namespace(self, resource, context):
-        # Build namespace
-        namespace = AutoForm.get_namespace(self, resource, context)
-
-        # Force reinitialization of comment field to '' after a POST.
-        if (context.method != 'POST'):
-            return namespace
-        for index, widget in enumerate(namespace['widgets']):
-            if widget['name'] == 'comment':
-                comment_widget = MultilineWidget('comment',
-                    title=MSG(u'New comment'), rows=3, datatype=Unicode,
-                    value=u'')
-                widget['widget'] = comment_widget.render()
-        return namespace
-
-
-    def action(self, resource, context, form):
-        values = get_form_values(form)
-        resource._update(values, context)
-        context.message = MSG_CHANGES_SAVED
 
 
 

@@ -32,9 +32,8 @@ from itools.web import BaseForm, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
-from ikaaro.autoform import AutoForm, DateWidget, MultilineWidget
+from ikaaro.autoform import DateWidget, MultilineWidget, CheckboxWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
-from ikaaro.autoform import CheckboxWidget
 from ikaaro.cc import UsersList
 from ikaaro.datatypes import FileDataType, Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
@@ -318,7 +317,7 @@ class Mission_EditForm(DBResource_Edit):
 
     def get_namespace(self, resource, context):
         # Build namespace
-        namespace = AutoForm.get_namespace(self, resource, context)
+        namespace = DBResource_Edit.get_namespace(self, resource, context)
 
         # Modify widgets namespace to change template
         widgets = {}
@@ -335,6 +334,7 @@ class Mission_EditForm(DBResource_Edit):
                 widget['widget'] = comment_widget.render()
             widgets[name] = widget
         namespace['widgets'] = widgets
+
         return namespace
 
 
