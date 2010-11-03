@@ -94,7 +94,6 @@ class Contact(CRMFolder):
         values.append(get_property('crm_p_firstname') or u'')
         values.append(get_property('crm_p_email') or u'')
         values.append(get_property('crm_p_description') or u'')
-        values.append(get_property('crm_p_comment') or u'')
         # Index all comments as 'text', and check any alert
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
