@@ -29,6 +29,7 @@ from ikaaro.table import Table
 from mission import Mission
 from contact import Contacts, Contact
 from datatypes import CompanyName, MissionStatus, ContactStatus
+from company import Company
 
 
 class CommentsTableFile(TableFile):
@@ -127,6 +128,8 @@ class Prospects(Contacts):
 class Prospect(Contact):
     class_id = 'prospect'
 
+    class_schema_extensible = True # CRM.update_20100920
+
 
 
 ###################################
@@ -151,6 +154,33 @@ class CompanyTable(Table):
 
 
 
+class OldCompany(Company):
+    class_schema = merge_dicts(
+        Company.class_schema,
+        c_address_1=Unicode(source='metadata'),
+        c_address_2=Unicode(source='metadata'),
+        c_zipcode=String(source='metadata'),
+        c_town=Unicode(source='metadata'),
+        c_country=Unicode(source='metadata'),
+        c_phone=Unicode(source='metadata'),
+        c_fax=Unicode(source='metadata'),
+        c_website=Unicode(source='metadata'),
+        c_activity=Unicode(source='metadata'),
+        c_logo=PathDataType(source='metadata', default='.'))
+
+
+    def update_20100913(self):
+        """c_xxx -> crm_c_xxx"""
+        for key in ('c_address_1', 'c_address_2', 'c_zipcode', 'c_town',
+                    'c_country', 'c_phone', 'c_fax', 'c_website', 'c_activity',
+                    'c_logo'):
+            value = self.get_property(key)
+            self.set_property('crm_%s' % key, value)
+            self.del_property(key)
+
+
+
+register_resource_class(OldCompany)
 register_resource_class(OldMission)
 register_resource_class(Prospects)
 register_resource_class(Prospect)
