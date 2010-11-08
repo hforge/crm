@@ -111,7 +111,7 @@ class CRMFolder(RoleAware, Folder):
             if ref.scheme:
                 continue
             path, view = get_path_and_view(ref.path)
-            links.append(str(base.resolve2(path)))
+            links.add(str(base.resolve2(path)))
 
         # comments
         comments = self.metadata.get_property('comment') or []
@@ -125,7 +125,7 @@ class CRMFolder(RoleAware, Folder):
                 if ref.scheme:
                     continue
                 path, view = get_path_and_view(ref.path)
-                links.append(str(base.resolve2(path)))
+                links.add(str(base.resolve2(path)))
 
         return links
 
