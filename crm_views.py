@@ -51,7 +51,6 @@ ALERT_ICON_GREEN = '1240913156_bell_go.png'
 
 
 class CRM_SearchMissions(SearchForm):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Missions')
     search_template = '/ui/crm/crm/search.xml'
@@ -60,7 +59,7 @@ class CRM_SearchMissions(SearchForm):
     search_schema = merge_dicts(SearchForm.search_schema,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean)
-    search_fields =  [
+    search_fields = [
         ('text', MSG(u'Text')), ]
 
     table_columns = [
@@ -79,7 +78,7 @@ class CRM_SearchMissions(SearchForm):
     # The Search Form
     def get_search_namespace(self, resource, context):
         search_namespace = SearchForm.get_search_namespace(self, resource,
-                                                           context)
+                context)
         # Add status
         default_status = ['opportunity', 'project']
         m_status = context.query['status']

@@ -2,7 +2,7 @@
 <stl:block xmlns="http://www.w3.org/1999/xhtml"
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 
-<form action="" method="get" stl:if="search_fields">
+  <form action="" method="get">
   <fieldset>
     <legend>Search</legend>
     <input type="text" name="search_term" size="35" value="${search_term}" />
