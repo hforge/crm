@@ -158,9 +158,11 @@ class CRM_SearchMissions(SearchForm):
             # Last Modified
             accept = context.accept_language
             return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('crm_m_nextaction', 'crm_m_amount',
-                'crm_m_probability', 'crm_m_deadline'):
+        elif column in ('crm_m_amount', 'crm_m_probability',
+                'crm_m_deadline'):
             return get_property(column)
+        elif column == 'crm_m_nextaction':
+            return item_resource.find_next_action()
 
 
     def sort_and_batch(self, resource, context, results):
