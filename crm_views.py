@@ -504,19 +504,20 @@ class CRM_Alerts(SearchForm):
             return path_to_icon
         elif column in ('crm_p_lastname', 'crm_p_firstname'):
             contact_id = mission.get_property('crm_m_contact')[0]
-            contact = resource.get_resource('contacts/%s' % contact_id)
+            contact = resource.get_resource('contacts/' + contact_id)
             value = contact.get_property(column)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(contact)
                 return value, href
             return value
         elif column == 'crm_p_company':
-            contact = mission.get_property('crm_m_contact')[0]
-            contact = resource.get_resource('contacts/%s' % contact)
-            company_name = contact.get_property(column)
-            company = mission.get_resource('../../companies/%s' % company_name)
+            contact_id = mission.get_property('crm_m_contact')[0]
+            contact = resource.get_resource('contacts/' + contact_id)
+            company_id = contact.get_property(column)
+            company = mission.get_resource('../../companies/' + company_id)
             title = company.get_title()
-            return title
+            href = context.get_link(company)
+            return title, href
         elif column == 'title':
             value = mission.get_property(column)
             if mission.is_allowed_to_edit(context.user, mission):
