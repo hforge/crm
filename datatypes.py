@@ -37,13 +37,14 @@ class CompanyName(Enumerate):
         context = get_context()
         crm = get_crm(context.resource)
         parent_path = '%s/companies' % crm.get_abspath()
-        results = context.root.search(format='company',
-                                      parent_path=parent_path)
-
+        root = context.root
+        results = root.search(format='company', parent_path=parent_path)
         options = []
         for brain in results.get_documents(sort_by='title'):
-            name = brain.name
-            value = brain.title
+            # XXX read "brain.title" directly
+            resource = root.get_resource(brain.abspath)
+            name = resource.name
+            value = resource.get_title()
             # Reduce the length of the title
             if len(value) > 63:
                 value = '%s...%s' % (value[:30], value[-30:])
@@ -79,13 +80,14 @@ class ContactName(Enumerate):
         context = get_context()
         crm = get_crm(context.resource)
         parent_path = '%s/contacts' % crm.get_abspath()
-        results = context.root.search(format='contact',
-                                      parent_path=parent_path)
-
+        root = context.root
+        results = root.search(format='contact', parent_path=parent_path)
         options = []
         for brain in results.get_documents(sort_by='crm_p_lastname'):
-            name = brain.name
-            value = brain.crm_p_lastname
+            # XXX read "brain.title" directly
+            resource = root.get_resource(brain.abspath)
+            name = resource.name
+            value = resource.get_title()
             option = {'name': name, 'value': value}
             options.append(option)
 
