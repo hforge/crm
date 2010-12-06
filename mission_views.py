@@ -20,7 +20,7 @@ from datetime import datetime, time
 # Import from itools
 from itools.core import merge_dicts
 from itools.csv import Property
-from itools.database import OrQuery, PhraseQuery, AndQuery
+from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
 from itools.datatypes import String, Unicode, Boolean
 from itools.gettext import MSG
@@ -40,13 +40,14 @@ from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.utils import generate_name
-from ikaaro.views import CompositeForm, ContextMenu
+from ikaaro.views import CompositeForm
 
 # Import from crm
 from base_views import Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
-from utils import get_crm, get_crm_path_query
+from menus import MissionsMenu, ContactsByMissionMenu
+from utils import get_crm
 from widgets import TimeWidget
 
 
@@ -590,79 +591,6 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 
 
-class ContactsByMissionMenu(ContextMenu):
-    title = MSG(u"Contacts liés")
-
-
-    def get_contacts(self):
-        context = get_context()
-        resource = context.resource
-        crm = get_crm(resource)
-        crm_path_query = get_crm_path_query(crm)
-        root = context.root
-        # Get a list of companies from the mission
-        query = AndQuery(crm_path_query,
-                PhraseQuery('format', 'contact'),
-                OrQuery(*[PhraseQuery('name', contact)
-                    for contact in resource.get_property('crm_m_contact')]))
-        results = root.search(query)
-        company_names = [brain.crm_p_company
-                for brain in results.get_documents()]
-        # Get a list of all contacts from these companies
-        query = AndQuery(crm_path_query,
-                PhraseQuery('format', 'contact'),
-                OrQuery(*[PhraseQuery('crm_p_company', company)
-                    for company in company_names]))
-        results = root.search(query)
-        for brain in results.get_documents(sort_by='title'):
-            yield brain
-
-
-    def get_items(self):
-        context = get_context()
-        root = context.root
-        items = []
-        for brain in self.get_contacts():
-            contact = root.get_resource(brain.abspath)
-            items.append({
-                # TODO read brain.title
-                'title': contact.get_title(),
-                # TODO icon
-                'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(contact)})
-        return items
-
-
-
-class MissionsMenu(ContextMenu):
-    title = MSG(u"Missions liées")
-
-
-    def get_items(self):
-        context = get_context()
-        resource = context.resource
-        crm = get_crm(resource)
-        contact_names = [brain.name
-                for brain in ContactsByMissionMenu().get_contacts()]
-        root = context.root
-        query = AndQuery(get_crm_path_query(crm),
-                PhraseQuery('format', 'mission'),
-                OrQuery(*[PhraseQuery('crm_m_contact', contact)
-                    for contact in contact_names]))
-        results = root.search(query)
-        items = []
-        for brain in results.get_documents(sort_by='mtime', reverse=True):
-            mission = root.get_resource(brain.abspath)
-            items.append({
-                # TODO read brain.title
-                'title': mission.get_title(),
-                # TODO icon
-                'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(mission)})
-        return items
-
-
-
 class Mission_View(CompositeForm):
 
     access = 'is_allowed_to_edit'
@@ -670,7 +598,8 @@ class Mission_View(CompositeForm):
     template = '/ui/crm/mission/view.xml'
     styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
     scripts = ['/ui/crm/jquery.maskedinput-1.2.2.min.js']
-    context_menus = [MissionsMenu(), ContactsByMissionMenu()]
+    context_menus = [MissionsMenu(contact_menu=ContactsByMissionMenu()),
+            ContactsByMissionMenu()]
 
     subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
 
