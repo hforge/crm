@@ -20,7 +20,9 @@ from itools.datatypes import Enumerate
 from itools.web import get_context
 
 # Import from ikaaro
-from ikaaro.registry import get_resource_class
+
+# Import from crm
+from utils import get_crm
 
 
 
@@ -33,11 +35,7 @@ class CompanyName(Enumerate):
     @classmethod
     def get_options(cls):
         context = get_context()
-        site_root = context.resource.get_site_root()
-        cls_crm = get_resource_class('crm')
-        crm = context.resource
-        while not isinstance(crm, cls_crm):
-            crm = crm.parent
+        crm = get_crm(context.resource)
         parent_path = '%s/companies' % crm.get_abspath()
         results = context.root.search(format='company',
                                       parent_path=parent_path)
@@ -79,11 +77,7 @@ class ContactName(Enumerate):
     @classmethod
     def get_options(cls):
         context = get_context()
-        site_root = context.resource.get_site_root()
-        cls_crm = get_resource_class('crm')
-        crm = context.resource
-        while not isinstance(crm, cls_crm):
-            crm = crm.parent
+        crm = get_crm(context.resource)
         parent_path = '%s/contacts' % crm.get_abspath()
         results = context.root.search(format='contact',
                                       parent_path=parent_path)

@@ -40,7 +40,7 @@ from mission_views import mission_schema, mission_widgets
 from mission_views import get_changes, send_notification
 from utils import get_crm, get_crm_path_query
 from widgets import EmailWidget, MultipleCheckboxWidget
-from widgets import NewCompanyWidget, SelectCompanyWidget
+from widgets import SelectCompanyWidget
 
 
 contact_schema = merge_dicts(DBResource_Edit.schema,

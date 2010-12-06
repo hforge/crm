@@ -100,7 +100,6 @@ class CRM_SearchMissions(SearchForm):
 
     def get_items(self, resource, context, *args):
         crm = get_crm(resource)
-        crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
         search_term = query['search_term'].strip()
@@ -109,7 +108,6 @@ class CRM_SearchMissions(SearchForm):
 
         # Build the query
         args = list(args)
-        abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'mission'))
         args.append(get_crm_path_query(crm))
         if search_term:
@@ -212,7 +210,6 @@ class CRM_SearchContacts(SearchForm):
 
     def get_items(self, resource, context, *args):
         crm = get_crm(resource)
-        crm_path = str(crm.get_abspath())
         # Get the parameters from the query
         query = context.query
         search_term = query['search_term'].strip()
@@ -220,7 +217,6 @@ class CRM_SearchContacts(SearchForm):
 
         # Build the query
         args = list(args)
-        abspath = str(resource.get_canonical_path())
         args.append(PhraseQuery('format', 'contact'))
         args.append(get_crm_path_query(crm))
         if search_term:

@@ -245,7 +245,6 @@ class CRMFolder(RoleAware, Folder):
         from obsolete import CompanyTableFile
 
         metadata = self.metadata
-        attachments = []
         comments = self.get_resource('comments', soft=True)
         if not comments:
             print 'NO COMMENTS', self.get_abspath()
