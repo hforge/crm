@@ -18,7 +18,7 @@
 
 # Import from itools
 from itools.core import merge_dicts
-from itools.database import PhraseQuery, AndQuery
+from itools.database import PhraseQuery, AndQuery, OrQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 from itools.web import ERROR, get_context
@@ -138,18 +138,18 @@ class Company_ViewContacts(CRM_SearchContacts):
 
 
 
-class ContactsMenu(ContextMenu):
+class ContactsByCompanyMenu(ContextMenu):
     title = MSG(u"Contacts liés")
 
 
     def get_contacts(self):
         context = get_context()
-        company = context.resource
-        crm = get_crm(company)
+        resource = context.resource
+        root = context.root
+        crm = get_crm(resource)
         query = AndQuery(get_crm_path_query(crm),
                 PhraseQuery('format', 'contact'),
-                PhraseQuery('crm_p_company', company.name))
-        root = context.root
+                PhraseQuery('crm_p_company', resource.name))
         results = root.search(query)
         for brain in results.get_documents(sort_by='title'):
             yield brain
@@ -177,25 +177,25 @@ class MissionsMenu(ContextMenu):
 
     def get_items(self):
         context = get_context()
-        company = context.resource
-        crm = get_crm(company)
-        crm_path_query = get_crm_path_query(crm)
+        resource = context.resource
+        crm = get_crm(resource)
+        contacts_names = [brain.name
+                for brain in ContactsByCompanyMenu().get_contacts()]
         root = context.root
+        query = AndQuery(get_crm_path_query(crm),
+                PhraseQuery('format', 'mission'),
+                OrQuery(*[PhraseQuery('crm_m_contact', contact)
+                    for contact in contacts_names]))
+        results = root.search(query)
         items = []
-        for brain in ContactsMenu().get_contacts():
-            query = AndQuery(crm_path_query,
-                    PhraseQuery('format', 'mission'),
-                    PhraseQuery('crm_m_contact', brain.name))
-            results = root.search(query)
-            for brain in results.get_documents(sort_by='mtime',
-                    reverse=True):
-                mission = root.get_resource(brain.abspath)
-                items.append({
-                    # TODO read brain.title
-                    'title': mission.get_title(),
-                    # TODO icon
-                    'src': '/ui/crm/icons/16x16/crm.png',
-                    'href': context.get_link(mission)})
+        for brain in results.get_documents(sort_by='mtime', reverse=True):
+            mission = root.get_resource(brain.abspath)
+            items.append({
+                # TODO read brain.title
+                'title': mission.get_title(),
+                # TODO icon
+                'src': '/ui/crm/icons/16x16/crm.png',
+                'href': context.get_link(mission)})
         return items
 
 
@@ -204,5 +204,6 @@ class Company_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
     styles = ['/ui/crm/style.css']
-    context_menus = [MissionsMenu(), ContactsMenu()]
+    context_menus = [MissionsMenu(), ContactsByCompanyMenu()]
+
     subviews = [Company_EditForm(), Company_ViewContacts()]

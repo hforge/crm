@@ -46,7 +46,7 @@ class Contact(CRMFolder):
 
     # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = merge_dicts(CRMFolder.class_schema,
-        crm_p_company=String(source='metadata', indexed=True),
+        crm_p_company=String(source='metadata', indexed=True, stored=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
         crm_p_firstname=Unicode(source='metadata'),
         crm_p_phone=Unicode(source='metadata'),
