@@ -18,10 +18,10 @@
 
 # Import from itools
 from itools.core import merge_dicts
-from itools.database import PhraseQuery
+from itools.database import PhraseQuery, AndQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.web import ERROR
+from itools.web import ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
@@ -29,12 +29,12 @@ from ikaaro.autoform import TextWidget
 from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
-from ikaaro.views import CompositeForm
+from ikaaro.views import CompositeForm, ContextMenu
 
 # Import from crm
 from base_views import CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
-from utils import get_crm
+from utils import get_crm, get_crm_path_query
 from widgets import LinkWidget
 
 
@@ -138,10 +138,71 @@ class Company_ViewContacts(CRM_SearchContacts):
 
 
 
-class Company_View(CompositeForm):
+class ContactsMenu(ContextMenu):
+    title = MSG(u"Contacts liés")
 
+
+    def get_contacts(self):
+        context = get_context()
+        company = context.resource
+        crm = get_crm(company)
+        query = AndQuery(get_crm_path_query(crm),
+                PhraseQuery('format', 'contact'),
+                PhraseQuery('crm_p_company', company.name))
+        root = context.root
+        results = root.search(query)
+        for brain in results.get_documents(sort_by='title'):
+            yield brain
+
+
+    def get_items(self):
+        context = get_context()
+        root = context.root
+        items = []
+        for brain in self.get_contacts():
+            contact = root.get_resource(brain.abspath)
+            items.append({
+                # TODO read brain.title
+                'title': contact.get_title(),
+                # TODO icon
+                'src': '/ui/crm/icons/16x16/crm.png',
+                'href': context.get_link(contact)})
+        return items
+
+
+
+class MissionsMenu(ContextMenu):
+    title = MSG(u"Missions liées")
+
+
+    def get_items(self):
+        context = get_context()
+        company = context.resource
+        crm = get_crm(company)
+        crm_path_query = get_crm_path_query(crm)
+        root = context.root
+        items = []
+        for brain in ContactsMenu().get_contacts():
+            query = AndQuery(crm_path_query,
+                    PhraseQuery('format', 'mission'),
+                    PhraseQuery('crm_m_contact', brain.name))
+            results = root.search(query)
+            for brain in results.get_documents(sort_by='mtime',
+                    reverse=True):
+                mission = root.get_resource(brain.abspath)
+                items.append({
+                    # TODO read brain.title
+                    'title': mission.get_title(),
+                    # TODO icon
+                    'src': '/ui/crm/icons/16x16/crm.png',
+                    'href': context.get_link(mission)})
+        return items
+
+
+
+class Company_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
     styles = ['/ui/crm/style.css']
-
+    context_menus = [MissionsMenu(), ContactsMenu()]
     subviews = [Company_EditForm(), Company_ViewContacts()]
