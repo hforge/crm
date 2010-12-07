@@ -27,7 +27,7 @@ from utils import get_crm, get_crm_path_query
 
 
 class ContactsMenu(ContextMenu):
-    title = MSG(u"Contacts liés")
+    title = MSG(u"Related Contacts")
 
 
     def get_crm_path_query(self, context):
@@ -106,7 +106,7 @@ class ContactsByCompanyMenu(ContactsMenu):
 
 
 class MissionsMenu(ContextMenu):
-    title = MSG(u"Missions liées")
+    title = MSG(u"Related Missions")
     contact_menu = None
 
 
