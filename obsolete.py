@@ -32,6 +32,17 @@ from datatypes import CompanyName, MissionStatus, ContactStatus
 from company import Company
 
 
+def update_default_language(resource):
+    site_root = resource.get_site_root()
+    default_language = site_root.get_default_language()
+
+    for name in ('title', 'description'):
+        value = resource.get_property(name)
+        resource.del_property(name)
+        resource.set_property(name, value, language=default_language)
+
+
+
 class CommentsTableFile(TableFile):
     """ Base comments table used by Company, Contact and Mission.
     """
@@ -91,6 +102,10 @@ class OldMission(Mission):
             multiple=True))
 
 
+    def update_20100924(self):
+        update_default_language(self)
+
+
 
 ###################################
 # Contact                        #
@@ -129,6 +144,13 @@ class Prospect(Contact):
     class_id = 'prospect'
 
     class_schema_extensible = True # CRM.update_20100920
+
+
+
+class OldContact(Contact):
+
+    def update_20100922(self):
+        update_default_language(self)
 
 
 
@@ -172,15 +194,20 @@ class OldCompany(Company):
     def update_20100913(self):
         """c_xxx -> crm_c_xxx"""
         for key in ('c_address_1', 'c_address_2', 'c_zipcode', 'c_town',
-                    'c_country', 'c_phone', 'c_fax', 'c_website', 'c_activity',
-                    'c_logo'):
+                'c_country', 'c_phone', 'c_fax', 'c_website', 'c_activity',
+                'c_logo'):
             value = self.get_property(key)
             self.set_property('crm_%s' % key, value)
             self.del_property(key)
 
 
+    def update_20100914(self):
+        update_default_language(self)
+
+
 
 register_resource_class(OldCompany)
 register_resource_class(OldMission)
+register_resource_class(OldContact)
 register_resource_class(Prospects)
 register_resource_class(Prospect)
