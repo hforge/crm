@@ -513,6 +513,8 @@ class CRM_Alerts(SearchForm):
             contact_id = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/' + contact_id)
             company_id = contact.get_property(column)
+            if not company_id:
+                return u""
             company = mission.get_resource('../../companies/' + company_id)
             title = company.get_title()
             href = context.get_link(company)
