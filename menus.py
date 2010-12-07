@@ -31,6 +31,8 @@ class ContactsMenu(ContextMenu):
 
 
     def get_crm_path_query(self, context):
+        """Shortcut.
+        """
         return get_crm_path_query(get_crm(context.resource))
 
 
@@ -88,6 +90,8 @@ class ContactsByMissionMenu(ContactsMenu):
 class ContactsByContactMenu(ContactsMenu):
 
     def get_companies(self, context):
+        """From contact to companies.
+        """
         return [context.resource.get_property('crm_p_company')]
 
 
@@ -95,6 +99,8 @@ class ContactsByContactMenu(ContactsMenu):
 class ContactsByCompanyMenu(ContactsMenu):
 
     def get_companies(self, context):
+        """From company to... companies.
+        """
         return [context.resource.name]
 
 
@@ -109,7 +115,7 @@ class MissionsMenu(ContextMenu):
         root = context.root
         contact_names = [brain.name
                 for brain in self.contact_menu.get_contacts(context)]
-        query = AndQuery(self.get_crm_path_query(context),
+        query = AndQuery(self.contact_menu.get_crm_path_query(context),
                 PhraseQuery('format', 'mission'),
                 OrQuery(*[PhraseQuery('crm_m_contact', contact)
                     for contact in contact_names]))
