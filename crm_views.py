@@ -628,6 +628,7 @@ class CRM_Test(STLView):
             if name.startswith('test_'):
                 test = getattr(self, name)(resource, context)
                 test['name'] = name
+                test['size'] = len(test['results'])
                 tests.append(test)
         namespace['tests'] = tests
 

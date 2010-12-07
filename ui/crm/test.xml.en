@@ -4,7 +4,7 @@
 
   <ul>
     <li stl:repeat="test tests">
-      <a href="#${test/name}">${test/title}</a>
+      <a href="#${test/name}">${test/title} (${test/size})</a>
     </li>
   </ul>
 
