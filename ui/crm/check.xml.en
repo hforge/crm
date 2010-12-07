@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+
+  <ul>
+    <li stl:repeat="test tests">
+      <a href="#${test/name}">${test/title}</a>
+    </li>
+  </ul>
+
+  <div id="${test/name}" stl:repeat="test tests">
+    <h2>${test/title} :</h2>
+    <ul>
+      <li stl:repeat="result test/results">
+        <a href="${result/href}" stl:omit-tag="not result/href">
+          ${result/title}
+        </a>
+      </li>
+    </ul>
+  </div>
+
+</stl:block>

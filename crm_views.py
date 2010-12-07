@@ -27,8 +27,7 @@ from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.web import BaseView
-from itools.web import ERROR
+from itools.web import BaseView, STLView, ERROR
 
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget
@@ -579,3 +578,57 @@ class CRM_Alerts(SearchForm):
             msg = MSG_CHANGES_SAVED
 
         context.message = msg
+
+
+
+class CRM_Check(STLView):
+    access = 'is_admin'
+    template = '/ui/crm/crm/check.xml'
+
+
+    def test_contact_without_companies(self, resource, context):
+        root = context.root
+        query = AndQuery(get_crm_path_query(resource),
+                PhraseQuery('format', 'contact'),
+                PhraseQuery('crm_p_company', ''))
+        results_ = root.search(query)
+        results = []
+        for brain in results_.get_documents(sort_by='name'):
+            contact = root.get_resource(brain.abspath)
+            results.append({
+                'title': contact.get_title(),
+                'href': context.get_link(contact)})
+        return {'title': u"Contacts sans société",
+                'results': results}
+
+
+    def test_mission_without_contact(self, resource, context):
+        root = context.root
+        query = AndQuery(get_crm_path_query(resource),
+                PhraseQuery('format', 'mission'),
+                PhraseQuery('crm_m_contact', ''))
+        results_ = root.search(query)
+        results = []
+        for brain in results_.get_documents(sort_by='name'):
+            mission = root.get_resource(brain.abspath)
+            results.append({
+                'title': mission.get_title(),
+                'href': context.get_link(mission)})
+        return {'title': u"Missions sans contact",
+                'results': results}
+
+
+    def get_namespace(self, resource, context):
+        namespace = {}
+
+        tests = []
+        # FIXME introspect self
+        for name in ('test_contact_without_companies',
+                'test_mission_without_contact'):
+            if name.startswith('test_'):
+                test = getattr(self, name)(resource, context)
+                test['name'] = name
+                tests.append(test)
+        namespace['tests'] = tests
+
+        return namespace
