@@ -41,15 +41,13 @@ class CompanyName(Enumerate):
         results = root.search(format='company', parent_path=parent_path)
         options = []
         for brain in results.get_documents(sort_by='title'):
-            # XXX read "brain.title" directly
-            resource = root.get_resource(brain.abspath)
-            name = resource.name
-            value = resource.get_title()
+            value = brain.title
             # Reduce the length of the title
             if len(value) > 63:
                 value = '%s...%s' % (value[:30], value[-30:])
-            option = {'name': name, 'value': value}
-            options.append(option)
+            options.append({
+                'name': brain.name,
+                'value': value})
 
         return options
 
@@ -84,12 +82,9 @@ class ContactName(Enumerate):
         results = root.search(format='contact', parent_path=parent_path)
         options = []
         for brain in results.get_documents(sort_by='crm_p_lastname'):
-            # XXX read "brain.title" directly
-            resource = root.get_resource(brain.abspath)
-            name = resource.name
-            value = resource.get_title()
-            option = {'name': name, 'value': value}
-            options.append(option)
+            options.append({
+                'name': brain.name,
+                'value': brain.title})
 
         return options
 

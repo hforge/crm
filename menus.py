@@ -57,16 +57,13 @@ class ContactsMenu(ContextMenu):
 
     def get_items(self):
         context = get_context()
-        root = context.root
         items = []
         for brain in self.get_contacts(context):
-            contact = root.get_resource(brain.abspath)
             items.append({
-                # TODO read brain.title
-                'title': contact.get_title(),
+                'title': brain.title,
                 # TODO icon
                 'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(contact)})
+                'href': context.get_link(brain)})
         return items
 
 
@@ -122,11 +119,9 @@ class MissionsMenu(ContextMenu):
         results = root.search(query)
         items = []
         for brain in results.get_documents(sort_by='mtime', reverse=True):
-            mission = root.get_resource(brain.abspath)
             items.append({
-                # TODO read brain.title
-                'title': mission.get_title(),
+                'title': brain.title,
                 # TODO icon
                 'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(mission)})
+                'href': context.get_link(brain)})
         return items
