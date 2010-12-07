@@ -30,15 +30,34 @@ class ContactsMenu(ContextMenu):
     title = MSG(u"Contacts liés")
 
 
-    def get_contacts(self):
+    def get_crm_path_query(self, context):
+        return get_crm_path_query(get_crm(context.resource))
+
+
+    def get_companies(self, context):
+        """Get a list of companies related to context.resource.
+        """
         raise NotImplementedError
+
+
+    def get_contacts(self, context):
+        """Get a list of all contacts from these companies.
+        """
+        company_names = self.get_companies(context)
+        query = AndQuery(self.get_crm_path_query(context),
+                PhraseQuery('format', 'contact'),
+                OrQuery(*[PhraseQuery('crm_p_company', company)
+                    for company in company_names]))
+        results = context.root.search(query)
+        for brain in results.get_documents(sort_by='title'):
+            yield brain
 
 
     def get_items(self):
         context = get_context()
         root = context.root
         items = []
-        for brain in self.get_contacts():
+        for brain in self.get_contacts(context):
             contact = root.get_resource(brain.abspath)
             items.append({
                 # TODO read brain.title
@@ -52,62 +71,31 @@ class ContactsMenu(ContextMenu):
 
 class ContactsByMissionMenu(ContactsMenu):
 
-    def get_contacts(self):
-        context = get_context()
-        resource = context.resource
-        crm = get_crm(resource)
-        crm_path_query = get_crm_path_query(crm)
+    def get_companies(self, context):
+        """From mission to companies.
+        """
         root = context.root
-        # Get a list of companies from the mission
-        query = AndQuery(crm_path_query,
+        resource = context.resource
+        query = AndQuery(self.get_crm_path_query(context),
                 PhraseQuery('format', 'contact'),
                 OrQuery(*[PhraseQuery('name', contact)
                     for contact in resource.get_property('crm_m_contact')]))
         results = root.search(query)
-        company_names = [brain.crm_p_company
-                for brain in results.get_documents()]
-        # Get a list of all contacts from these companies
-        query = AndQuery(crm_path_query,
-                PhraseQuery('format', 'contact'),
-                OrQuery(*[PhraseQuery('crm_p_company', company)
-                    for company in company_names]))
-        results = root.search(query)
-        for brain in results.get_documents(sort_by='title'):
-            yield brain
+        return (brain.crm_p_company for brain in results.get_documents())
 
 
 
 class ContactsByContactMenu(ContactsMenu):
 
-    def get_contacts(self):
-        context = get_context()
-        resource = context.resource
-        crm = get_crm(resource)
-        crm_path_query = get_crm_path_query(crm)
-        root = context.root
-        query = AndQuery(crm_path_query,
-                PhraseQuery('format', 'contact'),
-                PhraseQuery('crm_p_company',
-                    resource.get_property('crm_p_company')))
-        results = root.search(query)
-        for brain in results.get_documents(sort_by='title'):
-            yield brain
+    def get_companies(self, context):
+        return [context.resource.get_property('crm_p_company')]
 
 
 
 class ContactsByCompanyMenu(ContactsMenu):
 
-    def get_contacts(self):
-        context = get_context()
-        resource = context.resource
-        root = context.root
-        crm = get_crm(resource)
-        query = AndQuery(get_crm_path_query(crm),
-                PhraseQuery('format', 'contact'),
-                PhraseQuery('crm_p_company', resource.name))
-        results = root.search(query)
-        for brain in results.get_documents(sort_by='title'):
-            yield brain
+    def get_companies(self, context):
+        return [context.resource.name]
 
 
 
@@ -118,12 +106,10 @@ class MissionsMenu(ContextMenu):
 
     def get_items(self):
         context = get_context()
-        resource = context.resource
-        crm = get_crm(resource)
-        contact_names = [brain.name
-                for brain in self.contact_menu.get_contacts()]
         root = context.root
-        query = AndQuery(get_crm_path_query(crm),
+        contact_names = [brain.name
+                for brain in self.contact_menu.get_contacts(context)]
+        query = AndQuery(self.get_crm_path_query(context),
                 PhraseQuery('format', 'mission'),
                 OrQuery(*[PhraseQuery('crm_m_contact', contact)
                     for contact in contact_names]))
