@@ -30,7 +30,7 @@ from ikaaro.skins import register_skin
 # Import from crm
 from company import Companies
 from contact import Contacts
-from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_Check
+from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_Test
 from crm_views import CRM_ExportToCSV, CRM_SearchMissions
 from mission import Missions
 
@@ -49,8 +49,8 @@ class CRM(Folder):
     class_views = ['alerts', 'missions', 'contacts', 'goto_contacts',
                    'goto_companies', 'browse_content', 'edit']
 
-    __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies', 'contacts',
-            'missions']
+    __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies',
+            'contacts', 'missions']
 
     # Views
     alerts = CRM_Alerts()
@@ -64,7 +64,7 @@ class CRM(Folder):
         title=MSG(u'New contact'), access='is_allowed_to_edit')
     goto_companies = GoToSpecificDocument(specific_document='companies',
         title=MSG(u'New company'), access='is_allowed_to_edit')
-    check = CRM_Check()
+    test = CRM_Test()
 
 
     def init_resource(self, **kw):

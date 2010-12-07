@@ -581,9 +581,9 @@ class CRM_Alerts(SearchForm):
 
 
 
-class CRM_Check(STLView):
+class CRM_Test(STLView):
     access = 'is_admin'
-    template = '/ui/crm/crm/check.xml'
+    template = '/ui/crm/crm/test.xml'
 
 
     def test_contact_without_companies(self, resource, context):
