@@ -23,7 +23,7 @@ from itools.web import get_context
 from ikaaro.views import ContextMenu
 
 # Import from crm
-from utils import get_crm, get_crm_path_query
+from utils import get_crm, get_crm_path_query, get_contact_title
 
 
 class ContactsMenu(ContextMenu):
@@ -60,7 +60,7 @@ class ContactsMenu(ContextMenu):
         items = []
         for brain in self.get_contacts(context):
             items.append({
-                'title': brain.title,
+                'title': get_contact_title(brain, context),
                 # TODO icon
                 'src': '/ui/crm/icons/16x16/crm.png',
                 'href': context.get_link(brain)})

@@ -48,7 +48,7 @@ class Contact(CRMFolder):
     class_schema = merge_dicts(CRMFolder.class_schema,
         crm_p_company=String(source='metadata', indexed=True, stored=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
-        crm_p_firstname=Unicode(source='metadata'),
+        crm_p_firstname=Unicode(source='metadata', stored=True),
         crm_p_phone=Unicode(source='metadata'),
         crm_p_mobile=Unicode(source='metadata'),
         crm_p_email=Email(source='metadata'),
@@ -146,7 +146,7 @@ class Contact(CRMFolder):
 
 
     def get_title(self, language=None):
-        p_lastname = self.get_property('crm_p_lastname')
+        p_lastname = self.get_property('crm_p_lastname').upper()
         p_firstname = self.get_property('crm_p_firstname')
         p_company = self.get_property('crm_p_company') or u''
         if p_company:

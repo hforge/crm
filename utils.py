@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
+from itools.database import AndQuery, PhraseQuery
 
 # Import from ikaaro
 from ikaaro.registry import get_resource_class
@@ -51,6 +52,22 @@ def get_crm(resource):
 def get_crm_path_query(crm_resource):
     crm_path = str(crm_resource.get_abspath())
     return get_base_path_query(crm_path, include_container=True)
+
+
+
+def get_contact_title(brain, context):
+    # TODO merge with Contact.get_title
+    p_lastname = brain.crm_p_lastname.upper()
+    p_firstname = brain.crm_p_firstname
+    p_company = brain.crm_p_company or u''
+    if p_company:
+        query = AndQuery(get_crm_path_query(get_crm(context.resource)),
+                PhraseQuery('format', 'company'),
+                PhraseQuery('name', p_company))
+        results = context.root.search(query)
+        company = results.get_documents(size=1)
+        p_company =  u' (%s)' % company[0].title if company else u''
+    return u'%s %s%s' % (p_lastname, p_firstname, p_company)
 
 
 
