@@ -109,9 +109,11 @@ mission_widgets = DBResource_Edit.widgets[:3] + [
 def get_changes(resource, context, form, new=False):
     root = context.root
     changes = []
+    last_comment = resource.get_last_comment()
     for key, datatype in mission_schema.iteritems():
         # Comment is treated separately
-        if key in ('comment', 'subject', 'timestamp'):
+        if key in ('comment', 'remove_previous_alerts', 'subject',
+                'timestamp'):
             continue
         new_value = form[key]
         if type(new_value) is dict:
@@ -119,7 +121,20 @@ def get_changes(resource, context, form, new=False):
         if new:
             old_value = datatype.get_default()
         else:
-            old_value = resource.get_property(key)
+            if key in ('alert_date', 'alert_time', 'attachment',
+                    'crm_m_nextaction'):
+                if last_comment is None:
+                    old_value = None
+                else:
+                    old_value = last_comment.get_parameter(key)
+                    if key == 'alert_date':
+                        if old_value is not None:
+                            old_value = old_value.date()
+                    elif key == 'alert_time':
+                        if old_value is not None:
+                            old_value = old_value.time()
+            else:
+                old_value = resource.get_property(key)
         if new_value == old_value:
             continue
         # Find widget title

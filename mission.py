@@ -108,6 +108,13 @@ class Mission(CRMFolder):
         return document
 
 
+    def get_last_comment(self):
+        comments = self.metadata.get_property('comment') or []
+        if comments:
+            return comments[-1]
+        return None
+
+
     def find_alert_datetime(self):
         """Last alert
         """
