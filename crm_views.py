@@ -47,6 +47,12 @@ ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
 ALERT_ICON_ORANGE = '1240913150_bell_error.png'
 ALERT_ICON_GREEN = '1240913156_bell_go.png'
 
+TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
+
+
+def two_lines(one, two):
+    return TWO_LINES.gettext(one=one, two=two)
+
 
 
 class CRM_SearchMissions(SearchForm):
@@ -423,13 +429,12 @@ class CRM_Alerts(SearchForm):
     table_columns = [
         ('checkbox', None, False),
         ('icon', None, False),
-        ('alert_date', MSG(u'Date'), False),
-        ('alert_time', MSG(u'Time'), False),
-        ('crm_p_lastname', MSG(u'Last name'), False),
-        ('crm_p_firstname', MSG(u'First name'), False),
-        ('crm_p_company', MSG(u'Company'), False),
-        ('title', MSG(u'Mission'), False),
-        ('crm_m_nextaction', MSG(u'Next action'), False)]
+        ('alert_datetime', MSG(u'Date'), False),
+        ('contact', MSG(u'Contact'), False),
+        ('company', MSG(u'Company'), False),
+        ('mission', MSG(u'Mission'), False),
+        ('nextaction', MSG(u'Next action'), False),
+        ('assigned', MSG(u'Assigned to'), False)]
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
@@ -501,39 +506,45 @@ class CRM_Alerts(SearchForm):
                 path_to_icon = resolve_uri('%s/' % name, path_to_icon)
             href = 'missions/%s' % mission.name
             return path_to_icon
-        elif column in ('crm_p_lastname', 'crm_p_firstname'):
+        elif column == 'alert_datetime':
+            alert_date = alert_datetime.date()
+            accept = context.accept_language
+            alert_date = format_date(alert_date, accept=accept)
+            alert_time = alert_datetime.time()
+            alert_time = Time.encode(alert_time)
+            return two_lines(alert_date, alert_time)
+        elif column == 'contact':
             contact_id = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/' + contact_id)
-            value = contact.get_property(column)
+            lastname = contact.get_property('crm_p_lastname').upper()
+            firstname = contact.get_property('crm_p_firstname')
+            value = two_lines(lastname, firstname)
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(contact)
                 return value, href
             return value
-        elif column == 'crm_p_company':
+        elif column == 'company':
             contact_id = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/' + contact_id)
-            company_id = contact.get_property(column)
+            company_id = contact.get_property('crm_p_company')
             if not company_id:
                 return u""
             company = mission.get_resource('../../companies/' + company_id)
             title = company.get_title()
             href = context.get_link(company)
             return title, href
-        elif column == 'title':
-            value = mission.get_property(column)
+        elif column == 'mission':
+            value = mission.get_property('title')
             if mission.is_allowed_to_edit(context.user, mission):
                 href = context.get_link(mission)
                 return value, href
             return value
-        elif column == 'alert_date':
-            alert_date = alert_datetime.date()
-            accept = context.accept_language
-            return format_date(alert_date, accept=accept)
-        elif column == 'alert_time':
-            alert_time = alert_datetime.time()
-            return Time.encode(alert_time)
-        elif column == 'crm_m_nextaction':
+        elif column == 'nextaction':
             return m_nextaction
+        elif column == 'assigned':
+            user_id = mission.get_property('crm_m_assigned')
+            return context.root.get_user_title(user_id)
+        raise ValueError, column
 
 
     def sort_and_batch(self, resource, context, results):
