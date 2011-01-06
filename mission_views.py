@@ -533,20 +533,18 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 
     def action_remove(self, resource, context, form):
-        m_contact = resource.metadata.get_property('crm_m_contact')
+        m_contact = resource.get_property('crm_m_contact')
 
         for contact_id in form.get('ids', []):
-            try:
+            if contact_id in m_contact:
                 m_contact.remove(contact_id)
-            except:
-                pass
 
         if len(m_contact) == 0:
             context.message = ERROR(u'At least one contact is required')
             return
 
         # Apply change
-        resource.metadata.set_property('crm_m_contact', m_contact)
+        resource.set_property('crm_m_contact', m_contact)
         context.message = MSG_CHANGES_SAVED
 
 
