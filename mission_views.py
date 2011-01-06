@@ -593,7 +593,7 @@ class Mission_AddContacts(CRM_SearchContacts):
         # Save changes
         m_contact = resource.get_property('crm_m_contact')
         m_contact = list(set(m_contact + form['ids']))
-        resource._update({'crm_m_contact': m_contact})
+        resource.set_property('crm_m_contact', m_contact)
 
         # Reindex contacts so they know about the mission
         crm = get_crm(resource)
