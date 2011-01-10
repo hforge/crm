@@ -22,7 +22,7 @@ from decimal import Decimal as decimal
 from itools.core import merge_dicts
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String
+from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
@@ -446,6 +446,8 @@ class CRM_Alerts(SearchForm):
     template = '/ui/crm/crm/alerts.xml'
     styles = ['/ui/crm/style.css']
 
+    query_schema = merge_dicts(SearchForm.query_schema,
+        batch_size=Integer(default=0))
     schema = {'ids': String(multiple=True, mandatory=True)}
 
     table_columns = [
