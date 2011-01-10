@@ -349,31 +349,32 @@ class CRM_ExportToCSV(BaseView):
     query_schema = {'editor': String(default='excel')}
 
 
-    def get_prospect_infos(self, resource, prospect):
+    def get_contact_infos(self, resource, contact):
         infos = []
-        get_property = prospect.get_property
-        # Prospect
-        infos.append(get_property('p_lastname'))
-        infos.append(get_property('p_firstname') or u"")
-        p_company = get_property('p_company')
+        get_property = contact.get_property
+        # Contact
+        infos.append(get_property('crm_p_lastname'))
+        infos.append(get_property('crm_p_firstname') or u"")
+        p_company = get_property('crm_p_company')
         if p_company:
             company = resource.get_resource('companies/%s' % p_company)
-            infos.append(company.get_value('c_title'))
+            infos.append(company.get_property('title'))
         else:
             infos.append(u"")
-        infos.append(get_property('p_status'))
-        infos.append(get_property('p_email'))
+        infos.append(get_property('crm_p_status'))
+        infos.append(get_property('crm_p_email'))
         return infos
 
 
     def get_mission_infos(self, resource, mission):
-        prospect = mission.get_value('m_prospect')[0]
-        prospect = resource.get_resource('prospects/%s' % prospect)
-        infos = self.get_prospect_infos(resource, prospect)
+        contact = mission.get_property('crm_m_contact')[0]
+        contact = resource.get_resource('contacts/%s' % contact)
+        infos = self.get_contact_infos(resource, contact)
         # Mission
-        l = ['m_title', 'm_amount', 'm_probability', 'm_status', 'm_deadline']
+        l = ['title', 'crm_m_amount', 'crm_m_probability', 'crm_m_status',
+                'crm_m_deadline']
         for property in l:
-            property = mission.get_value(property)
+            property = mission.get_property(property)
             infos.append(property or u'')
         else:
             infos.append(u'')
@@ -403,21 +404,22 @@ class CRM_ExportToCSV(BaseView):
         csv = CSVFile()
         # Add the header
         csv.add_row([
-            'lastname', 'firstname', 'company', 'prospect status', 'email',
+            'lastname', 'firstname', 'company', 'contact status', 'email',
             'mission title', 'amount', 'probability', 'mission status',
             'deadline'])
         missions = [resource.get_resource(m.abspath) for m in missions]
-        # prospects without mission
-        prospects_names = set(m.get_value('m_prospect')[0] for m in missions)
-        query = PhraseQuery('format', 'prospect')
+        # Contacts without mission
+        contacts_names = set(
+                m.get_property('crm_m_contact')[0] for m in missions)
+        query = PhraseQuery('format', 'contact')
         results = context.root.search(AndQuery(query, base_path_query))
-        prospects = results.get_documents()
-        prospects = [p for p in prospects if p.name not in prospects_names]
+        contacts = results.get_documents()
+        contacts = [p for p in contacts if p.name not in contacts_names]
 
         infos = [self.get_mission_infos(resource, m) for m in missions]
-        infos.extend(self.get_prospect_infos(resource,
+        infos.extend(self.get_contact_infos(resource,
                 resource.get_resource(p.abspath))
-            for p in prospects)
+            for p in contacts)
 
         # Fill the CSV
         for info in infos:
