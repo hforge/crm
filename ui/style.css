@@ -139,6 +139,9 @@ fieldset#company legend a {
 #edit-mission-description textarea {
   background-color: #e9e0ff;
 }
+#edit-mission-comment legend {
+  cursor: pointer;
+}
 
 #view-missions h3 {
   margin: 0 0 5px 0;
