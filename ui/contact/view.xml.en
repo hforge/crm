@@ -4,10 +4,8 @@
 <stl:block xmlns="http://www.w3.org/1999/xhtml"
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
 
-  <div id="contact-view-missions">
-    <h3>Missions (<a href="${new_url}">New</a>)</h3>
-    ${view_missions}
-  </div>
+  <h2>Contact: ${title}</h2>
   <div id="contact-view-edit">${edit}</div>
+  <div id="contact-view-missions">${view_missions}</div>
   <div id="contact-view-comments">${view_comments}</div>
 </stl:block>

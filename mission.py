@@ -50,7 +50,8 @@ class Mission(CRMFolder):
 
     class_schema = merge_dicts(
         CRMFolder.class_schema,
-        crm_m_contact=String(source='metadata', indexed=True, multiple=True),
+        crm_m_contact=String(source='metadata', indexed=True, stored=True,
+            multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True),
         crm_m_assigned=String(source='metadata'),
         crm_m_cc=String(source='metadata', multiple=True),

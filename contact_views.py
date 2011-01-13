@@ -418,11 +418,10 @@ class Contact_View(CompositeForm):
         edit = resource.edit_form.GET(resource, context)
         view_missions = resource.view_missions.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
-        new_url = '../../missions/;new_mission?crm_m_contact=%s' % resource.name
+
         namespace = {
             'title': title,
             'edit': edit,
-            'new_url': new_url,
             'view_comments': view_comments,
             'view_missions': view_missions }
         return namespace
