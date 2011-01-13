@@ -27,6 +27,7 @@ from utils import get_crm, get_crm_path_query, get_contact_title
 
 
 class ContactsMenu(ContextMenu):
+    template = '/ui/crm/generic/menu.xml'
     title = MSG(u"Related Contacts")
 
 
@@ -57,13 +58,21 @@ class ContactsMenu(ContextMenu):
 
     def get_items(self):
         context = get_context()
+        resource = context.resource
+        abspath = resource.abspath
         items = []
         for brain in self.get_contacts(context):
             items.append({
                 'title': get_contact_title(brain, context),
-                # TODO icon
-                'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(brain)})
+                'src': '/ui/crm/icons/16x16/contact.png',
+                'href': context.get_link(brain),
+                'selected': (brain.abspath == abspath)})
+        if resource.class_id == 'mission':
+            items.append({
+                'title': MSG(u"New contact"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': ';add_contacts',
+                'selected': False})
         return items
 
 
@@ -103,12 +112,15 @@ class ContactsByCompanyMenu(ContactsMenu):
 
 
 class MissionsMenu(ContextMenu):
+    template = '/ui/crm/generic/menu.xml'
     title = MSG(u"Related Missions")
     contact_menu = None
 
 
     def get_items(self):
         context = get_context()
+        resource = context.resource
+        abspath = resource.abspath
         root = context.root
         contact_names = [brain.name
                 for brain in self.contact_menu.get_contacts(context)]
@@ -119,9 +131,41 @@ class MissionsMenu(ContextMenu):
         results = root.search(query)
         items = []
         for brain in results.get_documents(sort_by='mtime', reverse=True):
+            selected = False
+            if resource.class_id == 'mission':
+                selected = brain.abspath == abspath
+            elif resource.class_id == 'contact':
+                selected = (resource.name in brain.crm_m_contact)
             items.append({
                 'title': brain.title,
-                # TODO icon
-                'src': '/ui/crm/icons/16x16/crm.png',
-                'href': context.get_link(brain)})
+                'src': '/ui/crm/icons/16x16/mission.png',
+                'href': context.get_link(brain),
+                'selected': selected})
+        if resource.class_id == 'contact':
+            items.append({
+                'title': MSG(u"New mission"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': ('../../missions/;new_mission?crm_m_contact=' +
+                    resource.name),
+                'selected': False})
+        return items
+
+
+
+class CompanyMenu(ContextMenu):
+    template = '/ui/crm/generic/menu.xml'
+    title = MSG(u"New Company")
+    contact_menu = None
+
+
+    def get_items(self):
+        context = get_context()
+        resource = context.resource
+        items = []
+        if resource.class_id == 'company':
+            items.append({
+                'title': MSG(u"New Company"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': '..',
+                'selected': False})
         return items

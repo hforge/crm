@@ -34,7 +34,7 @@ from ikaaro.views import CompositeForm
 # Import from crm
 from base_views import CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
-from menus import MissionsMenu, ContactsByCompanyMenu
+from menus import MissionsMenu, ContactsByCompanyMenu, CompanyMenu
 from utils import get_crm
 from widgets import LinkWidget
 
@@ -144,6 +144,6 @@ class Company_View(CompositeForm):
     title = MSG(u'View company')
     styles = ['/ui/crm/style.css']
     context_menus = [MissionsMenu(contact_menu=ContactsByCompanyMenu()),
-            ContactsByCompanyMenu()]
+            ContactsByCompanyMenu(), CompanyMenu()]
 
     subviews = [Company_EditForm(), Company_ViewContacts()]
