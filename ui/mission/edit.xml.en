@@ -184,7 +184,9 @@
         </stl:block>
     </p>
     <script language="javascript">
-      $("#${first_widget}").focus();
+      $(document).ready(function() {
+        $("#${first_widget}").focus();
+      });
     </script>
     </fieldset>
   </form>

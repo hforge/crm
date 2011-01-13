@@ -609,12 +609,18 @@ class Mission_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View mission')
     template = '/ui/crm/mission/view.xml'
-    styles = ['/ui/crm/style.css', '/ui/tracker/style.css']
-    scripts = ['/ui/crm/jquery.maskedinput-1.2.2.min.js']
-    context_menus = [MissionsMenu(contact_menu=ContactsByMissionMenu()),
+    styles = [
+            '/ui/crm/style.css',
+            '/ui/tracker/style.css']
+    scripts = [
+            '/ui/crm/javascript.js',
+            '/ui/crm/jquery.maskedinput-1.2.2.min.js']
+    context_menus = [
+            MissionsMenu(contact_menu=ContactsByMissionMenu()),
             ContactsByMissionMenu()]
 
     subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
+
 
     def get_namespace(self, resource, context):
         title = resource.get_property('title')

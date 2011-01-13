@@ -87,3 +87,19 @@ function crm_main(select_widget, first_widget_id)
         });
 }
 
+
+$(document).ready(function() {
+    $("textarea").each(function() {
+        var textarea = $(this);
+        textarea.attr("_rows", textarea.attr("rows"));
+        textarea.attr("rows", 1);
+    });
+    $("textarea").focus(function() {
+        var textarea = $(this);
+        textarea.attr("rows", textarea.attr("_rows"));
+    });
+    $("textarea").blur(function() {
+        var textarea = $(this);
+        textarea.attr("rows", 1);
+    });
+});
