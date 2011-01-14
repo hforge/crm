@@ -45,8 +45,8 @@ if argv[0].endswith('icms-update.py'):
 
 # Hide sidebar in crm root
 try:
-    from itws.skin import Skin
+    from itws.skin import register_not_allowed_cls_for_sidebar_view
 except ImportError:
     pass
 else:
-    Skin.not_allowed_cls_for_sidebar_view.append(CRM)
+    register_not_allowed_cls_for_sidebar_view(CRM)
