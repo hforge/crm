@@ -361,7 +361,9 @@ class CRM_SearchCompanies(CRM_Search):
                 value = get_property(field)
                 if value:
                     address.append(value)
-            address = u"<br/>".join(address) or u"-"
+            if not address:
+                return None
+            address = u"<br/>".join(address)
             return MSG(address, format='html')
         elif column == 'phones':
             phones = []
@@ -371,7 +373,9 @@ class CRM_SearchCompanies(CRM_Search):
                 value = get_property(field).replace(u" ", u"\u00a0")
                 if value:
                     phones.append(message.format(value))
-            phones = u"<br/>".join(phones) or u"-"
+            if not phones:
+                return None
+            phones = u"<br/>".join(phones)
             return MSG(phones, format='html')
         elif column == 'website':
             website = get_property('crm_c_website')
