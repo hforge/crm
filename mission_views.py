@@ -35,7 +35,7 @@ from ikaaro.buttons import Button, BrowseButton, RemoveButton
 from ikaaro.autoform import DateWidget, MultilineWidget, CheckboxWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
 from ikaaro.cc import UsersList
-from ikaaro.datatypes import FileDataType, Multilingual
+from ikaaro.datatypes import FileDataType
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
@@ -43,7 +43,7 @@ from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import Comments_View, CRMFolder_AddForm
+from base_views import monolingual_schema, Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu
@@ -68,8 +68,7 @@ BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 You are receiving this e-mail because you are in CC.''')
 
 
-mission_schema = merge_dicts(DBResource_Edit.schema,
-    description=Multilingual(hidden_by_default=False),
+mission_schema = merge_dicts(monolingual_schema,
     comment=Unicode,
     crm_m_nextaction=Unicode,
     attachment=FileDataType,
@@ -339,8 +338,7 @@ class Mission_EditForm(DBResource_Edit):
         # Modify widgets namespace to change template
         widgets = {}
         for widget in namespace['widgets']:
-            # XXX multilingual to monolingual
-            name = widget['name'].split(':')[0]
+            name = widget['name']
             widget['widget'] = widget['widgets'].pop(0)
             # Reset comment
             if name == 'comment' and self.is_edit(context):

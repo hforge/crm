@@ -26,7 +26,6 @@ from itools.web import ERROR
 # Import from ikaaro
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
 from ikaaro.autoform import TextWidget
-from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
@@ -50,8 +49,7 @@ company_schema = merge_dicts(DBResource_Edit.schema,
     crm_c_fax=Unicode,
     crm_c_website=Unicode,
     crm_c_activity=Unicode,
-    crm_c_logo=PathDataType,
-    description=Multilingual(hidden_by_default=False))
+    crm_c_logo=PathDataType)
 
 
 company_widgets = DBResource_Edit.widgets[:2] + [

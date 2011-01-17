@@ -18,7 +18,7 @@
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.datatypes import Decimal
+from itools.datatypes import Decimal, Unicode, DateTime
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import STLView
@@ -41,6 +41,13 @@ m_status_icons = {
     'nogo': '/ui/crm/images/status_gray.gif' }
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
+
+
+monolingual_schema = {
+    'title': Unicode,
+    'description': Unicode(hidden_by_default=False),
+    'subject': Unicode(hidden_by_default=True),
+    'timestamp': DateTime(readonly=True)}
 
 
 def format_amount(str_value, accept):

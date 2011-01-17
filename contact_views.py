@@ -34,7 +34,8 @@ from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from crm
-from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
+from base_views import monolingual_schema, m_status_icons
+from base_views import Comments_View, CRMFolder_AddForm
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu
 from mission_views import mission_schema, mission_widgets
@@ -44,7 +45,7 @@ from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import SelectCompanyWidget
 
 
-contact_schema = merge_dicts(DBResource_Edit.schema,
+contact_schema = merge_dicts(monolingual_schema,
     crm_p_company=CompanyName,
     crm_p_lastname=Unicode,
     crm_p_firstname=Unicode,
@@ -59,9 +60,10 @@ contact_schema = merge_dicts(DBResource_Edit.schema,
 
 contact_widgets = [timestamp_widget,
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
-    TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='', size=30),
+    TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='',
+        size=30),
     TextWidget('crm_p_firstname', title=MSG(u'First name'), default='',
-               size=30),
+        size=30),
     TextWidget('crm_p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('crm_p_mobile', title=MSG(u'Mobile'), default='', size=15),
     EmailWidget('crm_p_email', title=MSG(u'Email'), default='', size=30),
@@ -70,7 +72,7 @@ contact_widgets = [timestamp_widget,
     MultilineWidget('crm_p_description', title=MSG(u'Observations'),
         default=u'', rows=4),
     RadioWidget('crm_p_status', title=MSG(u'Status'), has_empty_option=False,
-                is_inline=True),
+        is_inline=True),
     MultilineWidget('comment', title=MSG(u'New comment'), rows=3)]
 
 
@@ -202,8 +204,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         # Modify widgets namespace to change template
         widgets = {}
         for widget in namespace['widgets']:
-            # XXX multilingual to monolingual
-            name = widget['name'].split(':')[0]
+            name = widget['name']
             widget['widget'] = widget['widgets'].pop(0)
             widgets[name] = widget
         namespace['widgets'] = widgets
