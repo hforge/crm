@@ -639,6 +639,7 @@ class Mission_View(CompositeForm):
 class Mission_Add(Mission_View):
 
     title = MSG(u'New mission')
+    context_menus = []
     subviews = [Mission_ViewContact(), Mission_AddForm()]
 
 
