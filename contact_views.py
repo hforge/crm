@@ -18,7 +18,7 @@
 from datetime import date
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Email, Integer
 from itools.datatypes import String, Unicode
@@ -82,7 +82,7 @@ class Contact_EditForm(DBResource_Edit):
 
 
     def get_query_schema(self):
-        return contact_schema.copy()
+        return freeze(contact_schema)
 
 
     def _get_schema(self, resource, context):

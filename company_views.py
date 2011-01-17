@@ -17,7 +17,7 @@
 # Import from the Standard Library
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.database import PhraseQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
@@ -76,7 +76,7 @@ class Company_EditForm(DBResource_Edit):
 
 
     def get_query_schema(self):
-        return company_schema.copy()
+        return freeze(company_schema)
 
 
     def _get_schema(self, resource, context):

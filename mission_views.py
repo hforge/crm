@@ -18,7 +18,7 @@
 from datetime import datetime, time
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.csv import Property
 from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
@@ -296,8 +296,9 @@ class Mission_EditForm(DBResource_Edit):
     template = '/ui/crm/mission/edit.xml'
     actions = [ButtonUpdate()]
 
+
     def get_query_schema(self):
-        return mission_schema.copy()
+        return freeze(mission_schema)
 
 
     def _get_schema(self, resource, context):
@@ -311,7 +312,7 @@ class Mission_EditForm(DBResource_Edit):
 
 
     def _get_widgets(self, resource, context):
-        return mission_widgets[:]
+        return freeze(mission_widgets)
 
 
     def get_value(self, resource, context, name, datatype):
