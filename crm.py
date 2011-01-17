@@ -30,8 +30,8 @@ from ikaaro.skins import register_skin
 # Import from crm
 from company import Companies
 from contact import Contacts
-from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_Test
-from crm_views import CRM_ExportToCSV, CRM_SearchMissions
+from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_SearchMissions
+from crm_views import CRM_SearchCompanies, CRM_ExportToCSV, CRM_Test
 from mission import Missions
 
 
@@ -46,16 +46,17 @@ class CRM(Folder):
     class_title = MSG(u'CRM')
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
-    class_views = ['alerts', 'missions', 'contacts', 'goto_contacts',
-                   'goto_companies', 'browse_content', 'edit']
+    class_views = ['alerts', 'missions', 'contacts', 'companies',
+            'goto_contacts', 'goto_companies', 'browse_content', 'edit']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies',
             'contacts', 'missions']
 
     # Views
     alerts = CRM_Alerts()
-    contacts = CRM_SearchContacts()
     missions = CRM_SearchMissions()
+    contacts = CRM_SearchContacts()
+    companies = CRM_SearchCompanies()
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
     backlinks = DBResource_Backlinks(access='is_allowed_to_edit')

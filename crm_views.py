@@ -55,17 +55,72 @@ def two_lines(one, two):
 
 
 
-class CRM_SearchMissions(SearchForm):
+class CRM_Search(SearchForm):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Missions')
     search_template = '/ui/crm/crm/search.xml'
     styles = ['/ui/crm/style.css']
+
+    search_fields = [
+        ('text', MSG(u'Text'))]
+
+
+    def _get_query(self, resource, context, *args):
+        crm = get_crm(resource)
+        search_term = context.query['search_term'].strip()
+
+        # Build the query
+        args = list(args)
+        args.append(PhraseQuery('format', self.format))
+        args.append(get_crm_path_query(crm))
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
+
+        return AndQuery(*args)
+
+
+    def get_items(self, resource, context, *args):
+        query = self._get_query(resource, context, *args)
+        return context.root.search(query)
+
+
+    def get_item_value(self, resource, context, item, column):
+        item_brain, item_resource = item
+        if column == 'checkbox':
+            return item_brain.name, False
+        elif column == 'icon':
+            return item_resource.get_class_icon()
+        elif column == 'title':
+            href = context.get_link(item_resource)
+            return item_brain.title, href
+        elif column == 'mtime':
+            accept = context.accept_language
+            return format_datetime(item_brain.mtime, accept=accept)
+        try:
+            return getattr(item_brain, column)
+        except AttributeError:
+            return item_resource.get_property(column)
+
+
+    def sort_and_batch(self, resource, context, results):
+        start = context.query['batch_start']
+        size = context.query['batch_size']
+        sort_by = context.query['sort_by']
+        reverse = context.query['reverse']
+
+        items = results.get_documents(sort_by=sort_by, reverse=reverse,
+                                      start=start, size=size)
+        return [(x, resource.get_resource(x.abspath)) for x in items]
+
+
+
+class CRM_SearchMissions(CRM_Search):
+    title = MSG(u'Missions')
+    search_template = '/ui/crm/crm/search_missions.xml'
+    format = 'mission'
 
     search_schema = merge_dicts(SearchForm.search_schema,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean)
-    search_fields = [
-        ('text', MSG(u'Text')), ]
 
     table_columns = [
         ('icon', None, False),
@@ -79,6 +134,7 @@ class CRM_SearchMissions(SearchForm):
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
+
 
     # The Search Form
     def get_search_namespace(self, resource, context):
@@ -103,47 +159,29 @@ class CRM_SearchMissions(SearchForm):
 
 
     def get_items(self, resource, context, *args):
-        crm = get_crm(resource)
-        # Get the parameters from the query
-        query = context.query
-        search_term = query['search_term'].strip()
-        m_status = query['status']
-        with_no_alert = query['with_no_alert']
-
-        # Build the query
-        args = list(args)
-        args.append(PhraseQuery('format', 'mission'))
-        args.append(get_crm_path_query(crm))
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
+        query = self._get_query(resource, context, *args)
         # Insert status filter
+        m_status = context.query['status']
         if m_status:
             status_query = []
             for s in m_status:
                 status_query.append(PhraseQuery('crm_m_status', s))
-            args.append(OrQuery(*status_query))
+            query = AndQuery(query, OrQuery(*status_query))
         # Insert with_no_alert filter
+        with_no_alert = context.query['with_no_alert']
         if with_no_alert:
-            args.append(PhraseQuery('crm_m_has_alerts', False))
-        query = AndQuery(*args)
-
+            query = AndQuery(query, PhraseQuery('crm_m_has_alerts', False))
         # Ok
         return context.root.search(query)
 
 
     def get_item_value(self, resource, context, item, column):
         item_brain, item_resource = item
-        if column == 'checkbox':
-            # checkbox
-            return item_brain.name, False
         get_property = item_resource.get_property
         if column == 'icon':
             # Status
             value = get_property('crm_m_status')
             return m_status_icons[value]
-        elif column == 'title':
-            href = context.get_link(item_resource)
-            return item_brain.title, href
         elif column == 'crm_m_contacts':
             values = get_property('crm_m_contact')
             query = [PhraseQuery('name', name) for name in values]
@@ -156,41 +194,20 @@ class CRM_SearchMissions(SearchForm):
             query = AndQuery(PhraseQuery('format', 'contact'), query)
             values = context.root.search(query).get_documents()
             return u' '.join([x.crm_p_lastname for x in values])
-        elif column == 'mtime':
-            # Last Modified
-            accept = context.accept_language
-            return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('crm_m_amount', 'crm_m_probability',
-                'crm_m_deadline'):
-            return get_property(column)
         elif column == 'crm_m_nextaction':
             return item_resource.find_next_action()
-
-
-    def sort_and_batch(self, resource, context, results):
-        start = context.query['batch_start']
-        size = context.query['batch_size']
-        sort_by = context.query['sort_by']
-        reverse = context.query['reverse']
-
-        items = results.get_documents(sort_by=sort_by, reverse=reverse,
-                                      start=start, size=size)
-        return [(x, resource.get_resource(x.abspath)) for x in items]
+        return super(CRM_SearchMissions, self).get_item_value(resource,
+                context, item, column)
 
 
 
-class CRM_SearchContacts(SearchForm):
-
-    access = 'is_allowed_to_edit'
+class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
-    search_template = '/ui/crm/crm/search.xml'
     template = '/ui/crm/crm/search_contacts.xml'
-    styles = ['/ui/crm/style.css']
+    format = 'contact'
 
     search_schema = merge_dicts(SearchForm.search_schema,
         status=ContactStatus(multiple=True))
-    search_fields =  [
-        ('text', MSG(u'Text')), ]
 
     table_columns = [
         ('icon', None, False),
@@ -213,38 +230,44 @@ class CRM_SearchContacts(SearchForm):
 
 
     def get_items(self, resource, context, *args):
-        crm = get_crm(resource)
-        # Get the parameters from the query
-        query = context.query
-        search_term = query['search_term'].strip()
-        p_status = query['status']
-
-        # Build the query
-        args = list(args)
-        args.append(PhraseQuery('format', 'contact'))
-        args.append(get_crm_path_query(crm))
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
+        query = self._get_query(resource, context, *args)
         # Insert status filter
+        p_status = context.query['status']
         if p_status:
             status_query = []
             for s in p_status:
                 status_query.append(PhraseQuery('crm_p_status', s))
-            args.append(OrQuery(*status_query))
-        if len(args) == 1:
-            query = args[0]
-        else:
-            query = AndQuery(*args)
-
+            query = AndQuery(query, OrQuery(*status_query))
         # Ok
         return context.root.search(query)
 
 
     def get_item_value(self, resource, context, item, column):
         item_brain, item_resource = item
-        if column == 'checkbox':
-            # checkbox
-            return item_brain.name, False
+        get_property = item_resource.get_property
+        if column == 'icon':
+            # Status
+            value = get_property('crm_p_status')
+            return p_status_icons[value]
+        elif column == 'crm_p_lastname':
+            href = '%s/' % context.get_link(item_resource)
+            return get_property(column), href
+        elif column == 'crm_p_firstname':
+            href = '%s/' % context.get_link(item_resource)
+            return get_property(column), href
+        elif column == 'crm_p_company':
+            company = get_property(column)
+            if not company:
+                return u''
+            crm = get_crm(resource)
+            company_resource = crm.get_resource('companies/%s' % company)
+            href = context.get_link(company_resource)
+            title = company_resource.get_title()
+            return title, href
+        elif column == 'crm_p_email':
+            value = get_property(column)
+            href = 'mailto:%s' % value
+            return value, href
         elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
             accept = context.accept_language
@@ -253,55 +276,18 @@ class CRM_SearchContacts(SearchForm):
             value = item_brain.crm_p_probable
             accept = context.accept_language
             return format_amount(value, accept)
-        get_property = item_resource.get_property
-        if column == 'icon':
-            # Status
-            value = get_property('crm_p_status')
-            return p_status_icons[value]
-        elif column == 'crm_p_company':
-            company = get_property(column)
-            if company:
-                crm = get_crm(resource)
-                company_resource = crm.get_resource('companies/%s' % company)
-                href = context.get_link(company_resource)
-                title = company_resource.get_title()
-                return title, href
-            else:
-                return u''
-        elif column == 'crm_p_lastname':
-            href = '%s/' % context.get_link(item_resource)
-            return get_property(column), href
-        elif column == 'crm_p_firstname':
-            href = '%s/' % context.get_link(item_resource)
-            return get_property(column), href
-        elif column in ('crm_p_phone', 'crm_p_mobile'):
-            return get_property(column)
-        elif column == 'crm_p_email':
-            value = get_property(column)
-            href = 'mailto:%s' % value
-            return value, href
-        elif column == 'mtime':
-            # Last Modified
-            accept = context.accept_language
-            return format_datetime(item_brain.mtime, accept=accept)
-        elif column in ('crm_p_opportunity', 'crm_p_project', 'crm_p_nogo'):
-            return getattr(item_brain, column)
+        return super(CRM_SearchContacts, self).get_item_value(resource,
+                context, item, column)
 
 
     def sort_and_batch(self, resource, context, results):
-        start = context.query['batch_start']
-        size = context.query['batch_size']
-        sort_by = context.query['sort_by']
-        reverse = context.query['reverse']
-
         # Calculate the probable and assured amount
         for brain in results.get_documents():
             self.assured += Decimal.decode(brain.crm_p_assured)
             self.probable += Decimal.decode(brain.crm_p_probable)
 
-        items = results.get_documents(sort_by=sort_by, reverse=reverse,
-                                      start=start, size=size)
-        return [(x, resource.get_resource(x.abspath)) for x in items]
+        return super(CRM_SearchContacts, self).sort_and_batch(resource,
+                context, results)
 
 
     #######################################################################
@@ -339,6 +325,60 @@ class CRM_SearchContacts(SearchForm):
         namespace['crm-infos'] = True
         namespace['export-csv'] = True
         return namespace
+
+
+
+class CRM_SearchCompanies(CRM_Search):
+    title = MSG(u'Companies')
+    format = 'company'
+
+    table_columns = [
+        ('icon', None, False),
+        ('title', MSG(u'Title'), True),
+        ('address', MSG(u'Address'), True),
+        ('phones', MSG(u'Phones'), True),
+        ('website', MSG(u'Website'), True),
+        ('crm_c_activity', MSG(u'Activity'), True),
+        ('mtime', MSG(u'Last Modified'), True)]
+
+    batch_msg1 = MSG(u'1 company.')
+    batch_msg2 = MSG(u'{n} companies.')
+
+
+    def get_item_value(self, resource, context, item, column):
+        proxy = super(CRM_SearchCompanies, self)
+        item_brain, item_resource = item
+        get_property = item_resource.get_property
+        if column == 'icon':
+            logo = get_property('crm_c_logo')
+            if not logo or logo == '.':
+                return proxy.get_item_value(resource, context, item, column)
+            return context.get_link(item_resource.get_resource(logo))
+        elif column == 'address':
+            address = []
+            for field in ('crm_c_address_1', 'crm_c_address_2',
+                    'crm_c_zipcode', 'crm_c_town', 'crm_c_country'):
+                value = get_property(field)
+                if value:
+                    address.append(value)
+            address = u"<br/>".join(address) or u"-"
+            return MSG(address, format='html')
+        elif column == 'phones':
+            phones = []
+            for message, field in [
+                    (u"Phone:\u00a0{0}", 'crm_c_phone'),
+                    (u"Fax:\u00a0{0}", 'crm_c_fax')]:
+                value = get_property(field).replace(u" ", u"\u00a0")
+                if value:
+                    phones.append(message.format(value))
+            phones = u"<br/>".join(phones) or u"-"
+            return MSG(phones, format='html')
+        elif column == 'website':
+            website = get_property('crm_c_website')
+            if website == 'http://':
+                return None
+            return website, website
+        return proxy.get_item_value(resource, context, item, column)
 
 
 
