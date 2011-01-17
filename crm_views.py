@@ -96,7 +96,7 @@ class CRM_SearchMissions(SearchForm):
         with_no_alert = context.query['with_no_alert']
         widget = CheckboxWidget('with_no_alert',
             title=MSG(u'With no alert only'), datatype=Boolean,
-            value=with_no_alert)
+            value=with_no_alert, oneline=True)
         search_namespace['with_no_alert'] = widget.render()
 
         return search_namespace
