@@ -37,7 +37,7 @@ from ikaaro.views import CompositeForm, SearchForm
 from base_views import monolingual_schema, m_status_icons
 from base_views import Comments_View, CRMFolder_AddForm
 from datatypes import CompanyName, MissionStatus, ContactStatus
-from menus import MissionsMenu, ContactsByContactMenu
+from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
 from mission_views import get_changes, send_notification
 from utils import get_crm, get_crm_path_query
@@ -410,15 +410,20 @@ class Contact_ViewMissions(Contact_SearchMissions):
 
 
 class Contact_View(CompositeForm):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'View contact')
     template = '/ui/crm/contact/view.xml'
     styles = ['/ui/crm/style.css']
-    context_menus = [MissionsMenu(contact_menu=ContactsByContactMenu()),
-            ContactsByContactMenu()]
+    context_menus = [
+            MissionsMenu(contact_menu=ContactsByContactMenu()),
+            ContactsByContactMenu(),
+            CompaniesMenu()]
 
-    subviews = [Contact_EditForm(), Contact_ViewMissions(), Comments_View()]
+    subviews = [
+            Contact_EditForm(),
+            Contact_ViewMissions(),
+            Comments_View()]
+
 
     def get_namespace(self, resource, context):
         title = resource.get_title()

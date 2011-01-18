@@ -152,6 +152,33 @@ class MissionsMenu(ContextMenu):
 
 
 
+class CompaniesMenu(ContextMenu):
+    template = '/ui/crm/generic/menu.xml'
+    title = u"Related Companies"
+
+
+    def get_items(self):
+        context = get_context()
+        resource = context.resource
+        items = []
+        if resource.class_id == 'contact':
+            p_company = resource.get_property('crm_p_company')
+            companies = resource.get_resource('../../companies')
+            company = companies.get_resource(p_company)
+            items.append({
+                'title': company.get_property('title'),
+                'src': '/ui/crm/icons/16x16/company.png',
+                'href': context.get_link(company),
+                'selected': True})
+            items.append({
+                'title': MSG(u"New Company"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': context.get_link(companies),
+                'selected': False})
+        return items
+
+
+
 class CompanyMenu(ContextMenu):
     template = '/ui/crm/generic/menu.xml'
     title = MSG(u"New Company")
