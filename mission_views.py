@@ -556,7 +556,6 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 
 class Mission_AddContacts(CRM_SearchContacts):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Add contacts')
 
@@ -569,16 +568,18 @@ class Mission_AddContacts(CRM_SearchContacts):
 
     def get_query_schema(self):
         # Filter by same company
-        company = u""
+        search_term = u""
         resource = get_context().resource
         m_contact = resource.get_property('crm_m_contact')
         if m_contact:
             crm = get_crm(resource)
             contact = crm.get_resource('contacts/' + m_contact[0])
-            company = contact.get_property('title')
+            p_company = contact.get_property('crm_p_company')
+            company = crm.get_resource('companies/' + p_company)
+            search_term = company.get_property('title')
         return freeze(merge_dicts(
             CRM_SearchContacts.get_query_schema(self),
-            search_term=Unicode(default=company)))
+            search_term=Unicode(default=search_term)))
 
 
     def get_table_columns(self, resource, context):
