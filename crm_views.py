@@ -121,6 +121,7 @@ class CRM_SearchMissions(CRM_Search):
 
     search_schema = freeze(merge_dicts(
         SearchForm.search_schema,
+        assigned=String,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean))
 
@@ -132,36 +133,51 @@ class CRM_SearchMissions(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
-        ('crm_m_deadline', MSG(u'Deadline'), False)])
+        ('crm_m_deadline', MSG(u'Deadline'), False),
+        ('assigned', MSG(u'Assigned To'), False)])
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
 
 
+    def get_query_schema(self):
+        schema = super(CRM_SearchMissions, self).get_query_schema()
+        context = get_context()
+        return freeze(merge_dicts(
+            schema,
+            assigned=schema['assigned'](default=context.user.name)))
+
+
     # The Search Form
     def get_search_namespace(self, resource, context):
-        search_namespace = SearchForm.get_search_namespace(self, resource,
-                context)
+        namespace = {}
+        namespace['search_term'] = TextWidget('search_term', size=20,
+                value=context.query['search_term'])
+        datatype = UsersList(resource=resource)
+        namespace['assigned'] = SelectWidget(name='assigned',
+                title=MSG(u"Assigned To"), datatype=datatype,
+                value=context.query['assigned'])
         # Add status
         default_status = ['opportunity', 'project']
         m_status = context.query['status']
         if not m_status:
             m_status = default_status
-        widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
-                    datatype=MissionStatus, value=m_status)
-        search_namespace['status'] = widget.render()
+        namespace['status'] = MultipleCheckboxWidget('status',
+                title=MSG(u'Status'), datatype=MissionStatus, value=m_status)
         # Add with_no_alert
         with_no_alert = context.query['with_no_alert']
-        widget = CheckboxWidget('with_no_alert',
-            title=MSG(u'With no alert only'), datatype=Boolean,
-            value=with_no_alert, oneline=True)
-        search_namespace['with_no_alert'] = widget.render()
-
-        return search_namespace
+        namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
+                title=MSG(u'With no alert only'), datatype=Boolean,
+                value=with_no_alert, oneline=True)
+        return namespace
 
 
     def get_items(self, resource, context, *args):
         query = self._get_query(resource, context, *args)
+        # Assigned To
+        assigned = context.query['assigned']
+        if assigned:
+            query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
         # Insert status filter
         m_status = context.query['status']
         if m_status:
@@ -198,6 +214,9 @@ class CRM_SearchMissions(CRM_Search):
             return u' '.join([x.crm_p_lastname for x in values])
         elif column == 'crm_m_nextaction':
             return item_resource.find_next_action()
+        elif column == 'assigned':
+            user_id = item_brain.crm_m_assigned
+            return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
                 context, item, column)
 
