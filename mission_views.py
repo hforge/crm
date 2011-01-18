@@ -405,7 +405,7 @@ class Mission_EditForm(DBResource_Edit):
             # Value
             value = form[name]
             if not value:
-                if attachment or m_nextaction or alert_time:
+                if attachment or m_nextaction or alert_datetime:
                     value = u"_"
                 else:
                     return False
