@@ -19,7 +19,7 @@ from datetime import datetime, date
 from decimal import Decimal as decimal
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Boolean, Decimal, String, Integer

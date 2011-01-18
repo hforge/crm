@@ -18,7 +18,7 @@
 from decimal import Decimal as decimal
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.datatypes import Decimal, Email, Integer
 from itools.datatypes import String, Unicode
 from itools.gettext import MSG

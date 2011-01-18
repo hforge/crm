@@ -18,6 +18,7 @@
 from decimal import Decimal as dec
 
 # Import from itools
+from itools.core import freeze
 from itools.datatypes import Decimal, Unicode, DateTime
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number

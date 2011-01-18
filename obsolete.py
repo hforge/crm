@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.csv import Table as TableFile
 from itools.datatypes import Date, DateTime, Decimal, Email, Integer
 from itools.datatypes import PathDataType, String, Unicode

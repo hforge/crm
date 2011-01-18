@@ -17,7 +17,7 @@
 # Import from the Standard Library
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.csv import Property
 from itools.datatypes import PathDataType, Unicode
 from itools.uri import get_reference, Path

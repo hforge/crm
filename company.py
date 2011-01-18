@@ -17,7 +17,7 @@
 # Import from the Standard Library
 
 # Import from itools
-from itools.core import merge_dicts
+from itools.core import merge_dicts, freeze
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
 
