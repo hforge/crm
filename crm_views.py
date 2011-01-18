@@ -27,11 +27,12 @@ from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.uri import resolve_uri
-from itools.web import BaseView, STLView, ERROR
+from itools.web import BaseView, STLView, ERROR, get_context
 
 # Import from ikaaro
-from ikaaro.autoform import CheckboxWidget
+from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
 from ikaaro.buttons import RemoveButton
+from ikaaro.cc import UsersList
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
@@ -487,7 +488,6 @@ class CRM_ExportToCSV(BaseView):
 
 
 class CRM_Alerts(SearchForm):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Alerts')
     template = '/ui/crm/crm/alerts.xml'
@@ -499,6 +499,14 @@ class CRM_Alerts(SearchForm):
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
 
+    search_template = '/ui/crm/crm/search_assigned.xml'
+    search_schema = freeze(merge_dicts(
+        SearchForm.search_schema,
+        assigned=String))
+    search_fields = freeze([
+        ('text', MSG(u'Text')),
+        ('assigned', MSG(u"Assigned To"))])
+
     table_columns = freeze([
         ('checkbox', None, False),
         ('icon', None, False),
@@ -506,14 +514,23 @@ class CRM_Alerts(SearchForm):
         ('contact', MSG(u'Contact'), False),
         ('company', MSG(u'Company'), False),
         ('mission', MSG(u'Mission'), False),
-        ('nextaction', MSG(u'Next action'), False),
-        ('assigned', MSG(u'Assigned to'), False)])
+        ('nextaction', MSG(u'Next Action'), False),
+        ('assigned', MSG(u'Assigned To'), False)])
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
 
-    table_actions = [RemoveButton(name='remove', title=MSG(u'Remove alert'),
-                                  confirm=REMOVE_ALERT_MSG)]
+    table_actions = freeze([
+            RemoveButton(name='remove', title=MSG(u'Remove alert'),
+                confirm=REMOVE_ALERT_MSG)])
+
+
+    def get_query_schema(self):
+        schema = super(CRM_Alerts, self).get_query_schema()
+        context = get_context()
+        return freeze(merge_dicts(
+            schema,
+            assigned=schema['assigned'](default=context.user.name)))
 
 
     def get_page_title(self, resource, context):
@@ -527,6 +544,17 @@ class CRM_Alerts(SearchForm):
         return self.table_columns
 
 
+    def get_search_namespace(self, resource, context):
+        namespace = {}
+        namespace['search_term'] = TextWidget('search_term', size=35,
+                value=context.query['search_term'])
+        datatype = UsersList(resource=resource)
+        namespace['assigned'] = SelectWidget(name='assigned',
+                title=MSG(u"Assigned To"), datatype=datatype,
+                value=context.query['assigned'])
+        return namespace
+
+
     def get_items(self, resource, context, *args):
         user = context.user
 
@@ -534,6 +562,12 @@ class CRM_Alerts(SearchForm):
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
         args.append(PhraseQuery('crm_m_has_alerts', True))
+        search_term = context.query['search_term'].strip()
+        if search_term:
+            args.append(PhraseQuery('text', search_term))
+        assigned = context.query['assigned']
+        if assigned:
+            args.append(PhraseQuery('crm_m_assigned', assigned))
         query = AndQuery(*args)
 
         items = []

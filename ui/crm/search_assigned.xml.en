@@ -5,8 +5,9 @@
   <form action="" method="get">
     <fieldset>
       <legend>Search</legend>
-      <input type="text" name="search_term" size="35" value="${search_term}"
-        />
+      ${search_term}
+      ${assigned/title}:
+      ${assigned}
       <!-- OK -->
       <button type="submit" class="button-search">OK</button>
     </fieldset>
