@@ -18,7 +18,7 @@
 from datetime import datetime, time
 
 # Import from itools
-from itools.core import merge_dicts, freeze
+from itools.core import merge_dicts, freeze, is_thingy
 from itools.csv import Property
 from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
@@ -360,8 +360,8 @@ class Mission_EditForm(DBResource_Edit):
         changes = get_changes(resource, context, form)
 
         # Save changes
-        DBResource_Edit.action(self, resource, context, form)
-        if type(context.message) is ERROR:
+        super(Mission_EditForm, self).action(resource, context, form)
+        if is_thingy(context.message, ERROR):
             return
 
         # Reindex contacts to update Opp/Proj/NoGo, p_assured and p_probable
@@ -464,7 +464,7 @@ class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
         mission = resource.add_mission(**m_values)
 
         Mission_EditForm.action(self, mission, context, form)
-        if type(context.message) is ERROR:
+        if is_thingy(context.message, ERROR):
             return
 
         goto = context.get_link(mission)

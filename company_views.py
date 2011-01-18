@@ -17,7 +17,7 @@
 # Import from the Standard Library
 
 # Import from itools
-from itools.core import merge_dicts, freeze
+from itools.core import merge_dicts, freeze, is_thingy
 from itools.database import PhraseQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
@@ -99,7 +99,7 @@ class Company_AddForm(CRMFolder_AddForm, Company_EditForm):
         company = resource.add_company()
 
         Company_EditForm.action(self, company, context, form)
-        if type(context.message) is ERROR:
+        if is_thingy(context.message, ERROR):
             return
 
         crm = get_crm(resource)
