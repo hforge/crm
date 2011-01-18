@@ -97,9 +97,10 @@ class MissionTable(Table):
 
 
 class OldMission(Mission):
-    class_schema = merge_dicts(Mission.class_schema,
+    class_schema = freeze(merge_dicts(
+        Mission.class_schema,
         crm_m_prospect=String(source='metadata', indexed=True,
-            multiple=True))
+            multiple=True)))
 
 
     def update_20100924(self):
@@ -177,7 +178,7 @@ class CompanyTable(Table):
 
 
 class OldCompany(Company):
-    class_schema = merge_dicts(
+    class_schema = freeze(merge_dicts(
         Company.class_schema,
         c_address_1=Unicode(source='metadata'),
         c_address_2=Unicode(source='metadata'),
@@ -188,7 +189,7 @@ class OldCompany(Company):
         c_fax=Unicode(source='metadata'),
         c_website=Unicode(source='metadata'),
         c_activity=Unicode(source='metadata'),
-        c_logo=PathDataType(source='metadata', default='.'))
+        c_logo=PathDataType(source='metadata', default='.')))
 
 
     def update_20100913(self):

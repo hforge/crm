@@ -43,7 +43,7 @@ class Company(CRMFolder):
 
     class_views = ['view', 'browse_content']
 
-    class_schema = merge_dicts(
+    class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
         crm_c_address_1=Unicode(source='metadata'),
         crm_c_address_2=Unicode(source='metadata'),
@@ -54,7 +54,7 @@ class Company(CRMFolder):
         crm_c_fax=Unicode(source='metadata'),
         crm_c_website=Unicode(source='metadata'),
         crm_c_activity=Unicode(source='metadata'),
-        crm_c_logo=PathDataType(source='metadata', default='.'))
+        crm_c_logo=PathDataType(source='metadata', default='.')))
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')

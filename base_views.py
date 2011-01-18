@@ -43,11 +43,11 @@ m_status_icons = {
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 
 
-monolingual_schema = {
+monolingual_schema = freeze({
     'title': Unicode,
     'description': Unicode(hidden_by_default=False),
     'subject': Unicode(hidden_by_default=True),
-    'timestamp': DateTime(readonly=True)}
+    'timestamp': DateTime(readonly=True)})
 
 
 def format_amount(str_value, accept):

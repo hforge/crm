@@ -48,7 +48,7 @@ class Mission(CRMFolder):
     class_title = MSG(u'Mission')
     class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
 
-    class_schema = merge_dicts(
+    class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
         crm_m_contact=String(source='metadata', indexed=True, stored=True,
             multiple=True),
@@ -63,7 +63,7 @@ class Mission(CRMFolder):
             attachment=String,
             alert_datetime=DateTime,
             crm_m_nextaction=Unicode)),
-        crm_m_has_alerts=Boolean(indexed=True))
+        crm_m_has_alerts=Boolean(indexed=True)))
 
     # Views
     add_contacts = Mission_AddContacts()

@@ -38,7 +38,8 @@ from utils import get_crm
 from widgets import LinkWidget
 
 
-company_schema = merge_dicts(DBResource_Edit.schema,
+company_schema = freeze(merge_dicts(
+    DBResource_Edit.schema,
     crm_c_address_1=Unicode,
     crm_c_address_2=Unicode,
     crm_c_zipcode=String,
@@ -49,10 +50,10 @@ company_schema = merge_dicts(DBResource_Edit.schema,
     crm_c_fax=Unicode,
     crm_c_website=Unicode,
     crm_c_activity=Unicode,
-    crm_c_logo=PathDataType)
+    crm_c_logo=PathDataType))
 
 
-company_widgets = DBResource_Edit.widgets[:2] + [
+company_widgets = freeze(DBResource_Edit.widgets[:2] + [
     TextWidget('crm_c_address_1', title=MSG(u'Address')),
     TextWidget('crm_c_address_2', title=MSG(u'Address (next)')),
     TextWidget('crm_c_zipcode', title=MSG(u'Zip Code'), size=10),
@@ -63,7 +64,7 @@ company_widgets = DBResource_Edit.widgets[:2] + [
     LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
     TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
     ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
-    MultilineWidget('description', title=MSG(u'Observations'), rows=4)]
+    MultilineWidget('description', title=MSG(u'Observations'), rows=4)])
 
 
 
@@ -79,8 +80,9 @@ class Company_EditForm(DBResource_Edit):
 
     def _get_schema(self, resource, context):
         # title is mandatory
-        return merge_dicts(company_schema,
-                title=company_schema['title'](mandatory=True))
+        return freeze(merge_dicts(
+            company_schema,
+            title=company_schema['title'](mandatory=True)))
 
 
     def _get_widgets(self, resource, context):

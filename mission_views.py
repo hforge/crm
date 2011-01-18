@@ -68,7 +68,8 @@ BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 You are receiving this e-mail because you are in CC.''')
 
 
-mission_schema = merge_dicts(monolingual_schema,
+mission_schema = freeze(merge_dicts(
+    monolingual_schema,
     comment=Unicode,
     crm_m_nextaction=Unicode,
     attachment=FileDataType,
@@ -81,10 +82,10 @@ mission_schema = merge_dicts(monolingual_schema,
     crm_m_status=MissionStatus,
     crm_m_deadline=Date,
     crm_m_amount=Decimal,
-    crm_m_probability=Integer)
+    crm_m_probability=Integer))
 
 
-mission_widgets = DBResource_Edit.widgets[:3] + [
+mission_widgets = freeze(DBResource_Edit.widgets[:3] + [
     MultilineWidget('comment', title=MSG(u'New comment'), default='',
                     rows=3),
     TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
@@ -102,7 +103,7 @@ mission_widgets = DBResource_Edit.widgets[:3] + [
     DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
     TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
     TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
-               size=2)]
+               size=2)])
 
 
 def get_changes(resource, context, form, new=False):
@@ -302,12 +303,13 @@ class Mission_EditForm(DBResource_Edit):
 
     def _get_schema(self, resource, context):
         # title and crm_m_status are mandatory
-        return merge_dicts(mission_schema,
-                title=mission_schema['title'](mandatory=True),
-                crm_m_status=mission_schema['crm_m_status'](mandatory=True),
-                crm_m_assigned=mission_schema['crm_m_assigned'](
-                    resource=resource),
-                crm_m_cc=mission_schema['crm_m_cc'](resource=resource))
+        return freeze(merge_dicts(
+            mission_schema,
+            title=mission_schema['title'](mandatory=True),
+            crm_m_status=mission_schema['crm_m_status'](mandatory=True),
+            crm_m_assigned=mission_schema['crm_m_assigned'](
+                resource=resource),
+            crm_m_cc=mission_schema['crm_m_cc'](resource=resource)))
 
 
     def _get_widgets(self, resource, context):
@@ -425,7 +427,9 @@ class CancelAlert(BaseForm):
     """ Form accessed from Mission_View.
     """
     access = 'is_allowed_to_edit'
-    schema = {'id': Integer(mandatory=True)}
+    schema = freeze({
+        'id': Integer(mandatory=True)})
+
 
     def action(self, resource, context, form):
         comment_id = form['id']
@@ -446,8 +450,9 @@ class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
 
     def get_query_schema(self):
         # Add mandatory crm_m_contact to query schema
-        return merge_dicts(mission_schema,
-                crm_m_contact=ContactName(mandatory=True, multiple=True))
+        return freeze(merge_dicts(
+            mission_schema,
+            crm_m_contact=ContactName(mandatory=True, multiple=True)))
 
 
     def is_edit(self, context):
@@ -518,10 +523,12 @@ class Mission_EditContacts(Mission_ViewContacts):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit contacts')
 
-    schema = {'ids': String(multiple=True, mandatory=True)}
+    schema = freeze({
+        'ids': String(multiple=True, mandatory=True)})
 
-    table_actions = [
-            RemoveButton(name='remove', title=MSG(u'Remove contact')) ]
+    table_actions = freeze([
+            RemoveButton(name='remove', title=MSG(u'Remove contact')) ])
+
 
     def get_table_columns(self, resource, context):
         columns = Mission_ViewContacts.get_table_columns(self, resource,
@@ -553,9 +560,11 @@ class Mission_AddContacts(CRM_SearchContacts):
     access = 'is_allowed_to_edit'
     title = MSG(u'Add contacts')
 
-    schema = {'ids': String(multiple=True, mandatory=True)}
+    schema = freeze({
+        'ids': String(multiple=True, mandatory=True)})
 
-    table_actions = [ButtonAddContact]
+    table_actions = freeze([
+        ButtonAddContact])
 
 
     def get_query_schema(self):
@@ -567,8 +576,9 @@ class Mission_AddContacts(CRM_SearchContacts):
             crm = get_crm(resource)
             contact = crm.get_resource('contacts/' + m_contact[0])
             company = contact.get_property('title')
-        return merge_dicts(CRM_SearchContacts.get_query_schema(self),
-                search_term=Unicode(default=company))
+        return freeze(merge_dicts(
+            CRM_SearchContacts.get_query_schema(self),
+            search_term=Unicode(default=company)))
 
 
     def get_table_columns(self, resource, context):

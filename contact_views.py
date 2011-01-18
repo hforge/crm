@@ -45,7 +45,8 @@ from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import SelectCompanyWidget
 
 
-contact_schema = merge_dicts(monolingual_schema,
+contact_schema = freeze(merge_dicts(
+    monolingual_schema,
     crm_p_company=CompanyName,
     crm_p_lastname=Unicode,
     crm_p_firstname=Unicode,
@@ -55,10 +56,11 @@ contact_schema = merge_dicts(monolingual_schema,
     crm_p_description=Unicode,
     crm_p_position=Unicode,
     crm_p_status=ContactStatus,
-    comment=Unicode)
+    comment=Unicode))
 
 
-contact_widgets = [timestamp_widget,
+contact_widgets = freeze([
+    timestamp_widget,
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
     TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='',
         size=30),
@@ -73,7 +75,7 @@ contact_widgets = [timestamp_widget,
         default=u'', rows=4),
     RadioWidget('crm_p_status', title=MSG(u'Status'), has_empty_option=False,
         is_inline=True),
-    MultilineWidget('comment', title=MSG(u'New comment'), rows=3)]
+    MultilineWidget('comment', title=MSG(u'New comment'), rows=3)])
 
 
 class Contact_EditForm(DBResource_Edit):
@@ -137,11 +139,12 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
 
     def get_query_schema(self):
-        return merge_dicts(contact_schema, mission_schema)
+        return freeze(merge_dicts(contact_schema, mission_schema))
 
 
     def _get_schema(self, resource, context):
-        schema = merge_dicts(contact_schema,
+        schema = merge_dicts(
+                contact_schema,
                 crm_p_lastname=contact_schema['crm_p_lastname'](
                     mandatory=True),
                 crm_p_status=contact_schema['crm_p_status'](
@@ -154,7 +157,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 schema[name] = datatype(resource=resource)
             else:
                 schema[name] = datatype
-        return schema
+        return freeze(schema)
 
 
     def _get_widgets(self, resource, context):
@@ -168,7 +171,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 # Prefix double title and description
                 widget.name = 'mission_%s' % widget.name
             widgets.append(widget)
-        return widgets
+        return freeze(widgets)
 
 
     def is_edit(self, context):
@@ -253,30 +256,31 @@ class Contact_SearchMissions(SearchForm):
     title = MSG(u'Missions')
     search_template = '/ui/crm/contact/search.xml'
 
-    search_schema = {
+    search_schema = freeze({
         'search_text': Unicode,
         'search_type': String,
-        'crm_m_status': MissionStatus(multiple=True) }
-    search_fields =  [
+        'crm_m_status': MissionStatus(multiple=True)})
+    search_fields =  freeze([
         ('title', MSG(u'Title')),
-        ('text', MSG(u'Text')) ]
+        ('text', MSG(u'Text')) ])
 
-    table_columns = [
+    table_columns = freeze([
         ('icon', None, False),
         ('title', MSG(u'Title'), True),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
         ('crm_m_deadline', MSG(u'Deadline'), False),
-        ('mtime', MSG(u'Last Modified'), True)]
+        ('mtime', MSG(u'Last Modified'), True)])
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
 
 
     def get_query_schema(self):
-        return merge_dicts(SearchForm.get_query_schema(self),
-                           sort_by=String(default='mtime'))
+        return freeze(merge_dicts(
+            SearchForm.get_query_schema(self),
+            sort_by=String(default='mtime')))
 
 
     def get_items(self, resource, context, *args):
@@ -376,16 +380,18 @@ class Contact_SearchMissions(SearchForm):
 class Contact_ViewMissions(Contact_SearchMissions):
 
     search_template = None
-    search_schema = {}
-    search_fields = []
+    search_schema = freeze({})
+    search_fields = freeze([])
+
 
     def get_search_namespace(self, resource, context):
         return {}
 
 
     def get_query_schema(self):
-        return merge_dicts(Contact_SearchMissions.get_query_schema(self),
-                           batch_size=Integer(default=10))
+        return freeze(merge_dicts(
+            Contact_SearchMissions.get_query_schema(self),
+            batch_size=Integer(default=10)))
 
 
     def get_items(self, resource, context, *args):

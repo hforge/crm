@@ -118,11 +118,12 @@ class CRM_SearchMissions(CRM_Search):
     search_template = '/ui/crm/crm/search_missions.xml'
     format = 'mission'
 
-    search_schema = merge_dicts(SearchForm.search_schema,
+    search_schema = freeze(merge_dicts(
+        SearchForm.search_schema,
         status=MissionStatus(multiple=True),
-        with_no_alert=Boolean)
+        with_no_alert=Boolean))
 
-    table_columns = [
+    table_columns = freeze([
         ('icon', None, False),
         ('title', MSG(u'Title'), True),
         ('crm_m_contacts', MSG(u'Contacts'), False),
@@ -130,7 +131,7 @@ class CRM_SearchMissions(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
-        ('crm_m_deadline', MSG(u'Deadline'), False) ]
+        ('crm_m_deadline', MSG(u'Deadline'), False)])
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -206,10 +207,11 @@ class CRM_SearchContacts(CRM_Search):
     template = '/ui/crm/crm/search_contacts.xml'
     format = 'contact'
 
-    search_schema = merge_dicts(SearchForm.search_schema,
-        status=ContactStatus(multiple=True))
+    search_schema = freeze(merge_dicts(
+        SearchForm.search_schema,
+        status=ContactStatus(multiple=True)))
 
-    table_columns = [
+    table_columns = freeze([
         ('icon', None, False),
         ('crm_p_lastname', MSG(u'Last name'), True),
         ('crm_p_firstname', MSG(u'First name'), False),
@@ -223,7 +225,7 @@ class CRM_SearchContacts(CRM_Search):
         ('crm_p_nogo', MSG(u'NoGo'), True),
         ('crm_p_assured', MSG(u'Assured'), True),
         ('crm_p_probable', MSG(u'In pipe'), True),
-        ('mtime', MSG(u'Last Modified'), True)]
+        ('mtime', MSG(u'Last Modified'), True)])
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
@@ -390,7 +392,8 @@ class CRM_ExportToCSV(BaseView):
 
     access = 'is_allowed_to_edit'
     title = MSG(u'Export to CSV')
-    query_schema = {'editor': String(default='excel')}
+    query_schema = freeze({
+        'editor': String(default='excel')})
 
 
     def get_contact_infos(self, resource, contact):
@@ -490,11 +493,13 @@ class CRM_Alerts(SearchForm):
     template = '/ui/crm/crm/alerts.xml'
     styles = ['/ui/crm/style.css']
 
-    query_schema = merge_dicts(SearchForm.query_schema,
-        batch_size=Integer(default=0))
-    schema = {'ids': String(multiple=True, mandatory=True)}
+    query_schema = freeze(merge_dicts(
+        SearchForm.query_schema,
+        batch_size=Integer(default=0)))
+    schema = freeze({
+        'ids': String(multiple=True, mandatory=True)})
 
-    table_columns = [
+    table_columns = freeze([
         ('checkbox', None, False),
         ('icon', None, False),
         ('alert_datetime', MSG(u'Date'), False),
@@ -502,7 +507,7 @@ class CRM_Alerts(SearchForm):
         ('company', MSG(u'Company'), False),
         ('mission', MSG(u'Mission'), False),
         ('nextaction', MSG(u'Next action'), False),
-        ('assigned', MSG(u'Assigned to'), False)]
+        ('assigned', MSG(u'Assigned to'), False)])
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')

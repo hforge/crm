@@ -38,10 +38,10 @@ class CRMFolder(RoleAware, Folder):
     class_version = '20100912'
     class_document_types = []
 
-    class_schema = merge_dicts(
+    class_schema = freeze(merge_dicts(
         Folder.class_schema,
         RoleAware.class_schema,
-        comment=Unicode(source='metadata', mandatory=True, multiple=True))
+        comment=Unicode(source='metadata', mandatory=True, multiple=True)))
 
     # Views
     add_logo = CRMFolder_AddImage()

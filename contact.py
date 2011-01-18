@@ -45,7 +45,8 @@ class Contact(CRMFolder):
     class_views = ['view']
 
     # The class used to be named "Prospect" so the prefix is "p_"
-    class_schema = merge_dicts(CRMFolder.class_schema,
+    class_schema = freeze(merge_dicts(
+        CRMFolder.class_schema,
         crm_p_company=String(source='metadata', indexed=True, stored=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
         crm_p_firstname=Unicode(source='metadata', stored=True),
@@ -60,7 +61,7 @@ class Contact(CRMFolder):
         crm_p_opportunity=Integer(source='metadata', stored=True),
         crm_p_project=Integer(source='metadata', stored=True),
         crm_p_nogo=Integer(source='metadata', stored=True),
-        comment=comment_datatype)
+        comment=comment_datatype))
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
