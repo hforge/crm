@@ -46,7 +46,7 @@ REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 
 monolingual_schema = freeze({
     'title': Unicode,
-    'description': Unicode(hidden_by_default=False),
+    'description': Unicode,
     'subject': Unicode(hidden_by_default=True),
     'timestamp': DateTime(readonly=True)})
 

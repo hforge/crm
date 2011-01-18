@@ -31,7 +31,7 @@ from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import CRMFolder_AddForm
+from base_views import monolingual_schema, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
 from menus import MissionsMenu, ContactsByCompanyMenu, CompanyMenu
 from utils import get_crm
@@ -39,7 +39,7 @@ from widgets import LinkWidget
 
 
 company_schema = freeze(merge_dicts(
-    DBResource_Edit.schema,
+    monolingual_schema,
     crm_c_address_1=Unicode,
     crm_c_address_2=Unicode,
     crm_c_zipcode=String,
