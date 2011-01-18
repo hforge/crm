@@ -84,7 +84,7 @@ class Company_EditForm(DBResource_Edit):
 
 
     def _get_widgets(self, resource, context):
-        return company_widgets[:]
+        return freeze(company_widgets)
 
 
 

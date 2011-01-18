@@ -96,7 +96,7 @@ class Contact_EditForm(DBResource_Edit):
 
 
     def _get_widgets(self, resource, context):
-        return contact_widgets[:]
+        return freeze(contact_widgets)
 
 
     def get_value(self, resource, context, name, datatype):
