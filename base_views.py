@@ -80,14 +80,14 @@ def monolingual_widgets(namespace):
 
 
 def reset_comment(namespace, is_edit=False):
-    for name, widget in namespace['widgets'].iteritems():
+    for name, widget_namespace in namespace['widgets'].iteritems():
         if name == 'comment' and is_edit is True:
-            widget['value'] = ''
+            widget_namespace['value'] = ''
             comment_widget = MultilineWidget('comment',
                     title=MSG(u'Comment'), rows=3, datatype=Unicode,
                     value=u'')
-            widget['widget'] = comment_widget
-            namespace['widgets'][name] = widget
+            widget_namespace['widget'] = comment_widget
+            namespace['widgets'][name] = widget_namespace
             return
 
 

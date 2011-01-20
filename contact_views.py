@@ -36,7 +36,7 @@ from ikaaro.views import CompositeForm, SearchForm
 
 # Import from crm
 from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
-from base_views import monolingual_widgets, reset_comment
+from base_views import monolingual_widgets
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
@@ -110,8 +110,15 @@ class Contact_EditForm(DBResource_Edit):
         # Build namespace
         proxy = super(Contact_EditForm, self)
         namespace = proxy.get_namespace(resource, context)
-        monolingual_widgets(namespace)
-        reset_comment(namespace, is_edit=self.is_edit(context))
+        # Reset comment
+        # XXX multilingual
+        for widget in namespace['widgets']:
+            if widget['name'] == 'comment' and self.is_edit(context):
+                widget['value'] = u''
+                comment_widget = MultilineWidget('comment',
+                        title=MSG(u'Comment'), rows=3, datatype=Unicode,
+                        value=u'')
+                widget['widget'] = comment_widget.render()
         return namespace
 
 
@@ -183,6 +190,14 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
             raise FormError(invalid=['crm_m_status'])
 
         return form
+
+
+    def get_namespace(self, resource, context):
+        # Build namespace
+        proxy = super(Contact_EditForm, self)
+        namespace = proxy.get_namespace(resource, context)
+        monolingual_widgets(namespace)
+        return namespace
 
 
     def action(self, resource, context, form):
