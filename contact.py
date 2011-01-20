@@ -40,7 +40,7 @@ from utils import generate_code
 class Contact(CRMFolder):
     class_id = 'contact'
     class_title = MSG(u'Contact')
-    class_version = '20100922'
+    class_version = '20100923'
 
     class_views = ['view']
 

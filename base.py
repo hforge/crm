@@ -59,8 +59,7 @@ class CRMFolder(RoleAware, Folder):
     def get_edit_languages(self, context):
         """Make the CRM monolingual.
         """
-        site_root = self.get_site_root()
-        return [site_root.get_default_language()]
+        return ['en']
 
 
     def is_allowed_to_edit(self, user, resource):
