@@ -67,11 +67,25 @@ class ContactsMenu(ContextMenu):
                 'src': '/ui/crm/icons/16x16/contact.png',
                 'href': context.get_link(brain),
                 'selected': (brain.abspath == abspath)})
+        # New contact
         if resource.class_id == 'mission':
             items.append({
-                'title': MSG(u"New contact"),
+                'title': MSG(u"New Contact"),
                 'src': '/ui/icons/16x16/add.png',
                 'href': ';add_contacts',
+                'selected': False})
+        elif resource.class_id == 'contact':
+            p_company = resource.get_property('crm_p_company')
+            items.append({
+                'title': MSG(u"New Contact"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': '../?crm_p_company=' + p_company,
+                'selected': False})
+        elif resource.class_id == 'company':
+            items.append({
+                'title': MSG(u"New Contact"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': '../../contacts/?crm_p_company=' + resource.name,
                 'selected': False})
         return items
 
@@ -145,13 +159,13 @@ class MissionsMenu(ContextMenu):
         if resource.class_id == 'mission':
             m_contact = resource.get_property('crm_m_contact')[0]
             items.append({
-                'title': MSG(u"New mission"),
+                'title': MSG(u"New Mission"),
                 'src': '/ui/icons/16x16/add.png',
                 'href': ('../;new_mission?crm_m_contact=' + m_contact),
                 'selected': False})
         elif resource.class_id == 'contact':
             items.append({
-                'title': MSG(u"New mission"),
+                'title': MSG(u"New Mission"),
                 'src': '/ui/icons/16x16/add.png',
                 'href': ('../../missions/;new_mission?crm_m_contact=' +
                     resource.name),
