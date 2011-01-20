@@ -47,7 +47,7 @@ from base_views import monolingual_widgets, reset_comment
 from base_views import Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
-from menus import MissionsMenu, ContactsByMissionMenu
+from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
 from utils import get_crm
 from widgets import TimeWidget
 
@@ -615,7 +615,8 @@ class Mission_View(CompositeForm):
             '/ui/crm/jquery.maskedinput-1.2.2.min.js']
     context_menus = [
             MissionsMenu(contact_menu=ContactsByMissionMenu()),
-            ContactsByMissionMenu()]
+            ContactsByMissionMenu(),
+            CompaniesMenu()]
     subviews = [
             Mission_EditForm(),
             Mission_ViewContacts(),

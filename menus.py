@@ -169,20 +169,31 @@ class CompaniesMenu(ContextMenu):
         context = get_context()
         resource = context.resource
         items = []
-        if resource.class_id == 'contact':
-            p_company = resource.get_property('crm_p_company')
+        if resource.class_id in ('contact', 'mission'):
+            todo = []
+            if resource.class_id == 'contact':
+                p_company = resource.get_property('crm_p_company')
+                todo.append(p_company)
+            else:
+                contacts = resource.get_resource('../../contacts')
+                for m_contact in resource.get_property('crm_m_contact'):
+                    contact = contacts.get_resource(m_contact)
+                    p_company = contact.get_property('crm_p_company')
+                    if p_company not in todo:
+                        todo.append(p_company)
             companies = resource.get_resource('../../companies')
-            company = companies.get_resource(p_company)
-            items.append({
-                'title': company.get_property('title'),
-                'src': '/ui/crm/icons/16x16/company.png',
-                'href': context.get_link(company),
-                'selected': True})
-            items.append({
-                'title': MSG(u"New Company"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': context.get_link(companies),
-                'selected': False})
+            for p_company in todo:
+                company = companies.get_resource(p_company)
+                items.append({
+                    'title': company.get_property('title'),
+                    'src': '/ui/crm/icons/16x16/company.png',
+                    'href': context.get_link(company),
+                    'selected': True})
+        items.append({
+            'title': MSG(u"New Company"),
+            'src': '/ui/icons/16x16/add.png',
+            'href': context.get_link(companies),
+            'selected': False})
         return items
 
 
