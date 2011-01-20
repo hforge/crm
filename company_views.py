@@ -26,12 +26,13 @@ from itools.web import ERROR
 # Import from ikaaro
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
 from ikaaro.autoform import TextWidget
+from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import monolingual_schema, CRMFolder_AddForm
+from base_views import CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
 from menus import MissionsMenu, ContactsByCompanyMenu, CompanyMenu
 from utils import get_crm
@@ -39,7 +40,8 @@ from widgets import LinkWidget
 
 
 company_schema = freeze(merge_dicts(
-    monolingual_schema,
+    DBResource_Edit.schema,
+    description=Multilingual(hidden_by_default=False),
     crm_c_address_1=Unicode,
     crm_c_address_2=Unicode,
     crm_c_zipcode=String,
@@ -53,18 +55,19 @@ company_schema = freeze(merge_dicts(
     crm_c_logo=PathDataType))
 
 
-company_widgets = freeze(DBResource_Edit.widgets[:2] + [
-    TextWidget('crm_c_address_1', title=MSG(u'Address')),
-    TextWidget('crm_c_address_2', title=MSG(u'Address (next)')),
-    TextWidget('crm_c_zipcode', title=MSG(u'Zip Code'), size=10),
-    TextWidget('crm_c_town', title=MSG(u'Town')),
-    TextWidget('crm_c_country', title=MSG(u'Country')),
-    TextWidget('crm_c_phone', title=MSG(u'Phone'), size=15),
-    TextWidget('crm_c_fax', title=MSG(u'Fax'), size=15),
-    LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
-    TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
-    ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
-    MultilineWidget('description', title=MSG(u'Observations'), rows=4)])
+company_widgets = freeze(
+    DBResource_Edit.widgets[:2] + [
+        TextWidget('crm_c_address_1', title=MSG(u'Address')),
+        TextWidget('crm_c_address_2', title=MSG(u'Address (next)')),
+        TextWidget('crm_c_zipcode', title=MSG(u'Zip Code'), size=10),
+        TextWidget('crm_c_town', title=MSG(u'Town')),
+        TextWidget('crm_c_country', title=MSG(u'Country')),
+        TextWidget('crm_c_phone', title=MSG(u'Phone'), size=15),
+        TextWidget('crm_c_fax', title=MSG(u'Fax'), size=15),
+        LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
+        TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
+        ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
+        MultilineWidget('description', title=MSG(u'Observations'), rows=4)])
 
 
 
@@ -72,21 +75,12 @@ class Company_EditForm(DBResource_Edit):
     title = MSG(u'Edit company')
     styles = ['/ui/crm/style.css']
     context_menus = []
-
-
-    def get_query_schema(self):
-        return freeze(company_schema)
-
-
-    def _get_schema(self, resource, context):
+    query_schema = company_schema
+    schema = freeze(merge_dicts(
+        company_schema,
         # title is mandatory
-        return freeze(merge_dicts(
-            company_schema,
-            title=company_schema['title'](mandatory=True)))
-
-
-    def _get_widgets(self, resource, context):
-        return freeze(company_widgets)
+        title=company_schema['title'](mandatory=True)))
+    widgets = company_widgets
 
 
 

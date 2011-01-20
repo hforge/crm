@@ -141,7 +141,15 @@ class MissionsMenu(ContextMenu):
                 'src': '/ui/crm/icons/16x16/mission.png',
                 'href': context.get_link(brain),
                 'selected': selected})
-        if resource.class_id == 'contact':
+        # New mission
+        if resource.class_id == 'mission':
+            m_contact = resource.get_property('crm_m_contact')[0]
+            items.append({
+                'title': MSG(u"New mission"),
+                'src': '/ui/icons/16x16/add.png',
+                'href': ('../;new_mission?crm_m_contact=' + m_contact),
+                'selected': False})
+        elif resource.class_id == 'contact':
             items.append({
                 'title': MSG(u"New mission"),
                 'src': '/ui/icons/16x16/add.png',

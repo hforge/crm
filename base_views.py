@@ -18,14 +18,14 @@
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.core import freeze
-from itools.datatypes import Decimal, Unicode, DateTime
+from itools.datatypes import Decimal, Unicode
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import STLView
 from itools.web import get_context
 
 # Import from ikaaro
+from ikaaro.autoform import MultilineWidget
 from ikaaro.comments import indent
 from ikaaro.popup import DBResource_AddImage
 
@@ -44,13 +44,6 @@ m_status_icons = {
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 
 
-monolingual_schema = freeze({
-    'title': Unicode,
-    'description': Unicode,
-    'subject': Unicode(hidden_by_default=True),
-    'timestamp': DateTime(readonly=True)})
-
-
 def format_amount(str_value, accept):
     value = Decimal.decode(str_value)
     value = value / dec('1000')
@@ -66,6 +59,36 @@ def get_form_values(form):
         values[key] = value
     return values
 
+
+def monolingual_name(name):
+    return name.split(':')[0]
+
+
+def monolingual_widgets(namespace):
+    widgets_namespace = {}
+    for widget_namespace in namespace['widgets']:
+        name = monolingual_name(widget_namespace['name'])
+        if name in widgets_namespace:
+            raise ValueError, "multiple languages detected in " + name
+        widget = widget_namespace['widgets'][0]
+        del widget_namespace['widgets']
+        widget = widget(language=None)
+        widget_namespace['widget'] = widget
+        widgets_namespace[name] = widget_namespace
+    namespace['widgets'] = widgets_namespace
+    namespace['first_widget'] = monolingual_name(namespace['first_widget'])
+
+
+def reset_comment(namespace, is_edit=False):
+    for name, widget in namespace['widgets'].iteritems():
+        if name == 'comment' and is_edit is True:
+            widget['value'] = ''
+            comment_widget = MultilineWidget('comment',
+                    title=MSG(u'Comment'), rows=3, datatype=Unicode,
+                    value=u'')
+            widget['widget'] = comment_widget
+            namespace['widgets'][name] = widget
+            return
 
 
 ############

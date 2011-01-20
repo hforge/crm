@@ -56,6 +56,13 @@ class CRMFolder(RoleAware, Folder):
         self.set_property('admins', tuple(admins))
 
 
+    def get_edit_languages(self, context):
+        """Make the CRM monolingual.
+        """
+        site_root = self.get_site_root()
+        return [site_root.get_default_language()]
+
+
     def is_allowed_to_edit(self, user, resource):
         # Anonymous can touch nothing
         if user is None:

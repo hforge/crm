@@ -29,13 +29,14 @@ from itools.web import FormError
 # Import from ikaaro
 from ikaaro.autoform import MultilineWidget, RadioWidget, TextWidget
 from ikaaro.autoform import timestamp_widget
+from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from crm
-from base_views import monolingual_schema, m_status_icons
-from base_views import Comments_View, CRMFolder_AddForm
+from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
+from base_views import monolingual_widgets, reset_comment
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
@@ -46,7 +47,8 @@ from widgets import SelectCompanyWidget
 
 
 contact_schema = freeze(merge_dicts(
-    monolingual_schema,
+    DBResource_Edit.schema,
+    description=Multilingual(hidden_by_default=False),
     crm_p_company=CompanyName,
     crm_p_lastname=Unicode,
     crm_p_firstname=Unicode,
@@ -81,31 +83,23 @@ contact_widgets = freeze([
 class Contact_EditForm(DBResource_Edit):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit contact')
-    submit_value = MSG(u'Update contact')
     styles = ['/ui/crm/style.css']
-
-
-    def get_query_schema(self):
-        return freeze(contact_schema)
-
-
-    def _get_schema(self, resource, context):
+    query_schema = contact_schema
+    schema = freeze(merge_dicts(
+        contact_schema,
         # crm_p_lastname and crm_p_status are mandatory
-        return merge_dicts(contact_schema,
-                crm_p_lastname=contact_schema['crm_p_lastname'](
-                    mandatory=True),
-                crm_p_status=contact_schema['crm_p_status'](mandatory=True))
-
-
-    def _get_widgets(self, resource, context):
-        return freeze(contact_widgets)
+        crm_p_lastname=contact_schema['crm_p_lastname'](
+            mandatory=True),
+        crm_p_status=contact_schema['crm_p_status'](mandatory=True)))
+    widgets = contact_widgets
+    submit_value = MSG(u'Update contact')
 
 
     def get_value(self, resource, context, name, datatype):
         if name == 'comment':
             return u''
-        return DBResource_Edit.get_value(self, resource, context, name,
-                datatype)
+        proxy = super(Contact_EditForm, self)
+        return proxy.get_value(resource, context, name, datatype)
 
 
     def is_edit(self, context):
@@ -114,18 +108,10 @@ class Contact_EditForm(DBResource_Edit):
 
     def get_namespace(self, resource, context):
         # Build namespace
-        namespace = DBResource_Edit.get_namespace(self, resource, context)
-
-        # Modify widgets namespace to change template
-        for widget in namespace['widgets']:
-            # Reset comment
-            if widget['name'] == 'comment' and self.is_edit(context):
-                widget['value'] = u''
-                comment_widget = MultilineWidget('comment',
-                        title=MSG(u'Comment'), rows=3, datatype=Unicode,
-                        value=u'')
-                widget['widget'] = comment_widget.render()
-
+        proxy = super(Contact_EditForm, self)
+        namespace = proxy.get_namespace(resource, context)
+        monolingual_widgets(namespace)
+        reset_comment(namespace, is_edit=self.is_edit(context))
         return namespace
 
 
@@ -136,19 +122,15 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     title = MSG(u'New contact')
     template = '/ui/crm/contact/new.xml'
     styles = ['/ui/crm/style.css']
-
-
-    def get_query_schema(self):
-        return freeze(merge_dicts(contact_schema, mission_schema))
+    query_schema = freeze(merge_dicts(
+        contact_schema,
+        mission_schema))
 
 
     def _get_schema(self, resource, context):
-        schema = merge_dicts(
-                contact_schema,
-                crm_p_lastname=contact_schema['crm_p_lastname'](
-                    mandatory=True),
-                crm_p_status=contact_schema['crm_p_status'](
-                    mandatory=True))
+        proxy = super(Contact_AddForm, self)
+        schema = dict(proxy._get_schema(resource, context))
+        # Append mission schema
         for name, datatype in mission_schema.iteritems():
             if name in ('title', 'description'):
                 # Prefix double title and description
@@ -161,7 +143,9 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
 
     def _get_widgets(self, resource, context):
-        widgets = contact_widgets[:]
+        proxy = super(Contact_AddForm, self)
+        widgets = list(proxy._get_widgets(resource, context))
+        # Append mission widgets
         for widget in mission_widgets:
             if widget.name in ('timestamp', 'comment', 'crm_m_nextaction',
                     'attachment', 'alert_date', 'alert_time'):
@@ -185,12 +169,12 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 year = date.today().year
                 value = date(year, 12, 31)
             return value
-        return CRMFolder_AddForm.get_value(self, resource, context, name,
-                datatype)
+        proxy = super(Contact_AddForm, self)
+        return proxy.get_value(resource, context, name, datatype)
 
 
     def _get_form(self, resource, context):
-        form = DBResource_Edit._get_form(self, resource, context)
+        form = super(Contact_AddForm, self)._get_form(resource, context)
 
         # If title is defined, status is required
         language, title = form['mission_title'].popitem()
@@ -199,20 +183,6 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
             raise FormError(invalid=['crm_m_status'])
 
         return form
-
-
-    def get_namespace(self, resource, context):
-        namespace = DBResource_Edit.get_namespace(self, resource, context)
-
-        # Modify widgets namespace to change template
-        widgets = {}
-        for widget in namespace['widgets']:
-            name = widget['name']
-            widget['widget'] = widget['widgets'].pop(0)
-            widgets[name] = widget
-        namespace['widgets'] = widgets
-
-        return namespace
 
 
     def action(self, resource, context, form):
@@ -251,11 +221,10 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
 
 class Contact_SearchMissions(SearchForm):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Missions')
-    search_template = '/ui/crm/contact/search.xml'
 
+    search_template = '/ui/crm/contact/search.xml'
     search_schema = freeze({
         'search_text': Unicode,
         'search_type': String,
@@ -279,7 +248,7 @@ class Contact_SearchMissions(SearchForm):
 
     def get_query_schema(self):
         return freeze(merge_dicts(
-            SearchForm.get_query_schema(self),
+            super(Contact_SearchMissions, self).get_query_schema(),
             sort_by=String(default='mtime')))
 
 
@@ -362,8 +331,8 @@ class Contact_SearchMissions(SearchForm):
     #######################################################################
     # The Search Form
     def get_search_namespace(self, resource, context):
-        search_namespace = SearchForm.get_search_namespace(self, resource,
-                                                           context)
+        proxy = super(Contact_SearchMissions, self)
+        search_namespace = proxy.get_search_namespace(resource, context)
         # Add status
         default_status = ['crm_p_opportunity', 'crm_p_project']
         m_status = context.query['crm_m_status']
@@ -378,7 +347,6 @@ class Contact_SearchMissions(SearchForm):
 
 
 class Contact_ViewMissions(Contact_SearchMissions):
-
     search_template = None
     search_schema = freeze({})
     search_fields = freeze([])
@@ -390,7 +358,7 @@ class Contact_ViewMissions(Contact_SearchMissions):
 
     def get_query_schema(self):
         return freeze(merge_dicts(
-            Contact_SearchMissions.get_query_schema(self),
+            super(Contact_ViewMissions, self).get_query_schema(),
             batch_size=Integer(default=10)))
 
 

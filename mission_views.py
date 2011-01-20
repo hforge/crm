@@ -35,7 +35,7 @@ from ikaaro.buttons import Button, BrowseButton, RemoveButton
 from ikaaro.autoform import DateWidget, MultilineWidget, CheckboxWidget
 from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
 from ikaaro.cc import UsersList
-from ikaaro.datatypes import FileDataType
+from ikaaro.datatypes import FileDataType, Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
 from ikaaro.registry import get_resource_class
 from ikaaro.resource_views import DBResource_Edit
@@ -43,7 +43,8 @@ from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
 # Import from crm
-from base_views import monolingual_schema, Comments_View, CRMFolder_AddForm
+from base_views import monolingual_widgets, reset_comment
+from base_views import Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu
@@ -69,14 +70,15 @@ You are receiving this e-mail because you are in CC.''')
 
 
 mission_schema = freeze(merge_dicts(
-    monolingual_schema,
+    DBResource_Edit.schema,
+    description=Multilingual(hidden_by_default=False),
     comment=Unicode,
     crm_m_nextaction=Unicode,
     attachment=FileDataType,
     alert_date=Date,
     alert_time=Time,
     remove_previous_alerts=Boolean,
-    # XXX must add resource in "get_schema"
+    # XXX must add resource in "_get_schema"
     crm_m_assigned=UsersList,
     crm_m_cc=UsersList(multiple=True),
     crm_m_status=MissionStatus,
@@ -85,25 +87,28 @@ mission_schema = freeze(merge_dicts(
     crm_m_probability=Integer))
 
 
-mission_widgets = freeze(DBResource_Edit.widgets[:3] + [
-    MultilineWidget('comment', title=MSG(u'New comment'), default='',
-                    rows=3),
-    TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
-    FileWidget('attachment', title=MSG(u'Attachment'), size=35, default=''),
-    DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
-    TimeWidget('alert_time', title=MSG(u'at')),
-    CheckboxWidget('remove_previous_alerts', default=True,
-        title=MSG(u"Remove previous alerts")),
-    SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
-        has_empty_option=True),
-    SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
-        has_empty_option=False),
-    RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
-                has_empty_option=False),
-    DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='', size=8),
-    TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
-    TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
-               size=2)])
+mission_widgets = freeze(
+    DBResource_Edit.widgets[:3] + [
+        MultilineWidget('comment', title=MSG(u'New comment'), default='',
+                        rows=3),
+        TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
+        FileWidget('attachment', title=MSG(u'Attachment'), size=35,
+            default=''),
+        DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
+        TimeWidget('alert_time', title=MSG(u'at')),
+        CheckboxWidget('remove_previous_alerts', default=True,
+            title=MSG(u"Remove previous alerts")),
+        SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
+            has_empty_option=True),
+        SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
+            has_empty_option=False),
+        RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
+                    has_empty_option=False),
+        DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='',
+            size=8),
+        TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
+        TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
+            size=2)])
 
 
 def get_changes(resource, context, form, new=False):
@@ -117,7 +122,8 @@ def get_changes(resource, context, form, new=False):
             continue
         new_value = form[key]
         if type(new_value) is dict:
-            language, new_value = new_value.popitem()
+            language = resource.get_edit_languages(context)[0]
+            new_value = new_value[language]
         if new:
             old_value = datatype.get_default()
         else:
@@ -294,26 +300,23 @@ class ButtonUpdate(Button):
 class Mission_EditForm(DBResource_Edit):
     title = MSG(u'Edit mission')
     template = '/ui/crm/mission/edit.xml'
-    actions = [ButtonUpdate()]
+    query_schema = mission_schema
+    widgets = mission_widgets
 
-
-    def get_query_schema(self):
-        return freeze(mission_schema)
+    actions = freeze([
+        ButtonUpdate()])
 
 
     def _get_schema(self, resource, context):
-        # title and crm_m_status are mandatory
         return freeze(merge_dicts(
             mission_schema,
+            # title and crm_m_status are mandatory
             title=mission_schema['title'](mandatory=True),
             crm_m_status=mission_schema['crm_m_status'](mandatory=True),
+            # resource needed
             crm_m_assigned=mission_schema['crm_m_assigned'](
                 resource=resource),
             crm_m_cc=mission_schema['crm_m_cc'](resource=resource)))
-
-
-    def _get_widgets(self, resource, context):
-        return freeze(mission_widgets)
 
 
     def get_value(self, resource, context, name, datatype):
@@ -325,8 +328,8 @@ class Mission_EditForm(DBResource_Edit):
             return resource.find_next_action()
         elif name == 'remove_previous_alerts':
             return True
-        return DBResource_Edit.get_value(self, resource, context, name,
-                datatype)
+        proxy = super(Mission_EditForm, self)
+        return proxy.get_value(resource, context, name, datatype)
 
 
     def is_edit(self, context):
@@ -335,23 +338,10 @@ class Mission_EditForm(DBResource_Edit):
 
     def get_namespace(self, resource, context):
         # Build namespace
-        namespace = DBResource_Edit.get_namespace(self, resource, context)
-
-        # Modify widgets namespace to change template
-        widgets = {}
-        for widget in namespace['widgets']:
-            name = widget['name']
-            widget['widget'] = widget['widgets'].pop(0)
-            # Reset comment
-            if name == 'comment' and self.is_edit(context):
-                widget['value'] = ''
-                comment_widget = MultilineWidget('comment',
-                        title=MSG(u'Comment'), rows=3, datatype=Unicode,
-                        value=u'')
-                widget['widget'] = comment_widget.render()
-            widgets[name] = widget
-        namespace['widgets'] = widgets
-
+        proxy = super(Mission_EditForm, self)
+        namespace = proxy.get_namespace(resource, context)
+        monolingual_widgets(namespace)
+        reset_comment(namespace, is_edit=self.is_edit(context))
         return namespace
 
 
@@ -419,7 +409,8 @@ class Mission_EditForm(DBResource_Edit):
                     alert_datetime=alert_datetime)
             resource.metadata.set_property(name, value)
             return False
-        return DBResource_Edit.set_value(self, resource, context, name, form)
+        proxy = super(Mission_EditForm, self)
+        return proxy.set_value(resource, context, name, form)
 
 
 
@@ -445,14 +436,13 @@ class CancelAlert(BaseForm):
 
 class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
     title = MSG(u'New mission')
-    actions = [ButtonAddMission()]
-
-
-    def get_query_schema(self):
+    query_schema = freeze(merge_dicts(
+        mission_schema,
         # Add mandatory crm_m_contact to query schema
-        return freeze(merge_dicts(
-            mission_schema,
-            crm_m_contact=ContactName(mandatory=True, multiple=True)))
+        crm_m_contact=ContactName(mandatory=True, multiple=True)))
+
+    actions = freeze([
+        ButtonAddMission()])
 
 
     def is_edit(self, context):
@@ -473,10 +463,10 @@ class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
 
 
 class Mission_ViewContacts(CRM_SearchContacts):
-
     search_template = None
     batch_msg1 = MSG(' ')
     batch_msg2 = MSG(' ')
+
 
     def get_table_columns(self, resource, context):
         columns = []
@@ -519,7 +509,6 @@ class Mission_ViewContact(Mission_ViewContacts):
 
 
 class Mission_EditContacts(Mission_ViewContacts):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit contacts')
 
@@ -527,12 +516,12 @@ class Mission_EditContacts(Mission_ViewContacts):
         'ids': String(multiple=True, mandatory=True)})
 
     table_actions = freeze([
-            RemoveButton(name='remove', title=MSG(u'Remove contact')) ])
+        RemoveButton(name='remove', title=MSG(u'Remove contact')) ])
 
 
     def get_table_columns(self, resource, context):
         columns = Mission_ViewContacts.get_table_columns(self, resource,
-                                                          context)
+                context)
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
         return columns
@@ -615,7 +604,6 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 
 class Mission_View(CompositeForm):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'View mission')
     template = '/ui/crm/mission/view.xml'
@@ -628,8 +616,10 @@ class Mission_View(CompositeForm):
     context_menus = [
             MissionsMenu(contact_menu=ContactsByMissionMenu()),
             ContactsByMissionMenu()]
-
-    subviews = [Mission_EditForm(), Mission_ViewContacts(), Comments_View()]
+    subviews = [
+            Mission_EditForm(),
+            Mission_ViewContacts(),
+            Comments_View()]
 
 
     def get_namespace(self, resource, context):
@@ -637,20 +627,20 @@ class Mission_View(CompositeForm):
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_contacts = resource.view_contacts.GET(resource, context)
-        namespace = {
+        return {
             'title': title,
             'edit': edit,
             'view_comments': view_comments,
-            'view_contacts': view_contacts }
-        return namespace
+            'view_contacts': view_contacts}
 
 
 
 class Mission_Add(Mission_View):
-
     title = MSG(u'New mission')
     context_menus = []
-    subviews = [Mission_ViewContact(), Mission_AddForm()]
+    subviews = [
+            Mission_ViewContact(),
+            Mission_AddForm()]
 
 
     def on_query_error(self, resource, context):
@@ -677,13 +667,13 @@ class Mission_EditAlerts(CRM_Alerts):
     search_template = None
 
     # Table
-    table_columns = [
+    table_columns = freeze([
         ('checkbox', None),
         ('icon', None, False),
         ('alert_date', MSG(u'Date'), False),
         ('alert_time', MSG(u'Time'), False),
         ('comment', MSG(u'Comment'), False),
-        ('crm_m_nextaction', MSG(u'Next action'), False)]
+        ('crm_m_nextaction', MSG(u'Next action'), False)])
 
 
     def get_items(self, resource, context, *args):
