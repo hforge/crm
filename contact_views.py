@@ -119,7 +119,7 @@ class Contact_EditForm(DBResource_Edit):
                         title=MSG(u'Comment'), rows=3, datatype=Unicode,
                         value=u'')
                 widget['widget'] = comment_widget.render()
-        return namespace
+        return freeze(namespace)
 
 
 
@@ -197,7 +197,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         proxy = super(Contact_EditForm, self)
         namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
-        return namespace
+        return freeze(namespace)
 
 
     def action(self, resource, context, form):
@@ -419,4 +419,4 @@ class Contact_View(CompositeForm):
             'edit': edit,
             'view_comments': view_comments,
             'view_missions': view_missions }
-        return namespace
+        return freeze(namespace)

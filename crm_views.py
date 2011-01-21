@@ -347,7 +347,7 @@ class CRM_SearchContacts(CRM_Search):
         namespace['total'] = format_amount(total, accept)
         namespace['crm-infos'] = True
         namespace['export-csv'] = True
-        return namespace
+        return freeze(namespace)
 
 
 
@@ -772,4 +772,4 @@ class CRM_Test(STLView):
                 tests.append(test)
         namespace['tests'] = tests
 
-        return namespace
+        return freeze(namespace)

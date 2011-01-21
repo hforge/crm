@@ -342,7 +342,7 @@ class Mission_EditForm(DBResource_Edit):
         namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
-        return namespace
+        return freeze(namespace)
 
 
     def action(self, resource, context, form):
@@ -496,7 +496,7 @@ class Mission_ViewContacts(CRM_SearchContacts):
         namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
-        return namespace
+        return freeze(namespace)
 
 
 
@@ -524,7 +524,7 @@ class Mission_EditContacts(Mission_ViewContacts):
         proxy = super(Mission_EditContacts, self)
         columns = list(proxy.get_table_columns(resource, context))
         columns.insert(0, ('checkbox', None))
-        return columns
+        return freeze(columns)
 
 
     def action_remove(self, resource, context, form):
@@ -583,7 +583,7 @@ class Mission_AddContacts(CRM_SearchContacts):
         namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
-        return namespace
+        return freeze(namespace)
 
 
     def action_add_contact(self, resource, context, form):
@@ -628,11 +628,12 @@ class Mission_View(CompositeForm):
         edit = resource.edit_form.GET(resource, context)
         view_comments = resource.view_comments.GET(resource, context)
         view_contacts = resource.view_contacts.GET(resource, context)
-        return {
+        namespace = {
             'title': title,
             'edit': edit,
             'view_comments': view_comments,
             'view_contacts': view_contacts}
+        return freeze(namespace)
 
 
 
@@ -657,7 +658,7 @@ class Mission_Add(Mission_View):
             'edit': add,
             'view_comments': None,
             'view_contacts': view_contact}
-        return namespace
+        return freeze(namespace)
 
 
 
