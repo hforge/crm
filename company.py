@@ -39,7 +39,7 @@ class Company(CRMFolder):
     """
     class_id = 'company'
     class_title = MSG(u'Company')
-    class_version = '20100914'
+    class_version = '20100916'
 
     class_views = ['view', 'browse_content']
 

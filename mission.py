@@ -44,7 +44,7 @@ class Mission(CRMFolder):
         - documents related to comments
     """
     class_id = 'mission'
-    class_version = '20100924'
+    class_version = '20100926'
     class_title = MSG(u'Mission')
     class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
 

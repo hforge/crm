@@ -103,7 +103,7 @@ class OldMission(Mission):
             multiple=True)))
 
 
-    def update_20100924(self):
+    def update_20100926(self):
         update_default_language(self)
 
 
@@ -150,7 +150,7 @@ class Prospect(Contact):
 
 class OldContact(Contact):
 
-    def update_20100922(self):
+    def update_20100924(self):
         update_default_language(self)
 
 
@@ -202,7 +202,7 @@ class OldCompany(Company):
             self.del_property(key)
 
 
-    def update_20100914(self):
+    def update_20100916(self):
         update_default_language(self)
 
 
