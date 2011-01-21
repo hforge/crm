@@ -72,7 +72,7 @@ company_widgets = freeze(
 
 
 class Company_EditForm(DBResource_Edit):
-    title = MSG(u'Edit company')
+    title = MSG(u'Edit Company')
     styles = ['/ui/crm/style.css']
     context_menus = []
     query_schema = company_schema
@@ -85,7 +85,7 @@ class Company_EditForm(DBResource_Edit):
 
 
 class Company_AddForm(CRMFolder_AddForm, Company_EditForm):
-    title = MSG(u'New company')
+    title = MSG(u'New Company')
     context_menus = []
 
 
@@ -137,7 +137,7 @@ class Company_ViewContacts(CRM_SearchContacts):
 
 class Company_View(CompositeForm):
     access = 'is_allowed_to_edit'
-    title = MSG(u'View company')
+    title = MSG(u'View Company')
     styles = ['/ui/crm/style.css']
     context_menus = [
             MissionsMenu(contact_menu=ContactsByCompanyMenu()),

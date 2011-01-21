@@ -279,26 +279,26 @@ def send_notification(resource, context, form, changes, new=False):
 class ButtonAddContact(BrowseButton):
     name = 'add_contact'
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add contact')
+    title = MSG(u'Add Contact')
 
 
 
 class ButtonAddMission(Button):
     name = 'add_mission'
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add mission')
+    title = MSG(u'Add Mission')
 
 
 
 class ButtonUpdate(Button):
     name = 'update_mission'
     access = 'is_allowed_to_edit'
-    title = MSG(u"Update mission")
+    title = MSG(u"Update Mission")
 
 
 
 class Mission_EditForm(DBResource_Edit):
-    title = MSG(u'Edit mission')
+    title = MSG(u'Edit Mission')
     template = '/ui/crm/mission/edit.xml'
     query_schema = mission_schema
     widgets = mission_widgets
@@ -435,7 +435,7 @@ class CancelAlert(BaseForm):
 
 
 class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
-    title = MSG(u'New mission')
+    title = MSG(u'New Mission')
     query_schema = freeze(merge_dicts(
         mission_schema,
         # Add mandatory crm_m_contact to query schema
@@ -514,7 +514,7 @@ class Mission_ViewContact(Mission_ViewContacts):
 
 class Mission_EditContacts(Mission_ViewContacts):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit contacts')
+    title = MSG(u'Edit Contacts')
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
     table_actions = freeze([
@@ -547,7 +547,7 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 class Mission_AddContacts(CRM_SearchContacts):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add contacts')
+    title = MSG(u'Add Contacts')
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
     table_actions = freeze([
@@ -606,7 +606,7 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 class Mission_View(CompositeForm):
     access = 'is_allowed_to_edit'
-    title = MSG(u'View mission')
+    title = MSG(u'View Mission')
     template = '/ui/crm/mission/view.xml'
     styles = [
             '/ui/crm/style.css',
@@ -639,11 +639,11 @@ class Mission_View(CompositeForm):
 
 
 class Mission_Add(Mission_View):
-    title = MSG(u'New mission')
+    title = MSG(u'New Mission')
     context_menus = []
     subviews = [
-            Mission_ViewContact(),
-            Mission_AddForm()]
+            Mission_AddForm(),
+            Mission_ViewContact()]
 
 
     def on_query_error(self, resource, context):
@@ -655,7 +655,7 @@ class Mission_Add(Mission_View):
         add = resource.add_form.GET(resource, context)
         view_contact = resource.view_contact.GET(resource, context)
         namespace = {
-            'title': MSG(u'New mission'),
+            'title': self.title,
             'edit': add,
             'view_comments': None,
             'view_contacts': view_contact}

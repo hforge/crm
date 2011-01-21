@@ -82,7 +82,7 @@ contact_widgets = freeze([
 
 class Contact_EditForm(DBResource_Edit):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit contact')
+    title = MSG(u'Edit Contact')
     styles = ['/ui/crm/style.css']
     query_schema = contact_schema
     schema = freeze(merge_dicts(
@@ -92,7 +92,7 @@ class Contact_EditForm(DBResource_Edit):
             mandatory=True),
         crm_p_status=contact_schema['crm_p_status'](mandatory=True)))
     widgets = contact_widgets
-    submit_value = MSG(u'Update contact')
+    submit_value = MSG(u'Update Contact')
 
 
     def get_value(self, resource, context, name, datatype):
@@ -126,7 +126,7 @@ class Contact_EditForm(DBResource_Edit):
 class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     """ To add a new contact into the crm.
     """
-    title = MSG(u'New contact')
+    title = MSG(u'New Contact')
     template = '/ui/crm/contact/new.xml'
     styles = ['/ui/crm/style.css']
     query_schema = freeze(merge_dicts(
@@ -395,7 +395,7 @@ class Contact_ViewMissions(Contact_SearchMissions):
 
 class Contact_View(CompositeForm):
     access = 'is_allowed_to_edit'
-    title = MSG(u'View contact')
+    title = MSG(u'View Contact')
     template = '/ui/crm/contact/view.xml'
     styles = ['/ui/crm/style.css']
     context_menus = [

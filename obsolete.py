@@ -91,7 +91,7 @@ class MissionTableFile(CommentsTableFile):
 class MissionTable(Table):
 
     class_id = 'mission-comments'
-    class_title = MSG(u'Mission comments')
+    class_title = MSG(u'Mission Comments')
     class_handler = MissionTableFile
 
 
@@ -131,7 +131,7 @@ class ContactTableFile(CommentsTableFile):
 class ContactTable(Table):
 
     class_id = 'prospect-comments'
-    class_title = MSG(u'Contact comments')
+    class_title = MSG(u'Contact Comments')
     class_handler = ContactTableFile
 
 
@@ -172,7 +172,7 @@ class CompanyTableFile(CommentsTableFile):
 class CompanyTable(Table):
 
     class_id = 'company-comments'
-    class_title = MSG(u'Company comments')
+    class_title = MSG(u'Company Comments')
     class_handler = CompanyTableFile
 
 
