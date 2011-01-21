@@ -33,12 +33,13 @@ from company import Company
 
 
 def update_default_language(resource):
-    """Set the CRM monolingual.
-    """
+    site_root = resource.get_site_root()
+    default_language = site_root.get_default_language()
+
     for name in ('title', 'description'):
         value = resource.get_property(name)
         resource.del_property(name)
-        resource.set_property(name, value, language='en')
+        resource.set_property(name, value, language=default_language)
 
 
 
@@ -102,7 +103,7 @@ class OldMission(Mission):
             multiple=True)))
 
 
-    def update_20100925(self):
+    def update_20100924(self):
         update_default_language(self)
 
 
@@ -149,7 +150,7 @@ class Prospect(Contact):
 
 class OldContact(Contact):
 
-    def update_20100923(self):
+    def update_20100922(self):
         update_default_language(self)
 
 
@@ -201,7 +202,7 @@ class OldCompany(Company):
             self.del_property(key)
 
 
-    def update_20100915(self):
+    def update_20100914(self):
         update_default_language(self)
 
 
