@@ -120,7 +120,7 @@ class CRM_SearchMissions(CRM_Search):
     format = 'mission'
 
     search_schema = freeze(merge_dicts(
-        SearchForm.search_schema,
+        CRM_Search.search_schema,
         assigned=String,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean))
@@ -228,7 +228,7 @@ class CRM_SearchContacts(CRM_Search):
     format = 'contact'
 
     search_schema = freeze(merge_dicts(
-        SearchForm.search_schema,
+        CRM_Search.search_schema,
         status=ContactStatus(multiple=True)))
 
     table_columns = freeze([
@@ -315,8 +315,8 @@ class CRM_SearchContacts(CRM_Search):
     #######################################################################
     # The Search Form
     def get_search_namespace(self, resource, context):
-        search_namespace = SearchForm.get_search_namespace(self, resource,
-                                                           context)
+        proxy = super(CRM_SearchContacts, self)
+        search_namespace = proxy.get_search_namespace(resource, context)
         # Add status
         default_status = ['lead', 'client']
         p_status = context.query['status']
@@ -334,7 +334,8 @@ class CRM_SearchContacts(CRM_Search):
     def get_namespace(self, resource, context):
         self.assured = decimal('0.0')
         self.probable = decimal('0.0')
-        namespace = SearchForm.get_namespace(self, resource, context)
+        proxy = super(CRM_SearchContacts, self)
+        namespace = proxy.get_namespace(resource, context)
 
         # Add infos about assured and probable amount
         # TODO Filter by year or semester

@@ -103,7 +103,7 @@ class CRMFolder(RoleAware, Folder):
 
 
     def get_links(self):
-        links = Folder.get_links(self)
+        links = super(CRMFolder, self).get_links()
         base = self.get_canonical_path()
 
         # metadata

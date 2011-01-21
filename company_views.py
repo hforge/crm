@@ -104,8 +104,8 @@ class Company_AddForm(CRMFolder_AddForm, Company_EditForm):
 
 
 class Company_ViewContacts(CRM_SearchContacts):
-
     search_template = None
+
 
     def get_table_columns(self, resource, context):
         columns = []
@@ -122,11 +122,13 @@ class Company_ViewContacts(CRM_SearchContacts):
     def get_items(self, resource, context, *args):
         args = list(args)
         args.append(PhraseQuery('crm_p_company', resource.name))
-        return CRM_SearchContacts.get_items(self, resource, context, *args)
+        proxy = super(Company_ViewContacts, self)
+        return proxy.get_items(resource, context, *args)
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
+        proxy = super(Company_ViewContacts, self)
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
@@ -137,7 +139,10 @@ class Company_View(CompositeForm):
     access = 'is_allowed_to_edit'
     title = MSG(u'View company')
     styles = ['/ui/crm/style.css']
-    context_menus = [MissionsMenu(contact_menu=ContactsByCompanyMenu()),
-            ContactsByCompanyMenu(), CompanyMenu()]
-
-    subviews = [Company_EditForm(), Company_ViewContacts()]
+    context_menus = [
+            MissionsMenu(contact_menu=ContactsByCompanyMenu()),
+            ContactsByCompanyMenu(),
+            CompanyMenu()]
+    subviews = [
+            Company_EditForm(),
+            Company_ViewContacts()]

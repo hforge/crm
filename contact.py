@@ -74,7 +74,7 @@ class Contact(CRMFolder):
 
 
     def get_catalog_values(self):
-        document = Folder.get_catalog_values(self)
+        document = super(Contact, self).get_catalog_values()
         crm = self.parent.parent
         get_property = self.get_property
 

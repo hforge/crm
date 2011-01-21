@@ -63,7 +63,7 @@ class Company(CRMFolder):
 
 
     def get_catalog_values(self):
-        document = Folder.get_catalog_values(self)
+        document = super(Company, self).get_catalog_values()
         title = self.get_title()
         description = self.get_property('description')
         values = [title or u'', description or u'']

@@ -79,7 +79,7 @@ class Mission(CRMFolder):
 
 
     def get_catalog_values(self):
-        document = CRMFolder.get_catalog_values(self)
+        document = super(Mission, self).get_catalog_values()
         title = self.get_property('title')
         description = self.get_property('description')
         m_nextaction  = self.find_next_action()

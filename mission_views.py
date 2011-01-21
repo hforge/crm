@@ -487,11 +487,13 @@ class Mission_ViewContacts(CRM_SearchContacts):
         elif len(m_contact) > 1:
             query = [PhraseQuery('name', c) for c in m_contact]
             args.append(OrQuery(*query))
-        return CRM_SearchContacts.get_items(self, resource, context, *args)
+        proxy = super(Mission_ViewContacts, self)
+        return proxy.get_items(resource, context, *args)
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
+        proxy = super(Mission_ViewContacts, self)
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
@@ -504,25 +506,23 @@ class Mission_ViewContact(Mission_ViewContacts):
         args = list(args)
         contact = context.query['crm_m_contact'][0]
         args.append(PhraseQuery('name', contact))
-        return CRM_SearchContacts.get_items(self, resource, context, *args)
+        proxy = super(Mission_ViewContact, self)
+        return proxy.get_items(resource, context, *args)
 
 
 
 class Mission_EditContacts(Mission_ViewContacts):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit contacts')
-
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
-
     table_actions = freeze([
         RemoveButton(name='remove', title=MSG(u'Remove contact')) ])
 
 
     def get_table_columns(self, resource, context):
-        columns = Mission_ViewContacts.get_table_columns(self, resource,
-                context)
-        columns = list(columns) # do not alter parent columns
+        proxy = super(Mission_EditContacts, self)
+        columns = list(proxy.get_table_columns(resource, context))
         columns.insert(0, ('checkbox', None))
         return columns
 
@@ -547,10 +547,8 @@ class Mission_EditContacts(Mission_ViewContacts):
 class Mission_AddContacts(CRM_SearchContacts):
     access = 'is_allowed_to_edit'
     title = MSG(u'Add contacts')
-
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
-
     table_actions = freeze([
         ButtonAddContact])
 
@@ -566,21 +564,23 @@ class Mission_AddContacts(CRM_SearchContacts):
             p_company = contact.get_property('crm_p_company')
             company = crm.get_resource('companies/' + p_company)
             search_term = company.get_property('title')
+        proxy = super(Mission_AddContacts, self)
         return freeze(merge_dicts(
-            CRM_SearchContacts.get_query_schema(self),
+            proxy.get_query_schema(),
             search_term=Unicode(default=search_term)))
 
 
     def get_table_columns(self, resource, context):
-        columns = CRM_SearchContacts.get_table_columns(self, resource,
-                context)
+        proxy = super(Mission_AddContacts, self)
+        columns = proxy.get_table_columns(resource, context)
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
         return columns
 
 
     def get_namespace(self, resource, context):
-        namespace = CRM_SearchContacts.get_namespace(self, resource, context)
+        proxy = super(Mission_AddContacts, self)
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
@@ -662,7 +662,6 @@ class Mission_Add(Mission_View):
 
 
 class Mission_EditAlerts(CRM_Alerts):
-
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit alerts')
     search_template = None
@@ -681,7 +680,8 @@ class Mission_EditAlerts(CRM_Alerts):
         args = list(args)
         abspath = resource.get_canonical_path()
         args.append(PhraseQuery('abspath', str(abspath)))
-        return CRM_Alerts.get_items(self, resource, context, *args)
+        proxy = super(Mission_EditAlerts, self)
+        return proxy.get_items(resource, context, *args)
 
 
     def get_item_value(self, resource, context, item, column):
@@ -689,4 +689,5 @@ class Mission_EditAlerts(CRM_Alerts):
         if column == 'comment':
             comments = mission.get_property('comment')
             return comments[comment_id]
-        return CRM_Alerts.get_item_value(self, resource, context, item, column)
+        proxy = super(Mission_EditAlerts, self)
+        return proxy.get_item_value(resource, context, item, column)
