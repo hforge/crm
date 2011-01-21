@@ -339,7 +339,7 @@ class Mission_EditForm(DBResource_Edit):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Mission_EditForm, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
         return freeze(namespace)
@@ -493,7 +493,7 @@ class Mission_ViewContacts(CRM_SearchContacts):
 
     def get_namespace(self, resource, context):
         proxy = super(Mission_ViewContacts, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return freeze(namespace)
@@ -506,8 +506,9 @@ class Mission_ViewContact(Mission_ViewContacts):
         args = list(args)
         contact = context.query['crm_m_contact'][0]
         args.append(PhraseQuery('name', contact))
-        proxy = super(Mission_ViewContact, self)
-        return proxy.get_items(resource, context, *args)
+        # XXX no super()
+        proxy = CRM_SearchContacts
+        return proxy.get_items(self, resource, context, *args)
 
 
 
@@ -580,7 +581,7 @@ class Mission_AddContacts(CRM_SearchContacts):
 
     def get_namespace(self, resource, context):
         proxy = super(Mission_AddContacts, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return freeze(namespace)

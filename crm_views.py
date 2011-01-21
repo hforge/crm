@@ -169,7 +169,7 @@ class CRM_SearchMissions(CRM_Search):
         namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
                 title=MSG(u'With no alert only'), datatype=Boolean,
                 value=with_no_alert, oneline=True)
-        return namespace
+        return freeze(namespace)
 
 
     def get_items(self, resource, context, *args):
@@ -316,7 +316,7 @@ class CRM_SearchContacts(CRM_Search):
     # The Search Form
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchContacts, self)
-        search_namespace = proxy.get_search_namespace(resource, context)
+        namespace = dict(proxy.get_search_namespace(resource, context))
         # Add status
         default_status = ['lead', 'client']
         p_status = context.query['status']
@@ -324,18 +324,18 @@ class CRM_SearchContacts(CRM_Search):
             p_status = default_status
         widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
                 datatype=ContactStatus, value=p_status)
-        search_namespace['status'] = widget.render()
+        namespace['status'] = widget.render()
         # Add *empty* with_no_alert
-        search_namespace['with_no_alert'] = None
+        namespace['with_no_alert'] = None
 
-        return search_namespace
+        return freeze(namespace)
 
 
     def get_namespace(self, resource, context):
         self.assured = decimal('0.0')
         self.probable = decimal('0.0')
         proxy = super(CRM_SearchContacts, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
 
         # Add infos about assured and probable amount
         # TODO Filter by year or semester
@@ -572,7 +572,7 @@ class CRM_Alerts(SearchForm):
         namespace['assigned'] = SelectWidget(name='assigned',
                 title=MSG(u"Assigned To"), datatype=datatype,
                 value=context.query['assigned'])
-        return namespace
+        return freeze(namespace)
 
 
     def get_items(self, resource, context, *args):

@@ -109,7 +109,7 @@ class Contact_EditForm(DBResource_Edit):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Contact_EditForm, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
         # Reset comment
         # XXX multilingual
         for widget in namespace['widgets']:
@@ -195,7 +195,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Contact_EditForm, self)
-        namespace = proxy.get_namespace(resource, context)
+        namespace = dict(proxy.get_namespace(resource, context))
         monolingual_widgets(namespace)
         return freeze(namespace)
 
@@ -347,7 +347,8 @@ class Contact_SearchMissions(SearchForm):
     # The Search Form
     def get_search_namespace(self, resource, context):
         proxy = super(Contact_SearchMissions, self)
-        search_namespace = proxy.get_search_namespace(resource, context)
+        namespace = dict(proxy.get_search_namespace(resource,
+            context))
         # Add status
         default_status = ['crm_p_opportunity', 'crm_p_project']
         m_status = context.query['crm_m_status']
@@ -355,9 +356,9 @@ class Contact_SearchMissions(SearchForm):
             m_status = default_status
         widget = MultipleCheckboxWidget('crm_m_status', title=MSG(u'Status'),
                 datatype=MissionStatus, value=m_status)
-        search_namespace['crm_m_status'] = widget.render()
+        namespace['crm_m_status'] = widget.render()
 
-        return search_namespace
+        return freeze(namespace)
 
 
 
