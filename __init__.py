@@ -43,10 +43,13 @@ if argv[0].endswith('icms-update.py'):
     # Silent pyflakes
     obsolete
 
-# Hide sidebar in crm root
 try:
     from itws.skin import register_not_allowed_cls_for_sidebar_view
+    from itws.skin import register_not_allowed_view_name_for_sidebar_view
 except ImportError:
     pass
 else:
+    # Hide sidebar in crm root
     register_not_allowed_cls_for_sidebar_view(CRM)
+    # Hide sidebar in mission add contacts
+    register_not_allowed_view_name_for_sidebar_view('add_contacts')
