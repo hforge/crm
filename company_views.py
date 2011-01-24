@@ -21,13 +21,12 @@ from itools.core import merge_dicts, freeze, is_thingy
 from itools.database import PhraseQuery
 from itools.datatypes import PathDataType, String, Unicode
 from itools.gettext import MSG
-from itools.web import ERROR
+from itools.web import INFO, ERROR
 
 # Import from ikaaro
 from ikaaro.autoform import ImageSelectorWidget, MultilineWidget
 from ikaaro.autoform import TextWidget
 from ikaaro.datatypes import Multilingual
-from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
 
@@ -37,6 +36,10 @@ from crm_views import CRM_SearchContacts
 from menus import MissionsMenu, ContactsByCompanyMenu, CompanyMenu
 from utils import get_crm
 from widgets import LinkWidget
+
+
+MSG_NEW_COMPANY = INFO(u"Company added. You can now add a contact from "
+        u"this company.")
 
 
 company_schema = freeze(merge_dicts(
@@ -66,7 +69,8 @@ company_widgets = freeze(
         TextWidget('crm_c_fax', title=MSG(u'Fax'), size=15),
         LinkWidget('crm_c_website', title=MSG(u'Website'), size=30),
         TextWidget('crm_c_activity', title=MSG(u'Activity'), size=30),
-        ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'), action='add_logo'),
+        ImageSelectorWidget('crm_c_logo', title=MSG(u'Logo'),
+            action='add_logo'),
         MultilineWidget('description', title=MSG(u'Observations'), rows=4)])
 
 
@@ -99,7 +103,7 @@ class Company_AddForm(CRMFolder_AddForm, Company_EditForm):
         crm = get_crm(resource)
         goto = '%s/contacts/;new_contact?crm_p_company=%s' % (
                 context.get_link(crm), company.name)
-        return context.come_back(MSG_NEW_RESOURCE, goto)
+        return context.come_back(MSG_NEW_COMPANY, goto)
 
 
 
