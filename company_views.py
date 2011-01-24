@@ -135,7 +135,7 @@ class Company_ViewContacts(CRM_SearchContacts):
         namespace = dict(proxy.get_namespace(resource, context))
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
-        return freeze(namespace)
+        return namespace
 
 
 

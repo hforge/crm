@@ -169,7 +169,7 @@ class CRM_SearchMissions(CRM_Search):
         namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
                 title=MSG(u'With no alert only'), datatype=Boolean,
                 value=with_no_alert, oneline=True)
-        return freeze(namespace)
+        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -328,7 +328,7 @@ class CRM_SearchContacts(CRM_Search):
         # Add *empty* with_no_alert
         namespace['with_no_alert'] = None
 
-        return freeze(namespace)
+        return namespace
 
 
     def get_namespace(self, resource, context):
@@ -347,7 +347,7 @@ class CRM_SearchContacts(CRM_Search):
         namespace['total'] = format_amount(total, accept)
         namespace['crm-infos'] = True
         namespace['export-csv'] = True
-        return freeze(namespace)
+        return namespace
 
 
 
@@ -572,7 +572,7 @@ class CRM_Alerts(SearchForm):
         namespace['assigned'] = SelectWidget(name='assigned',
                 title=MSG(u"Assigned To"), datatype=datatype,
                 value=context.query['assigned'])
-        return freeze(namespace)
+        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -772,4 +772,4 @@ class CRM_Test(STLView):
                 tests.append(test)
         namespace['tests'] = tests
 
-        return freeze(namespace)
+        return namespace

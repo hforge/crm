@@ -135,7 +135,7 @@ class Comments_View(STLView):
         namespace = {'comments': ns_comments,
                      'path_to_resource': path_to_resource,
                      'msg_alert': REMOVE_ALERT_MSG }
-        return freeze(namespace)
+        return namespace
 
 
 
