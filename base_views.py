@@ -27,6 +27,7 @@ from itools.web import get_context
 
 # Import from ikaaro
 from ikaaro.autoform import MultilineWidget
+from ikaaro.buttons import Button
 from ikaaro.comments import indent
 from ikaaro.popup import DBResource_AddImage
 
@@ -153,8 +154,17 @@ class CRMFolder_AddImage(DBResource_AddImage):
 
 
 
+class ButtonAdd(Button):
+    access = 'is_allowed_to_add'
+    css = 'button-ok'
+    title = MSG(u"Add")
+
+
+
 class CRMFolder_AddForm(object):
     access = 'is_allowed_to_add'
+    actions = freeze([
+        ButtonAdd])
 
 
     def get_value(self, resource, context, name, datatype):
