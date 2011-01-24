@@ -194,7 +194,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
     def get_namespace(self, resource, context):
         # Build namespace
-        proxy = super(Contact_EditForm, self)
+        proxy = super(Contact_AddForm, self)
         namespace = dict(proxy.get_namespace(resource, context))
         monolingual_widgets(namespace)
         return freeze(namespace)
