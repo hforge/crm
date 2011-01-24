@@ -160,7 +160,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 continue
             elif widget.name in ('title', 'description'):
                 # Prefix double title and description
-                widget.name = 'mission_%s' % widget.name
+                widget = widget(name='mission_' + widget.name)
             widgets.append(widget)
         return freeze(widgets)
 
