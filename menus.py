@@ -56,17 +56,20 @@ class ContactsMenu(ContextMenu):
             yield brain
 
 
+    def is_selected(self, brain, resource, context):
+        return brain.abspath == context.abspath
+
+
     def get_items(self):
         context = get_context()
         resource = context.resource
-        abspath = resource.abspath
         items = []
         for brain in self.get_contacts(context):
             items.append({
                 'title': get_contact_title(brain, context),
                 'src': '/ui/crm/icons/16x16/contact.png',
                 'href': context.get_link(brain),
-                'selected': (brain.abspath == abspath)})
+                'selected': self.is_selected(brain, resource, context)})
         # New contact
         if resource.class_id == 'mission':
             items.append({
@@ -103,6 +106,10 @@ class ContactsMenu(ContextMenu):
 
 class ContactsByMissionMenu(ContactsMenu):
 
+    def is_selected(self, brain, resource, context):
+        return brain.name in resource.get_property('crm_m_contact')
+
+
     def get_companies(self, context):
         """From mission to companies.
         """
@@ -119,6 +126,10 @@ class ContactsByMissionMenu(ContactsMenu):
 
 class ContactsByContactMenu(ContactsMenu):
 
+    def is_selected(self, brain, resource, context):
+        return brain.name == resource.name
+
+
     def get_companies(self, context):
         """From contact to companies.
         """
@@ -127,6 +138,10 @@ class ContactsByContactMenu(ContactsMenu):
 
 
 class ContactsByCompanyMenu(ContactsMenu):
+
+    def is_selected(self, brain, resource, context):
+        return brain.crm_p_company == resource.name
+
 
     def get_companies(self, context):
         """From company to... companies.
