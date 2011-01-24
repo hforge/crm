@@ -70,10 +70,20 @@ class ContactsMenu(ContextMenu):
         # New contact
         if resource.class_id == 'mission':
             items.append({
-                'title': MSG(u"New Contact"),
+                'title': MSG(u"Link Existing Contact"),
                 'src': '/ui/icons/16x16/add.png',
                 'href': ';add_contacts',
                 'selected': False})
+            m_contact = resource.get_property('crm_m_contact')
+            if m_contact:
+                contacts = resource.get_resource('../../contacts')
+                contact = contacts.get_resource(m_contact[0])
+                p_company = contact.get_property('crm_p_company')
+                items.append({
+                    'title': MSG(u"New Contact"),
+                    'src': '/ui/icons/16x16/add.png',
+                    'href': '../../contacts/?crm_p_company=' + p_company,
+                    'selected': False})
         elif resource.class_id == 'contact':
             p_company = resource.get_property('crm_p_company')
             items.append({
