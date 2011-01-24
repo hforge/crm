@@ -19,9 +19,9 @@ from datetime import date
 
 # Import from itools
 from itools.core import merge_dicts, freeze
+from itools.csv import Property
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Email, Integer
-from itools.datatypes import String, Unicode
+from itools.datatypes import Email, Integer, Unicode, DateTime, String
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_number
 from itools.web import FormError
@@ -58,7 +58,7 @@ contact_schema = freeze(merge_dicts(
     crm_p_description=Unicode,
     crm_p_position=Unicode,
     crm_p_status=ContactStatus,
-    comment=Unicode))
+    comment=Unicode(parameters_schema={'date': DateTime, 'author': String})))
 
 
 contact_widgets = freeze([
@@ -120,6 +120,16 @@ class Contact_EditForm(DBResource_Edit):
                         value=u'')
                 widget['widget'] = comment_widget.render()
         return namespace
+
+
+    def set_value(self, resource, context, name, form):
+        if name == 'comment':
+            comment = Property(form['comment'], date=context.timestamp,
+                    author=context.user.name)
+            resource.set_property('comment', comment)
+            return False
+        proxy = super(Contact_EditForm, self)
+        return proxy.set_value(resource, context, name, form)
 
 
 
