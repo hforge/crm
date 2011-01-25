@@ -45,16 +45,17 @@ class Company(CRMFolder):
 
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
-        crm_c_address_1=Unicode(source='metadata'),
-        crm_c_address_2=Unicode(source='metadata'),
-        crm_c_zipcode=String(source='metadata'),
-        crm_c_town=Unicode(source='metadata'),
-        crm_c_country=Unicode(source='metadata'),
-        crm_c_phone=Unicode(source='metadata'),
-        crm_c_fax=Unicode(source='metadata'),
-        crm_c_website=Unicode(source='metadata'),
-        crm_c_activity=Unicode(source='metadata'),
-        crm_c_logo=PathDataType(source='metadata', default='.')))
+        crm_c_address_1=Unicode(source='metadata', stored=True),
+        crm_c_address_2=Unicode(source='metadata', stored=True),
+        crm_c_zipcode=String(source='metadata', stored=True),
+        crm_c_town=Unicode(source='metadata', stored=True),
+        crm_c_country=Unicode(source='metadata', stored=True),
+        crm_c_phone=Unicode(source='metadata', stored=True),
+        crm_c_fax=Unicode(source='metadata', stored=True),
+        crm_c_website=Unicode(source='metadata', stored=True),
+        crm_c_activity=Unicode(source='metadata', stored=True),
+        crm_c_logo=PathDataType(source='metadata', default='.',
+            stored=True)))
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')

@@ -55,6 +55,43 @@ def two_lines(one, two):
     return TWO_LINES.gettext(one=one, two=two)
 
 
+phone_messages = {
+    'crm_p_phone': MSG(u"{phone}"),
+    'crm_p_mobile': MSG(u"Mobile:\u00a0{phone}"),
+    'crm_c_phone': MSG(u"{phone}"),
+    'crm_c_fax': MSG(u"Fax:\u00a0{phone}")}
+
+def get_phones(brain, *fields):
+    phones = []
+    for field in fields:
+        value = getattr(brain, field)
+        if not value:
+            continue
+        message = phone_messages[field]
+        phones.append(message.gettext(phone=value))
+    if not phones:
+        return None
+    return MSG(u"<br/>".join(phones), format='html')
+
+
+def merge_columns(brain, *fields):
+    address = []
+    for field in fields:
+        value = getattr(brain, field)
+        if not value:
+            continue
+        if field == 'crm_p_lastname':
+            value = value.upper()
+        address.append(value)
+    if not address:
+        return None
+    return MSG(u"<br/>".join(address), format='html')
+
+
+def get_name(brain):
+    return merge_columns(brain, 'crm_p_lastname', 'crm_p_firstname')
+
+
 
 class CRM_Search(SearchForm):
     access = 'is_allowed_to_edit'
@@ -195,14 +232,12 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_item_value(self, resource, context, item, column):
         item_brain, item_resource = item
-        get_property = item_resource.get_property
         if column == 'icon':
             # Status
-            value = get_property('crm_m_status')
-            return m_status_icons[value]
+            return m_status_icons[item_brain.crm_m_status]
         elif column == 'crm_m_contacts':
-            values = get_property('crm_m_contact')
-            query = [PhraseQuery('name', name) for name in values]
+            m_contact = item_brain.crm_m_contact
+            query = [PhraseQuery('name', name) for name in m_contact]
             if len(query) == 1:
                 query = query[0]
             else:
@@ -210,8 +245,16 @@ class CRM_SearchMissions(CRM_Search):
             crm = get_crm(resource)
             query = AndQuery(get_crm_path_query(crm), query)
             query = AndQuery(PhraseQuery('format', 'contact'), query)
-            values = context.root.search(query).get_documents()
-            return u' '.join([x.crm_p_lastname for x in values])
+            results = context.root.search(query)
+            pattern = u'<a href="{link}">{lastname}<br/>{firstname}</a>'
+            names = []
+            for brain in results.get_documents(sort_by='crm_p_lastname'):
+                link = context.get_link(brain)
+                lastname = brain.crm_p_lastname.upper()
+                firstname = brain.crm_p_firstname
+                names.append(pattern.format(link=link, lastname=lastname,
+                    firstname=firstname))
+            return MSG(u"<br/>".join(names), format='html')
         elif column == 'crm_m_nextaction':
             return item_resource.find_next_action()
         elif column == 'assigned':
@@ -233,12 +276,10 @@ class CRM_SearchContacts(CRM_Search):
 
     table_columns = freeze([
         ('icon', None, False),
-        ('crm_p_lastname', MSG(u'Last name'), True),
-        ('crm_p_firstname', MSG(u'First name'), False),
+        ('title', MSG(u'Name'), True),
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_p_email', MSG(u'Email'), False),
-        ('crm_p_phone', MSG(u'Phone'), False),
-        ('crm_p_mobile', MSG(u'Mobile'), False),
+        ('phones', MSG(u'Phones'), False),
         ('crm_p_position', MSG(u'Position'), False),
         ('crm_p_opportunity', MSG(u'Opp.'), True),
         ('crm_p_project', MSG(u'Proj.'), True),
@@ -266,30 +307,28 @@ class CRM_SearchContacts(CRM_Search):
 
     def get_item_value(self, resource, context, item, column):
         item_brain, item_resource = item
-        get_property = item_resource.get_property
         if column == 'icon':
             # Status
-            value = get_property('crm_p_status')
-            return p_status_icons[value]
-        elif column == 'crm_p_lastname':
+            return p_status_icons[item_brain.crm_p_status]
+        elif column == 'title':
+            value = get_name(item_brain)
             href = '%s/' % context.get_link(item_resource)
-            return get_property(column), href
-        elif column == 'crm_p_firstname':
-            href = '%s/' % context.get_link(item_resource)
-            return get_property(column), href
+            return value, href
         elif column == 'crm_p_company':
-            company = get_property(column)
-            if not company:
+            p_company = item_brain.crm_p_company
+            if not p_company:
                 return u''
             crm = get_crm(resource)
-            company_resource = crm.get_resource('companies/%s' % company)
-            href = context.get_link(company_resource)
-            title = company_resource.get_title()
+            company = crm.get_resource('companies/' + p_company)
+            href = context.get_link(company)
+            title = company.get_title()
             return title, href
         elif column == 'crm_p_email':
-            value = get_property(column)
+            value = item_brain.crm_p_email
             href = 'mailto:%s' % value
             return value, href
+        elif column == 'phones':
+            return get_phones(item_brain, 'crm_p_phone', 'crm_p_mobile')
         elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
             accept = context.accept_language
@@ -371,40 +410,22 @@ class CRM_SearchCompanies(CRM_Search):
     def get_item_value(self, resource, context, item, column):
         proxy = super(CRM_SearchCompanies, self)
         item_brain, item_resource = item
-        get_property = item_resource.get_property
         if column == 'icon':
-            logo = get_property('crm_c_logo')
+            logo = item_brain.crm_c_logo
             if not logo or logo == '.':
                 return proxy.get_item_value(resource, context, item, column)
             return context.get_link(item_resource.get_resource(logo))
         elif column == 'address':
-            address = []
-            for field in ('crm_c_address_1', 'crm_c_address_2',
-                    'crm_c_zipcode', 'crm_c_town', 'crm_c_country'):
-                value = get_property(field)
-                if value:
-                    address.append(value)
-            if not address:
-                return None
-            address = u"<br/>".join(address)
-            return MSG(address, format='html')
+            return merge_columns(item_brain, 'crm_c_address_1',
+                    'crm_c_address_2', 'crm_c_zipcode', 'crm_c_town',
+                    'crm_c_country')
         elif column == 'phones':
-            phones = []
-            for message, field in [
-                    (u"Phone:\u00a0{0}", 'crm_c_phone'),
-                    (u"Fax:\u00a0{0}", 'crm_c_fax')]:
-                value = get_property(field).replace(u" ", u"\u00a0")
-                if value:
-                    phones.append(message.format(value))
-            if not phones:
-                return None
-            phones = u"<br/>".join(phones)
-            return MSG(phones, format='html')
+            return get_phones(item_brain, 'crm_c_phone', 'crm_c_fax')
         elif column == 'website':
-            website = get_property('crm_c_website')
-            if website == 'http://':
+            value = item_brain.crm_c_website
+            if value == 'http://':
                 return None
-            return website, website
+            return value, value
         return proxy.get_item_value(resource, context, item, column)
 
 
