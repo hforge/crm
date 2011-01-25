@@ -469,16 +469,16 @@ class Mission_ViewContacts(CRM_SearchContacts):
     batch_msg1 = MSG(' ')
     batch_msg2 = MSG(' ')
 
+    columns_to_keep = (
+            'icon', 'title', 'crm_p_company', 'crm_p_email', 'phones',
+            'crm_p_position')
+
 
     def get_table_columns(self, resource, context):
-        columns = []
-        for column in self.table_columns:
-            name, title, sort = column
-            if name in ('icon', 'crm_p_lastname', 'crm_p_firstname',
-                    'crm_p_company', 'crm_p_email', 'crm_p_phone',
-                    'crm_p_mobile', 'crm_p_position'):
-                columns.append(column)
-        return columns
+        proxy = super(Mission_ViewContacts, self)
+        columns = proxy.get_table_columns(resource, context)
+        to_keep = self.columns_to_keep
+        return [column for column in columns if column[0] in to_keep]
 
 
     def get_items(self, resource, context, *args):

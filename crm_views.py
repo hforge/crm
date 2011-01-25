@@ -279,7 +279,7 @@ class CRM_SearchContacts(CRM_Search):
         ('title', MSG(u'Name'), True),
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_p_email', MSG(u'Email'), False),
-        ('phones', MSG(u'Phones'), False),
+        ('phones', MSG(u'Phone'), False),
         ('crm_p_position', MSG(u'Position'), False),
         ('crm_p_opportunity', MSG(u'Opp.'), True),
         ('crm_p_project', MSG(u'Proj.'), True),
@@ -398,7 +398,7 @@ class CRM_SearchCompanies(CRM_Search):
         ('icon', None, False),
         ('title', MSG(u'Title'), True),
         ('address', MSG(u'Address'), True),
-        ('phones', MSG(u'Phones'), True),
+        ('phones', MSG(u'Phone'), True),
         ('website', MSG(u'Website'), True),
         ('crm_c_activity', MSG(u'Activity'), True),
         ('mtime', MSG(u'Last Modified'), True)]
