@@ -142,6 +142,9 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     query_schema = freeze(merge_dicts(
         contact_schema,
         mission_schema))
+    mission_fields = (
+        'title', 'description', 'crm_m_assigned', 'crm_m_cc', 'crm_m_status',
+        'crm_m_deadline', 'crm_m_amount', 'crm_m_probability')
 
 
     def _get_schema(self, resource, context):
@@ -149,6 +152,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         schema = dict(proxy._get_schema(resource, context))
         # Append mission schema
         for name, datatype in mission_schema.iteritems():
+            if name not in self.mission_fields:
+                continue
             if name in ('title', 'description'):
                 # Prefix double title and description
                 schema['mission_%s' % name] = datatype
@@ -164,13 +169,12 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         widgets = list(proxy._get_widgets(resource, context))
         # Append mission widgets
         for widget in mission_widgets:
-            if widget.name in ('timestamp', 'comment', 'crm_m_nextaction',
-                    'attachment', 'alert_date', 'alert_time'):
-                # Skip double timestamp and comment
+            name = widget.name
+            if name not in self.mission_fields:
                 continue
-            elif widget.name in ('title', 'description'):
+            elif name in ('title', 'description'):
                 # Prefix double title and description
-                widget = widget(name='mission_' + widget.name)
+                widget = widget(name='mission_' + name)
             widgets.append(widget)
         return freeze(widgets)
 
@@ -231,8 +235,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         if m_values['title']:
             m_values['crm_m_contact'] = contact.name
             mission = missions.add_mission(**m_values)
-            changes = get_changes(mission, context, form, new=True)
-            send_notification(mission, context, form, changes, new=True)
+            changes = get_changes(mission, context, m_values, new=True)
+            send_notification(mission, context, m_values, changes, new=True)
             goto = context.get_link(mission)
         else:
             goto = context.get_link(contact)

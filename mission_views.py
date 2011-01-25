@@ -120,6 +120,8 @@ def get_changes(resource, context, form, new=False):
         if key in ('comment', 'remove_previous_alerts', 'subject',
                 'timestamp'):
             continue
+        elif key not in form:
+            continue
         new_value = form[key]
         if type(new_value) is dict:
             language = resource.get_edit_languages(context)[0]
