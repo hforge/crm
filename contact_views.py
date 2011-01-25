@@ -194,7 +194,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         form = super(Contact_AddForm, self)._get_form(resource, context)
 
         # If title is defined, status is required
-        language, title = form['mission_title'].popitem()
+        language = resource.get_edit_languages(context)[0]
+        title = form['mission_title'][language]
         m_status = form['crm_m_status']
         if title.strip() and m_status is None:
             raise FormError(invalid=['crm_m_status'])
@@ -224,11 +225,6 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 m_values[key] = value
             elif key.startswith('mission_'):
                 m_values[key[8:]] = value
-        from pprint import pprint
-        print "p_values"
-        pprint(p_values)
-        print "m_values"
-        pprint(m_values)
         # Add contact
         contact = contacts.add_contact(**p_values)
         # Add mission if title is defined
