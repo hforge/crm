@@ -246,7 +246,7 @@ def send_notification(resource, context, form, changes, new=False):
     mission_title = resource.get_property('title')
     subject = u"[%s #%s] %s" % (crm_title, mission_name, mission_title)
     # Body
-    mission_uri = '%s/;view' % context.get_link(resource)
+    mission_uri = context.uri.resolve(context.get_link(resource))
     # Changes
     changes.insert(0, u"-" * 76)
     header = CHANGES_LINE.gettext(what=u"What", removed=u"Removed",
