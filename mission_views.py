@@ -54,7 +54,7 @@ from widgets import TimeWidget
 
 CHANGES_LINE = MSG(u"{what:>19}|{removed:<28}|{added:<27}")
 COMMENT_LINE = MSG(u"--- Comment {n} from {user_title} <{user_email}> {date} ---")
-BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please visit:
+BODY = MSG(u"""DO NOT REPLY TO THIS EMAIL. To comment on this mission, please visit:
 {mission_uri}
 
 #{mission_name} {mission_title}
@@ -66,7 +66,8 @@ BODY = MSG(u'''DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 {comment}
 
 -- 
-You are receiving this e-mail because you are in CC.''')
+You are receiving this e-mail because you are in CC.""")
+ERR_CONTACT_MANDATORY = ERROR(u"At least one contact is required.")
 
 
 mission_schema = freeze(merge_dicts(
@@ -89,25 +90,25 @@ mission_schema = freeze(merge_dicts(
 
 mission_widgets = freeze(
     DBResource_Edit.widgets[:3] + [
-        MultilineWidget('comment', title=MSG(u'New comment'), default='',
+        MultilineWidget('comment', title=MSG(u"New Comment"), default='',
                         rows=3),
-        TextWidget('crm_m_nextaction', title=MSG(u'Next action')),
-        FileWidget('attachment', title=MSG(u'Attachment'), size=35,
+        TextWidget('crm_m_nextaction', title=MSG(u"Next Action")),
+        FileWidget('attachment', title=MSG(u"Attachment"), size=35,
             default=''),
-        DateWidget('alert_date', title=MSG(u'Alert on'), size=8),
-        TimeWidget('alert_time', title=MSG(u'at')),
+        DateWidget('alert_date', title=MSG(u"Alert On"), size=8),
+        TimeWidget('alert_time', title=MSG(u"at")),
         CheckboxWidget('remove_previous_alerts', default=True,
             title=MSG(u"Remove previous alerts")),
         SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
             has_empty_option=True),
         SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
             has_empty_option=False),
-        RadioWidget('crm_m_status', title=MSG(u'Status'), is_inline=True,
+        RadioWidget('crm_m_status', title=MSG(u"Status"), is_inline=True,
                     has_empty_option=False),
-        DateWidget('crm_m_deadline', title=MSG(u'Deadline'), default='',
+        DateWidget('crm_m_deadline', title=MSG(u"Deadline"), default='',
             size=8),
-        TextWidget('crm_m_amount', title=MSG(u'Amount'), default='', size=8),
-        TextWidget('crm_m_probability', title=MSG(u'Probability'), default='',
+        TextWidget('crm_m_amount', title=MSG(u"Amount"), default='', size=8),
+        TextWidget('crm_m_probability', title=MSG(u"Probability"), default='',
             size=2)])
 
 
@@ -281,14 +282,14 @@ def send_notification(resource, context, form, changes, new=False):
 class ButtonAddContact(BrowseButton):
     name = 'add_contact'
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add Contact')
+    title = MSG(u"Link Selected Contacts")
 
 
 
 class ButtonAddMission(Button):
     name = 'add_mission'
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add Mission')
+    title = MSG(u"Add Mission")
 
 
 
@@ -300,7 +301,7 @@ class ButtonUpdate(Button):
 
 
 class Mission_EditForm(DBResource_Edit):
-    title = MSG(u'Edit Mission')
+    title = MSG(u"Edit Mission")
     template = '/ui/crm/mission/edit.xml'
     query_schema = mission_schema
     widgets = mission_widgets
@@ -437,7 +438,7 @@ class CancelAlert(BaseForm):
 
 
 class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
-    title = MSG(u'New Mission')
+    title = MSG(u"New Mission")
     query_schema = freeze(merge_dicts(
         mission_schema,
         # Add mandatory crm_m_contact to query schema
@@ -516,11 +517,11 @@ class Mission_ViewContact(Mission_ViewContacts):
 
 class Mission_EditContacts(Mission_ViewContacts):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit Contacts')
+    title = MSG(u"Edit Contacts")
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
     table_actions = freeze([
-        RemoveButton(name='remove', title=MSG(u'Remove contact')) ])
+        RemoveButton(name='remove', title=MSG(u"Remove Contact")) ])
 
 
     def get_table_columns(self, resource, context):
@@ -538,7 +539,7 @@ class Mission_EditContacts(Mission_ViewContacts):
                 m_contact.remove(contact_id)
 
         if len(m_contact) == 0:
-            context.message = ERROR(u'At least one contact is required')
+            context.message = ERR_CONTACT_MANDATORY
             return
 
         # Apply change
@@ -549,9 +550,10 @@ class Mission_EditContacts(Mission_ViewContacts):
 
 class Mission_AddContacts(CRM_SearchContacts):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Add Contacts')
+    title = MSG(u"Add Contacts")
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
+    search_template = '/ui/crm/mission/search_contacts.xml'
     table_actions = freeze([
         ButtonAddContact])
 
@@ -608,7 +610,7 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 class Mission_View(CompositeForm):
     access = 'is_allowed_to_edit'
-    title = MSG(u'View Mission')
+    title = MSG(u"View Mission")
     template = '/ui/crm/mission/view.xml'
     styles = [
             '/ui/crm/style.css',
@@ -641,7 +643,7 @@ class Mission_View(CompositeForm):
 
 
 class Mission_Add(Mission_View):
-    title = MSG(u'New Mission')
+    title = MSG(u"New Mission")
     context_menus = []
     subviews = [
             Mission_AddForm(),
@@ -649,7 +651,7 @@ class Mission_Add(Mission_View):
 
 
     def on_query_error(self, resource, context):
-        msg = u'Please select a valid contact before creating a mission.'
+        msg = u"Please select a valid contact before creating a mission."
         return context.come_back(ERROR(msg), goto='..')
 
 
@@ -667,17 +669,17 @@ class Mission_Add(Mission_View):
 
 class Mission_EditAlerts(CRM_Alerts):
     access = 'is_allowed_to_edit'
-    title = MSG(u'Edit alerts')
+    title = MSG(u"Edit alerts")
     search_template = None
 
     # Table
     table_columns = freeze([
         ('checkbox', None),
         ('icon', None, False),
-        ('alert_date', MSG(u'Date'), False),
-        ('alert_time', MSG(u'Time'), False),
-        ('comment', MSG(u'Comment'), False),
-        ('crm_m_nextaction', MSG(u'Next action'), False)])
+        ('alert_date', MSG(u"Date"), False),
+        ('alert_time', MSG(u"Time"), False),
+        ('comment', MSG(u"Comment"), False),
+        ('crm_m_nextaction', MSG(u"Next Action"), False)])
 
 
     def get_items(self, resource, context, *args):
