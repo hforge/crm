@@ -28,7 +28,7 @@ from itools.web import FormError
 
 # Import from ikaaro
 from ikaaro.autoform import MultilineWidget, RadioWidget, TextWidget
-from ikaaro.autoform import timestamp_widget
+from ikaaro.autoform import timestamp_widget, HiddenWidget
 from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
@@ -40,7 +40,7 @@ from base_views import monolingual_widgets
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
-from mission_views import get_changes, send_notification
+from mission_views import get_changes, send_notification, MSG_CONTACT_ADDED
 from utils import get_crm, get_crm_path_query
 from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import SelectCompanyWidget
@@ -141,7 +141,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     styles = ['/ui/crm/style.css']
     query_schema = freeze(merge_dicts(
         contact_schema,
-        mission_schema))
+        mission_schema,
+        mission=String))
     mission_fields = (
         'title', 'description', 'crm_m_assigned', 'crm_m_cc', 'crm_m_status',
         'crm_m_deadline', 'crm_m_amount', 'crm_m_probability')
@@ -161,6 +162,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 schema[name] = datatype(resource=resource)
             else:
                 schema[name] = datatype
+        # Existing mission
+        schema['mission'] = String
         return freeze(schema)
 
 
@@ -176,6 +179,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 # Prefix double title and description
                 widget = widget(name='mission_' + name)
             widgets.append(widget)
+        # Existing mission
+        widgets.append(HiddenWidget('mission'))
         return freeze(widgets)
 
 
@@ -198,11 +203,12 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         form = super(Contact_AddForm, self)._get_form(resource, context)
 
         # If title is defined, status is required
-        language = resource.get_edit_languages(context)[0]
-        title = form['mission_title'][language]
-        m_status = form['crm_m_status']
-        if title.strip() and m_status is None:
-            raise FormError(invalid=['crm_m_status'])
+        title = form['mission_title']
+        if title:
+            language = resource.get_edit_languages(context)[0]
+            m_status = form['crm_m_status']
+            if title[language].strip() and m_status is None:
+                raise FormError(invalid=['crm_m_status'])
 
         return form
 
@@ -212,6 +218,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         proxy = super(Contact_AddForm, self)
         namespace = dict(proxy.get_namespace(resource, context))
         monolingual_widgets(namespace)
+        namespace['existing_mission'] = context.get_query_value('mission')
         return namespace
 
 
@@ -232,12 +239,25 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         # Add contact
         contact = contacts.add_contact(**p_values)
         # Add mission if title is defined
-        if m_values['title']:
-            m_values['crm_m_contact'] = contact.name
-            mission = missions.add_mission(**m_values)
-            changes = get_changes(mission, context, m_values, new=True)
-            send_notification(mission, context, m_values, changes, new=True)
+        if form['mission'] or m_values['title']:
+            if form['mission']:
+                # Link to existing mission
+                missions = resource.get_resource('../missions')
+                mission = missions.get_resource(form['mission'])
+                m_contact = mission.get_property('crm_m_contact')
+                m_contact = list(set(m_contact + [contact.name]))
+                mission.set_property('crm_m_contact', m_contact)
+                #changes = get_changes(mission, context, m_values)
+                #send_notification(mission, context, m_values, changes)
+            elif m_values['title']:
+                # Create new mission and link to it
+                m_values['crm_m_contact'] = contact.name
+                mission = missions.add_mission(**m_values)
+                changes = get_changes(mission, context, m_values, new=True)
+                send_notification(mission, context, m_values, changes,
+                        new=True)
             goto = context.get_link(mission)
+            return context.come_back(MSG_CONTACT_ADDED, goto=goto)
         else:
             goto = context.get_link(contact)
 

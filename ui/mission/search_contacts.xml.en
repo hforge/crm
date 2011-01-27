@@ -9,6 +9,7 @@
         />
       <!-- OK -->
       <button type="submit" class="button-search">OK</button>
+      Or <a href="../../contacts/?crm_p_company=${p_company}&amp;mission=${name}">Create a New Contact</a>
     </fieldset>
   </form>
 

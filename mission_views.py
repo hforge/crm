@@ -28,7 +28,7 @@ from itools.handlers import checkid
 from itools.fs import FileName
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.web import BaseForm, ERROR, get_context
+from itools.web import BaseForm, INFO, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
@@ -67,6 +67,7 @@ BODY = MSG(u"""DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 
 -- 
 You are receiving this e-mail because you are in CC.""")
+MSG_CONTACT_ADDED = INFO(u"Contact Added.")
 ERR_CONTACT_MANDATORY = ERROR(u"At least one contact is required.")
 
 
@@ -558,16 +559,23 @@ class Mission_AddContacts(CRM_SearchContacts):
         ButtonAddContact])
 
 
+    def _get_default_company(self, resource, context):
+        m_contact = resource.get_property('crm_m_contact')
+        if not m_contact:
+            return None
+        crm = get_crm(resource)
+        contact = crm.get_resource('contacts/' + m_contact[0])
+        p_company = contact.get_property('crm_p_company')
+        return crm.get_resource('companies/' + p_company)
+
+
     def get_query_schema(self):
         # Filter by same company
         search_term = u""
-        resource = get_context().resource
-        m_contact = resource.get_property('crm_m_contact')
-        if m_contact:
-            crm = get_crm(resource)
-            contact = crm.get_resource('contacts/' + m_contact[0])
-            p_company = contact.get_property('crm_p_company')
-            company = crm.get_resource('companies/' + p_company)
+        context = get_context()
+        resource = context.resource
+        company = self._get_default_company(resource, context)
+        if company is not None:
             search_term = company.get_property('title')
         proxy = super(Mission_AddContacts, self)
         return freeze(merge_dicts(
@@ -581,6 +589,19 @@ class Mission_AddContacts(CRM_SearchContacts):
         columns = list(columns) # do not alter parent columns
         columns.insert(0, ('checkbox', None))
         return columns
+
+
+    def get_search_namespace(self, resource, context):
+        proxy = super(Mission_AddContacts, self)
+        namespace = proxy.get_search_namespace(resource, context)
+        namespace['name'] = resource.name
+        company = self._get_default_company(resource, context)
+        if company is None:
+            p_company = ''
+        else:
+            p_company = company.name
+        namespace['p_company'] = p_company
+        return namespace
 
 
     def get_namespace(self, resource, context):
@@ -604,7 +625,7 @@ class Mission_AddContacts(CRM_SearchContacts):
             contact = contacts.get_resource(contact_id)
             context.database.change_resource(contact)
 
-        context.message = MSG_CHANGES_SAVED
+        context.message = MSG_CONTACT_ADDED
 
 
 

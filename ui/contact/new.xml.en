@@ -129,7 +129,8 @@
     </tbody>
   </table>
   <!-- MISSION -->
-  <fieldset id="edit-mission" style="width: 60%;">
+  <fieldset id="edit-mission" style="width: 60%;"
+    stl:if="not existing_mission">
     <legend>Mission</legend>
     <table cellpadding="0" cellspacing="0">
       <tbody>
@@ -226,6 +227,9 @@
       </tbody>
     </table>
   </fieldset>
+  <stl:block stl:if="existing_mission">
+    ${widgets/mission/widget}
+  </stl:block>
   <p stl:if="actions">
       <stl:block stl:repeat="action actions">
         <button stl:if="not action/value" type="submit"
