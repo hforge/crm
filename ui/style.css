@@ -205,6 +205,7 @@ fieldset#company legend a {
 #comments-list tr.comment-text,
 #view-comments tr.comment-text {
   background-color: #f0f0ff;
+  font-size: 1.2em;
 }
 #comments-list tr.comment-text td,
 #view-comments tr.comment-text td {
