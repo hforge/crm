@@ -22,8 +22,13 @@ from sys import argv
 from itools.core import get_abspath, get_version
 from itools.gettext import register_domain
 
+# Import from itws
+from itws.skin import register_not_allowed_cls_for_sidebar_view
+from itws.skin import register_not_allowed_view_for_sidebar_view
+
 # Import from crm
 from crm import CRM
+from mission import Mission
 
 # Make the product version available to Python code
 __version__ = get_version()
@@ -43,14 +48,7 @@ if argv[0].endswith('icms-update.py'):
     # Silent pyflakes
     obsolete
 
-try:
-    from itws.skin import register_not_allowed_cls_for_sidebar_view
-    from itws.skin import register_not_allowed_view_for_sidebar_view
-except ImportError:
-    pass
-else:
-    # Hide sidebar in crm root
-    register_not_allowed_cls_for_sidebar_view(CRM)
-    # Hide sidebar in mission add contacts
-    from mission import Mission
-    register_not_allowed_view_for_sidebar_view(Mission.add_contacts)
+# Hide sidebar in crm root
+register_not_allowed_cls_for_sidebar_view(CRM)
+# Hide sidebar in mission add contacts
+register_not_allowed_view_for_sidebar_view(Mission.add_contacts)
