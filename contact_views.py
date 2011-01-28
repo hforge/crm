@@ -239,7 +239,8 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         # Add contact
         contact = contacts.add_contact(**p_values)
         # Add mission if title is defined
-        if form['mission'] or m_values['title']:
+        language = resource.get_edit_languages(context)[0]
+        if form['mission'] or m_values['title'][language]:
             if form['mission']:
                 # Link to existing mission
                 missions = resource.get_resource('../missions')
@@ -249,7 +250,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
                 mission.set_property('crm_m_contact', m_contact)
                 #changes = get_changes(mission, context, m_values)
                 #send_notification(mission, context, m_values, changes)
-            elif m_values['title']:
+            elif m_values['title'][language]:
                 # Create new mission and link to it
                 m_values['crm_m_contact'] = contact.name
                 mission = missions.add_mission(**m_values)
