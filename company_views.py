@@ -30,6 +30,9 @@ from ikaaro.datatypes import Multilingual
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
 
+# Import from itws
+from itws.tags import TagsAware_Edit
+
 # Import from crm
 from base_views import CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
@@ -75,16 +78,43 @@ company_widgets = freeze(
 
 
 
-class Company_EditForm(DBResource_Edit):
+class Company_EditForm(TagsAware_Edit, DBResource_Edit):
     title = MSG(u'Edit Company')
     styles = ['/ui/crm/style.css']
     context_menus = []
     query_schema = company_schema
-    schema = freeze(merge_dicts(
-        company_schema,
-        # title is mandatory
-        title=company_schema['title'](mandatory=True)))
-    widgets = company_widgets
+
+
+    def _get_schema(self, resource, context):
+        tags_schema = TagsAware_Edit._get_schema(self, resource, context)
+        return freeze(merge_dicts(
+            company_schema,
+            # title is mandatory
+            title=company_schema['title'](mandatory=True),
+            # Tags
+            tags=tags_schema['tags']))
+
+
+    def _get_widgets(self, resource, context):
+        tags_widgets = TagsAware_Edit._get_widgets(self, resource, context)
+        return freeze(
+                company_widgets
+                + [tags_widgets[0]])
+
+
+    def get_value(self, resource, context, name, datatype):
+        if name == 'tags':
+            return TagsAware_Edit.get_value(self, resource, context, name,
+                    datatype)
+        return DBResource_Edit.get_value(self, resource, context, name,
+                datatype)
+
+
+    def set_value(self, resource, context, name, form):
+        if name == 'tags':
+            return TagsAware_Edit.set_value(self, resource, context, name,
+                    form)
+        return DBResource_Edit.set_value(self, resource, context, name, form)
 
 
 
@@ -132,7 +162,7 @@ class Company_ViewContacts(CRM_SearchContacts):
 
     def get_namespace(self, resource, context):
         proxy = super(Company_ViewContacts, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace

@@ -28,9 +28,6 @@ from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
-# Import from itws
-from itws.tags import TagsAware
-
 # Import from crm
 from base import CRMFolder
 from base_views import Comments_View
@@ -40,7 +37,7 @@ from mission_views import Mission_EditForm
 from utils import generate_code
 
 
-class Contact(TagsAware, CRMFolder):
+class Contact(CRMFolder):
     class_id = 'contact'
     class_title = MSG(u'Contact')
     class_version = '20100924'
@@ -50,7 +47,6 @@ class Contact(TagsAware, CRMFolder):
     # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
-        TagsAware.class_schema,
         crm_p_company=String(source='metadata', indexed=True, stored=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
         crm_p_firstname=Unicode(source='metadata', stored=True),
@@ -81,9 +77,7 @@ class Contact(TagsAware, CRMFolder):
     # Ikaaro API
     #############################################
     def get_catalog_values(self):
-        document = merge_dicts(
-                CRMFolder.get_catalog_values(self),
-                TagsAware.get_catalog_values(self))
+        document = super(Contact, self).get_catalog_values()
         crm = self.parent.parent
         get_property = self.get_property
 
@@ -142,22 +136,6 @@ class Contact(TagsAware, CRMFolder):
         document['crm_p_probable'] = p_probable
 
         return document
-
-
-    def get_links(self):
-        return (
-            CRMFolder.get_links(self)
-            | TagsAware.get_links(self))
-
-
-    def update_links(self, source, target):
-        CRMFolder.update_links(self, source, target)
-        TagsAware.update_links(self, source, target)
-
-
-    def update_relative_links(self, source):
-        CRMFolder.update_relative_links(self, source)
-        TagsAware.update_relative_links(self, source)
 
 
     def get_title(self, language=None):

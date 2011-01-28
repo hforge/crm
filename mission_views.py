@@ -358,7 +358,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Mission_EditForm, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
         return namespace
@@ -514,7 +514,7 @@ class Mission_ViewContacts(CRM_SearchContacts):
 
     def get_namespace(self, resource, context):
         proxy = super(Mission_ViewContacts, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace
@@ -623,7 +623,7 @@ class Mission_AddContacts(CRM_SearchContacts):
 
     def get_namespace(self, resource, context):
         proxy = super(Mission_AddContacts, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         namespace['crm-infos'] = False
         namespace['export-csv'] = False
         return namespace

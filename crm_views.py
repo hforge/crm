@@ -115,7 +115,7 @@ class CRM_Search(SearchForm):
 
         # Build the query
         args = list(args)
-        args.append(PhraseQuery('format', self.format))
+        args.append(PhraseQuery('format', self.search_format))
         args.append(get_crm_path_query(crm))
         if search_term:
             args.append(PhraseQuery('text', search_term))
@@ -125,15 +125,14 @@ class CRM_Search(SearchForm):
         return AndQuery(*args)
 
 
-    def get_search_namespace(self, resource, context, with_tags=False):
+    def get_search_namespace(self, resource, context):
         namespace = {}
         # Full-text search
         namespace['search_term'] = TextWidget('search_term', size=20,
                 value=context.query['search_term'])
         # Tags
-        if with_tags is True:
-            namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
-                    datatype=TagsList, value=context.query['tags'])
+        namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
+                datatype=TagsList, value=context.query['tags'])
         return namespace
 
 
@@ -174,7 +173,6 @@ class CRM_Search(SearchForm):
 
 class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
-    format = 'mission'
 
     search_template = '/ui/crm/crm/search_missions.xml'
     search_schema = freeze(merge_dicts(
@@ -182,6 +180,7 @@ class CRM_SearchMissions(CRM_Search):
         assigned=String,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean))
+    search_format = 'mission'
 
     table_columns = freeze([
         ('icon', None, False),
@@ -208,8 +207,7 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchMissions, self)
-        namespace = proxy.get_search_namespace(resource, context,
-            with_tags=True)
+        namespace = proxy.get_search_namespace(resource, context)
 
         # Assigned
         datatype = UsersList(resource=resource)
@@ -292,12 +290,12 @@ class CRM_SearchMissions(CRM_Search):
 class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
     template = '/ui/crm/crm/contacts.xml'
-    format = 'contact'
 
     search_template = '/ui/crm/crm/search_contacts.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         status=ContactStatus(multiple=True)))
+    search_format = 'contact'
 
     table_columns = freeze([
         ('icon', None, False),
@@ -319,8 +317,7 @@ class CRM_SearchContacts(CRM_Search):
 
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchContacts, self)
-        namespace = dict(proxy.get_search_namespace(resource, context,
-            with_tags=True))
+        namespace = proxy.get_search_namespace(resource, context)
 
         # Add status
         default_status = ['lead', 'client']
@@ -396,7 +393,7 @@ class CRM_SearchContacts(CRM_Search):
         self.assured = decimal('0.0')
         self.probable = decimal('0.0')
         proxy = super(CRM_SearchContacts, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
 
         # Add infos about assured and probable amount
         # TODO Filter by year or semester
@@ -414,7 +411,8 @@ class CRM_SearchContacts(CRM_Search):
 
 class CRM_SearchCompanies(CRM_Search):
     title = MSG(u'Companies')
-    format = 'company'
+
+    search_format = 'company'
 
     table_columns = [
         ('icon', None, False),

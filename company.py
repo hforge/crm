@@ -63,6 +63,9 @@ class Company(CRMFolder):
     view = Company_View()
 
 
+    #############################################
+    # Ikaaro API
+    #############################################
     def get_catalog_values(self):
         document = super(Company, self).get_catalog_values()
         title = self.get_title()

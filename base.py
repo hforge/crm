@@ -27,12 +27,15 @@ from itools.web import get_context
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
 
+# Import from itws
+from itws.tags import TagsAware
+
 # Import from crm
 from base_views import CRMFolder_AddImage
 from utils import get_path_and_view
 
 
-class CRMFolder(RoleAware, Folder):
+class CRMFolder(TagsAware, RoleAware, Folder):
     """ Base folder for Company, Contact and Mission.
     """
     class_version = '20100912'
@@ -41,6 +44,7 @@ class CRMFolder(RoleAware, Folder):
     class_schema = freeze(merge_dicts(
         Folder.class_schema,
         RoleAware.class_schema,
+        TagsAware.class_schema,
         comment=Unicode(source='metadata', mandatory=True, multiple=True)))
 
     # Views
@@ -54,6 +58,12 @@ class CRMFolder(RoleAware, Folder):
         username = get_context().user.name
         admins = kw.get('admins', []) + [username]
         self.set_property('admins', tuple(admins))
+
+
+    def get_catalog_values(self):
+        return merge_dicts(
+                Folder.get_catalog_values(self),
+                TagsAware.get_catalog_values(self))
 
 
     def get_edit_languages(self, context):
@@ -103,7 +113,7 @@ class CRMFolder(RoleAware, Folder):
 
 
     def get_links(self):
-        links = super(CRMFolder, self).get_links()
+        links =  RoleAware.get_links(self) | TagsAware.get_links(self)
         base = self.get_canonical_path()
 
         # metadata
@@ -139,6 +149,7 @@ class CRMFolder(RoleAware, Folder):
 
     def update_links(self, source, target):
         Folder.update_links(self, source, target)
+        TagsAware.update_links(self, source, target)
 
         base = self.get_canonical_path()
         resources_new2old = get_context().database.resources_new2old
@@ -190,6 +201,7 @@ class CRMFolder(RoleAware, Folder):
 
     def update_relative_links(self, source):
         Folder.update_relative_links(self, source)
+        TagsAware.update_relative_links(self, source)
 
         target = self.get_canonical_path()
         resources_old2new = get_context().database.resources_old2new

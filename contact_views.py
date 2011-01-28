@@ -127,7 +127,7 @@ class Contact_EditForm(TagsAware_Edit, DBResource_Edit):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Contact_EditForm, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         # Reset comment
         # XXX multilingual
         for widget in namespace['widgets']:
@@ -170,7 +170,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
     def _get_schema(self, resource, context):
         proxy = super(Contact_AddForm, self)
-        schema = dict(proxy._get_schema(resource, context))
+        schema = proxy._get_schema(resource, context)
         # Append mission schema
         for name, datatype in mission_schema.iteritems():
             if name not in self.mission_fields:
@@ -236,7 +236,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     def get_namespace(self, resource, context):
         # Build namespace
         proxy = super(Contact_AddForm, self)
-        namespace = dict(proxy.get_namespace(resource, context))
+        namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         namespace['existing_mission'] = context.get_query_value('mission')
         return namespace
@@ -398,8 +398,7 @@ class Contact_SearchMissions(SearchForm):
     # The Search Form
     def get_search_namespace(self, resource, context):
         proxy = super(Contact_SearchMissions, self)
-        namespace = dict(proxy.get_search_namespace(resource,
-            context))
+        namespace = proxy.get_search_namespace(resource, context)
         # Add status
         default_status = ['crm_p_opportunity', 'crm_p_project']
         m_status = context.query['crm_m_status']
