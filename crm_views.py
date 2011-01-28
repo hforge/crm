@@ -36,6 +36,9 @@ from ikaaro.cc import UsersList
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
+# Import from itws
+from itws.tags import TagsList
+
 # Import from crm
 from base_views import m_status_icons, p_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
@@ -116,6 +119,13 @@ class CRM_Search(SearchForm):
         return AndQuery(*args)
 
 
+    def get_search_namespace(self, resource, context):
+        namespace = {}
+        namespace['search_term'] = TextWidget('search_term', size=20,
+                value=context.query['search_term'])
+        return namespace
+
+
     def get_items(self, resource, context, *args):
         query = self._get_query(resource, context, *args)
         return context.root.search(query)
@@ -185,16 +195,16 @@ class CRM_SearchMissions(CRM_Search):
             assigned=schema['assigned'](default=context.user.name)))
 
 
-    # The Search Form
     def get_search_namespace(self, resource, context):
-        namespace = {}
-        namespace['search_term'] = TextWidget('search_term', size=20,
-                value=context.query['search_term'])
+        proxy = super(CRM_SearchMissions, self)
+        namespace = proxy.get_search_namespace(resource, context)
+
+        # Assigned
         datatype = UsersList(resource=resource)
         namespace['assigned'] = SelectWidget(name='assigned',
                 title=MSG(u"Assigned To"), datatype=datatype,
                 value=context.query['assigned'])
-        # Add status
+        # Status
         default_status = ['opportunity', 'project']
         m_status = context.query['status']
         if not m_status:
@@ -206,6 +216,7 @@ class CRM_SearchMissions(CRM_Search):
         namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
                 title=MSG(u'With no alert only'), datatype=Boolean,
                 value=with_no_alert, oneline=True)
+
         return namespace
 
 
@@ -267,12 +278,15 @@ class CRM_SearchMissions(CRM_Search):
 
 class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
-    template = '/ui/crm/crm/search_contacts.xml'
-    format = 'contact'
-
+    template = '/ui/crm/crm/contacts.xml'
+    search_template = '/ui/crm/crm/search_contacts.xml'
+    query_schema = freeze(merge_dicts(
+        CRM_Search.query_schema,
+        tags=TagsList))
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         status=ContactStatus(multiple=True)))
+    format = 'contact'
 
     table_columns = freeze([
         ('icon', None, False),
@@ -290,6 +304,24 @@ class CRM_SearchContacts(CRM_Search):
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
+
+
+    def get_search_namespace(self, resource, context):
+        proxy = super(CRM_SearchContacts, self)
+        namespace = dict(proxy.get_search_namespace(resource, context))
+
+        # Add status
+        default_status = ['lead', 'client']
+        p_status = context.query['status']
+        if not p_status:
+            p_status = default_status
+        namespace['status'] = MultipleCheckboxWidget('status',
+                title=MSG(u'Status'), datatype=ContactStatus, value=p_status)
+
+        namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
+                datatype=TagsList, value=context.query['tags'])
+
+        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -349,25 +381,6 @@ class CRM_SearchContacts(CRM_Search):
 
         return super(CRM_SearchContacts, self).sort_and_batch(resource,
                 context, results)
-
-
-    #######################################################################
-    # The Search Form
-    def get_search_namespace(self, resource, context):
-        proxy = super(CRM_SearchContacts, self)
-        namespace = dict(proxy.get_search_namespace(resource, context))
-        # Add status
-        default_status = ['lead', 'client']
-        p_status = context.query['status']
-        if not p_status:
-            p_status = default_status
-        widget = MultipleCheckboxWidget('status', title=MSG(u'Status'),
-                datatype=ContactStatus, value=p_status)
-        namespace['status'] = widget.render()
-        # Add *empty* with_no_alert
-        namespace['with_no_alert'] = None
-
-        return namespace
 
 
     def get_namespace(self, resource, context):
