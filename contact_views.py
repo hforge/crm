@@ -34,6 +34,9 @@ from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm, SearchForm
 
+# Import from itws
+from itws.tags import TagsAware_Edit
+
 # Import from crm
 from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
 from base_views import monolingual_widgets
@@ -80,26 +83,42 @@ contact_widgets = freeze([
     MultilineWidget('comment', title=MSG(u'New comment'), rows=3)])
 
 
-class Contact_EditForm(DBResource_Edit):
+class Contact_EditForm(TagsAware_Edit, DBResource_Edit):
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit Contact')
     styles = ['/ui/crm/style.css']
     query_schema = contact_schema
-    schema = freeze(merge_dicts(
-        contact_schema,
-        # crm_p_lastname and crm_p_status are mandatory
-        crm_p_lastname=contact_schema['crm_p_lastname'](
-            mandatory=True),
-        crm_p_status=contact_schema['crm_p_status'](mandatory=True)))
-    widgets = contact_widgets
     submit_value = MSG(u'Update Contact')
 
 
+    def _get_schema(self, resource, context):
+        tags_schema = TagsAware_Edit._get_schema(self, resource, context)
+        return freeze(merge_dicts(
+            contact_schema,
+            # crm_p_lastname and crm_p_status are mandatory
+            crm_p_lastname=contact_schema['crm_p_lastname'](
+                mandatory=True),
+            crm_p_status=contact_schema['crm_p_status'](mandatory=True),
+            # Tags
+            tags=tags_schema['tags']))
+
+
+    def _get_widgets(self, resource, context):
+        tags_widgets = TagsAware_Edit._get_widgets(self, resource, context)
+        return freeze(
+                contact_widgets
+                + [tags_widgets[0]])
+
+
     def get_value(self, resource, context, name, datatype):
-        if name == 'comment':
+        print "Contact_EditForm.get_value", name
+        if name == 'tags':
+            return TagsAware_Edit.get_value(self, resource, context, name,
+                    datatype)
+        elif name == 'comment':
             return u''
-        proxy = super(Contact_EditForm, self)
-        return proxy.get_value(resource, context, name, datatype)
+        return DBResource_Edit.get_value(self, resource, context, name,
+                datatype)
 
 
     def is_edit(self, context):
@@ -123,13 +142,15 @@ class Contact_EditForm(DBResource_Edit):
 
 
     def set_value(self, resource, context, name, form):
-        if name == 'comment':
+        if name == 'tags':
+            return TagsAware_Edit.set_value(self, resource, context, name,
+                    form)
+        elif name == 'comment':
             comment = Property(form['comment'], date=context.timestamp,
                     author=context.user.name)
             resource.set_property('comment', comment)
             return False
-        proxy = super(Contact_EditForm, self)
-        return proxy.set_value(resource, context, name, form)
+        return DBResource_Edit.set_value(self, resource, context, name, form)
 
 
 

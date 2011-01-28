@@ -28,6 +28,9 @@ from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
+# import from itws
+from itws.tags import TagsAware
+
 # Import from crm
 from base import CRMFolder
 from base_views import Comments_View
@@ -37,7 +40,7 @@ from mission_views import Mission_EditForm
 from utils import generate_code
 
 
-class Contact(CRMFolder):
+class Contact(TagsAware, CRMFolder):
     class_id = 'contact'
     class_title = MSG(u'Contact')
     class_version = '20100924'
@@ -47,6 +50,7 @@ class Contact(CRMFolder):
     # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
+        TagsAware.class_schema,
         crm_p_company=String(source='metadata', indexed=True, stored=True),
         crm_p_lastname=Unicode(source='metadata', stored=True),
         crm_p_firstname=Unicode(source='metadata', stored=True),
@@ -73,8 +77,13 @@ class Contact(CRMFolder):
     view_missions = Contact_ViewMissions()
 
 
+    #############################################
+    # Ikaaro API
+    #############################################
     def get_catalog_values(self):
-        document = super(Contact, self).get_catalog_values()
+        document = merge_dicts(
+                CRMFolder.get_catalog_values(self),
+                TagsAware.get_catalog_values(self))
         crm = self.parent.parent
         get_property = self.get_property
 
@@ -135,15 +144,20 @@ class Contact(CRMFolder):
         return document
 
 
-    def get_first_mission(self, context):
-        root = context.root
-        crm = self.parent.parent
-        parent_path = str('%s/missions' % crm.get_abspath())
-        results = root.search(format='mission', parent_path=parent_path)
-        mission = results.get_documents(sort_by='mtime', reverse=True)
-        if not len(results):
-            return None
-        return mission[0].name
+    def get_links(self):
+        return (
+            CRMFolder.get_links(self)
+            | TagsAware.get_links(self))
+
+
+    def update_links(self, source, target):
+        CRMFolder.update_links(self, source, target)
+        TagsAware.update_links(self, source, target)
+
+
+    def update_relative_links(self, source):
+        CRMFolder.update_relative_links(self, source)
+        TagsAware.update_relative_links(self, source)
 
 
     def get_title(self, language=None):
@@ -157,6 +171,23 @@ class Contact(CRMFolder):
         return u'%s %s%s' % (p_lastname, p_firstname, p_company)
 
 
+    #############################################
+    # CRM API
+    #############################################
+    def get_first_mission(self, context):
+        root = context.root
+        crm = self.parent.parent
+        parent_path = str('%s/missions' % crm.get_abspath())
+        results = root.search(format='mission', parent_path=parent_path)
+        mission = results.get_documents(sort_by='mtime', reverse=True)
+        if not len(results):
+            return None
+        return mission[0].name
+
+
+    #############################################
+    # Updates
+    #############################################
     def update_20100921(self):
         self.metadata.set_changed()
         self.metadata.format = 'contact'
