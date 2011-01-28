@@ -122,6 +122,18 @@
                   ${widgets/crm_p_description/widget}
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <label for="${widgets/tags/name}">
+                    ${widgets/tags/title}
+                  </label>
+                </td>
+                <td colspan="3">
+                  <span stl:if="widgets/tags/error"
+                    class="field-error">${widgets/tags/error}<br/></span>
+                  ${widgets/tags/widget}
+                </td>
+              </tr>
             </tbody>
           </table>
         </td>
