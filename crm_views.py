@@ -42,7 +42,7 @@ from itws.tags import TagsList
 # Import from crm
 from base_views import m_status_icons, p_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
-from datatypes import MissionStatus, ContactStatus
+from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
@@ -98,9 +98,12 @@ def get_name(brain):
 
 class CRM_Search(SearchForm):
     access = 'is_allowed_to_edit'
-    search_template = '/ui/crm/crm/search.xml'
     styles = ['/ui/crm/style.css']
+    query_schema = freeze(merge_dicts(
+        SearchForm.query_schema,
+        tags=TagsList))
 
+    search_template = '/ui/crm/crm/search.xml'
     search_fields = [
         ('text', MSG(u'Text'))]
 
@@ -108,6 +111,7 @@ class CRM_Search(SearchForm):
     def _get_query(self, resource, context, *args):
         crm = get_crm(resource)
         search_term = context.query['search_term'].strip()
+        tags = context.query['tags']
 
         # Build the query
         args = list(args)
@@ -115,14 +119,21 @@ class CRM_Search(SearchForm):
         args.append(get_crm_path_query(crm))
         if search_term:
             args.append(PhraseQuery('text', search_term))
+        if tags:
+            args.append(PhraseQuery('tags', tags))
 
         return AndQuery(*args)
 
 
-    def get_search_namespace(self, resource, context):
+    def get_search_namespace(self, resource, context, with_tags=False):
         namespace = {}
+        # Full-text search
         namespace['search_term'] = TextWidget('search_term', size=20,
                 value=context.query['search_term'])
+        # Tags
+        if with_tags is True:
+            namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
+                    datatype=TagsList, value=context.query['tags'])
         return namespace
 
 
@@ -163,9 +174,9 @@ class CRM_Search(SearchForm):
 
 class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
-    search_template = '/ui/crm/crm/search_missions.xml'
     format = 'mission'
 
+    search_template = '/ui/crm/crm/search_missions.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         assigned=String,
@@ -197,7 +208,8 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchMissions, self)
-        namespace = proxy.get_search_namespace(resource, context)
+        namespace = proxy.get_search_namespace(resource, context,
+            with_tags=True)
 
         # Assigned
         datatype = UsersList(resource=resource)
@@ -210,7 +222,8 @@ class CRM_SearchMissions(CRM_Search):
         if not m_status:
             m_status = default_status
         namespace['status'] = MultipleCheckboxWidget('status',
-                title=MSG(u'Status'), datatype=MissionStatus, value=m_status)
+                title=MSG(u'Status'), datatype=MissionStatusShortened,
+                value=m_status)
         # Add with_no_alert
         with_no_alert = context.query['with_no_alert']
         namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
@@ -279,14 +292,12 @@ class CRM_SearchMissions(CRM_Search):
 class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
     template = '/ui/crm/crm/contacts.xml'
+    format = 'contact'
+
     search_template = '/ui/crm/crm/search_contacts.xml'
-    query_schema = freeze(merge_dicts(
-        CRM_Search.query_schema,
-        tags=TagsList))
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         status=ContactStatus(multiple=True)))
-    format = 'contact'
 
     table_columns = freeze([
         ('icon', None, False),
@@ -308,7 +319,8 @@ class CRM_SearchContacts(CRM_Search):
 
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchContacts, self)
-        namespace = dict(proxy.get_search_namespace(resource, context))
+        namespace = dict(proxy.get_search_namespace(resource, context,
+            with_tags=True))
 
         # Add status
         default_status = ['lead', 'client']
@@ -317,9 +329,6 @@ class CRM_SearchContacts(CRM_Search):
             p_status = default_status
         namespace['status'] = MultipleCheckboxWidget('status',
                 title=MSG(u'Status'), datatype=ContactStatus, value=p_status)
-
-        namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
-                datatype=TagsList, value=context.query['tags'])
 
         return namespace
 

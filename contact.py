@@ -28,7 +28,7 @@ from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
-# import from itws
+# Import from itws
 from itws.tags import TagsAware
 
 # Import from crm

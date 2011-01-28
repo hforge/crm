@@ -42,6 +42,9 @@ from ikaaro.resource_views import DBResource_Edit
 from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
+# Import from itws
+from itws.tags import TagsAware_Edit
+
 # Import from crm
 from base_views import monolingual_widgets, reset_comment
 from base_views import Comments_View, CRMFolder_AddForm
@@ -301,17 +304,17 @@ class ButtonUpdate(Button):
 
 
 
-class Mission_EditForm(DBResource_Edit):
+class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
     title = MSG(u"Edit Mission")
     template = '/ui/crm/mission/edit.xml'
     query_schema = mission_schema
-    widgets = mission_widgets
 
     actions = freeze([
         ButtonUpdate()])
 
 
     def _get_schema(self, resource, context):
+        tags_schema = TagsAware_Edit._get_schema(self, resource, context)
         return freeze(merge_dicts(
             mission_schema,
             # title and crm_m_status are mandatory
@@ -320,11 +323,23 @@ class Mission_EditForm(DBResource_Edit):
             # resource needed
             crm_m_assigned=mission_schema['crm_m_assigned'](
                 resource=resource),
-            crm_m_cc=mission_schema['crm_m_cc'](resource=resource)))
+            crm_m_cc=mission_schema['crm_m_cc'](resource=resource),
+            # Tags
+            tags=tags_schema['tags']))
+
+
+    def _get_widgets(self, resource, context):
+        tags_widgets = TagsAware_Edit._get_widgets(self, resource, context)
+        return freeze(
+                mission_widgets
+                + [tags_widgets[0]])
 
 
     def get_value(self, resource, context, name, datatype):
-        if name in ('alert_date', 'alert_time'):
+        if name == 'tags':
+            return TagsAware_Edit.get_value(self, resource, context, name,
+                    datatype)
+        elif name in ('alert_date', 'alert_time'):
             return datatype.get_default()
         elif name in ('comment', 'attachment'):
             return context.query.get(name) or datatype.get_default()
@@ -332,8 +347,8 @@ class Mission_EditForm(DBResource_Edit):
             return resource.find_next_action()
         elif name == 'remove_previous_alerts':
             return True
-        proxy = super(Mission_EditForm, self)
-        return proxy.get_value(resource, context, name, datatype)
+        return DBResource_Edit.get_value(self, resource, context, name,
+                datatype)
 
 
     def is_edit(self, context):
@@ -370,7 +385,10 @@ class Mission_EditForm(DBResource_Edit):
 
 
     def set_value(self, resource, context, name, form):
-        if name in ('attachment', 'crm_m_nextaction', 'alert_date',
+        if name == 'tags':
+            return TagsAware_Edit.set_value(self, resource, context, name,
+                    form)
+        elif name in ('attachment', 'crm_m_nextaction', 'alert_date',
                 'alert_time', 'remove_previous_alerts'):
             return False
         elif name == 'comment':
@@ -413,8 +431,7 @@ class Mission_EditForm(DBResource_Edit):
                     alert_datetime=alert_datetime)
             resource.metadata.set_property(name, value)
             return False
-        proxy = super(Mission_EditForm, self)
-        return proxy.set_value(resource, context, name, form)
+        return DBResource_Edit.set_value(self, resource, context, name, form)
 
 
 

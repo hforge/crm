@@ -111,7 +111,6 @@ class Contact_EditForm(TagsAware_Edit, DBResource_Edit):
 
 
     def get_value(self, resource, context, name, datatype):
-        print "Contact_EditForm.get_value", name
         if name == 'tags':
             return TagsAware_Edit.get_value(self, resource, context, name,
                     datatype)

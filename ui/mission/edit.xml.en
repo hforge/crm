@@ -172,6 +172,18 @@
             ${widgets/crm_m_probability/widget}&nbsp;%
           </td>
         </tr>
+        <tr id="edit-mission-tags">
+          <td>
+            <label for="${widgets/tags/name}">
+              ${widgets/tags/title}
+            </label>
+          </td>
+          <td colspan="5">
+            <span stl:if="widgets/tags/error"
+              class="field-error">${widgets/tags/error}<br/></span>
+            ${widgets/tags/widget}
+          </td>
+        </tr>
       </tbody>
     </table>
     <p stl:if="actions">

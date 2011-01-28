@@ -61,7 +61,7 @@ msgstr "${widgets/mission_title/title} *"
 #: ../ui/crm/search.xml.en:17
 msgctxt "fieldset"
 msgid "${with_no_alert} With no alert only"
-msgstr "${with_no_alert} Sans alerte uniquement"
+msgstr "${with_no_alert} Sans alerte uniq."
 
 #: ../contact.py:156
 msgid "%s %s%s"

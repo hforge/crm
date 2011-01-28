@@ -27,6 +27,9 @@ from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
 
+# Import from itws
+from itws.tags import TagsAware
+
 # Import from crm
 from base import CRMFolder
 from base_views import Comments_View
@@ -38,7 +41,7 @@ from datatypes import MissionStatus
 from utils import generate_code
 
 
-class Mission(CRMFolder):
+class Mission(TagsAware, CRMFolder):
     """ A mission is a folder containing:
         - metadata (including comments)
         - documents related to comments
@@ -50,6 +53,7 @@ class Mission(CRMFolder):
 
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
+        TagsAware.class_schema,
         crm_m_contact=String(source='metadata', indexed=True, stored=True,
             multiple=True),
         crm_m_status=MissionStatus(source='metadata', indexed=True,
@@ -79,8 +83,13 @@ class Mission(CRMFolder):
     view_contacts = Mission_ViewContacts()
 
 
+    #############################################
+    # Ikaaro API
+    #############################################
     def get_catalog_values(self):
-        document = super(Mission, self).get_catalog_values()
+        document = merge_dicts(
+                CRMFolder.get_catalog_values(self),
+                TagsAware.get_catalog_values(self))
         title = self.get_property('title')
         description = self.get_property('description')
         m_nextaction  = self.find_next_action()
@@ -110,6 +119,25 @@ class Mission(CRMFolder):
         return document
 
 
+    def get_links(self):
+        return (
+            CRMFolder.get_links(self)
+            | TagsAware.get_links(self))
+
+
+    def update_links(self, source, target):
+        CRMFolder.update_links(self, source, target)
+        TagsAware.update_links(self, source, target)
+
+
+    def update_relative_links(self, source):
+        CRMFolder.update_relative_links(self, source)
+        TagsAware.update_relative_links(self, source)
+
+
+    #############################################
+    # CRM API
+    #############################################
     def get_last_comment(self):
         comments = self.metadata.get_property('comment') or []
         if comments:
@@ -146,6 +174,9 @@ class Mission(CRMFolder):
         self.metadata.set_property('comment', comments)
 
 
+    #############################################
+    # Updates
+    #############################################
     def update_20100923(self):
         """'crm_m_prospects' -> 'crm_m_contact'
         """

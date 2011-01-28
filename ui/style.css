@@ -259,3 +259,7 @@ fieldset#company legend a {
   cursor: default;
 }
 
+/* Tags */
+.ms2side__div select {
+  width: 200px !important;
+}

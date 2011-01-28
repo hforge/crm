@@ -17,6 +17,7 @@
 
 # Import from itools
 from itools.datatypes import Enumerate
+from itools.gettext import MSG
 from itools.web import get_context
 
 # Import from ikaaro
@@ -56,18 +57,27 @@ class CompanyName(Enumerate):
 class MissionStatus(Enumerate):
 
     options = [
-        {'name': 'opportunity', 'value': u'Opportunity'},
-        {'name': 'project', 'value': u'Project'},
-        {'name': 'nogo', 'value': u'NoGo'}]
+        {'name': 'opportunity', 'value': MSG(u"Opportunity")},
+        {'name': 'project', 'value': MSG(u"Project")},
+        {'name': 'nogo', 'value': MSG(u"NoGo")}]
+
+
+
+class MissionStatusShortened(Enumerate):
+
+    options = [
+        {'name': 'opportunity', 'value': MSG(u"Opp.")},
+        {'name': 'project', 'value': MSG(u"Proj.")},
+        {'name': 'nogo', 'value': MSG(u"NoGo")}]
 
 
 
 class ContactStatus(Enumerate):
 
     options = [
-        {'name': 'lead', 'value': u'Lead'},
-        {'name': 'client', 'value': u'Client'},
-        {'name': 'dead', 'value': u'Dead'}]
+        {'name': 'lead', 'value': MSG(u"Lead")},
+        {'name': 'client', 'value': MSG(u"Client")},
+        {'name': 'dead', 'value': MSG(u"Dead")}]
 
 
 
