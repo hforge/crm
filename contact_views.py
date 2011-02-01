@@ -170,7 +170,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
 
     def _get_schema(self, resource, context):
         proxy = super(Contact_AddForm, self)
-        schema = proxy._get_schema(resource, context)
+        schema = dict(proxy._get_schema(resource, context))
         # Append mission schema
         for name, datatype in mission_schema.iteritems():
             if name not in self.mission_fields:
