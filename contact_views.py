@@ -79,7 +79,7 @@ contact_widgets = freeze([
     MultilineWidget('crm_p_description', title=MSG(u'Observations'),
         default=u'', rows=4),
     RadioWidget('crm_p_status', title=MSG(u'Status'), has_empty_option=False,
-        is_inline=True),
+        oneline=True),
     MultilineWidget('comment', title=MSG(u'New comment'), rows=3)])
 
 

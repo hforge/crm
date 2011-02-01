@@ -107,7 +107,7 @@ mission_widgets = freeze(
             has_empty_option=True),
         SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
             has_empty_option=False),
-        RadioWidget('crm_m_status', title=MSG(u"Status"), is_inline=True,
+        RadioWidget('crm_m_status', title=MSG(u"Status"), oneline=True,
                     has_empty_option=False),
         DateWidget('crm_m_deadline', title=MSG(u"Deadline"), default='',
             size=8),
