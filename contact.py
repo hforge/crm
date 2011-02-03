@@ -39,8 +39,10 @@ from utils import generate_code
 
 class Contact(CRMFolder):
     class_id = 'contact'
-    class_title = MSG(u'Contact')
     class_version = '20100924'
+    class_title = MSG(u'Contact')
+    class_icon16 = 'crm/icons/16x16/contact.png'
+    class_icon48 = 'crm/icons/48x48/contact.png'
 
     class_views = ['view']
 

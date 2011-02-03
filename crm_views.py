@@ -47,9 +47,9 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 
-ALERT_ICON_RED = '1240913145_preferences-desktop-notification-bell.png'
-ALERT_ICON_ORANGE = '1240913150_bell_error.png'
-ALERT_ICON_GREEN = '1240913156_bell_go.png'
+ALERT_ICON_RED = 'bell_notification.png'
+ALERT_ICON_ORANGE = 'bell_error.png'
+ALERT_ICON_GREEN = 'bell_go.png'
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
 
@@ -667,12 +667,7 @@ class CRM_Alerts(SearchForm):
                 icon_name = ALERT_ICON_ORANGE
             else:
                 icon_name = ALERT_ICON_GREEN
-            # icon #resource.get_resource_icon(16)
-            path_to_icon = '/ui/crm/images/%s' % icon_name
-            if path_to_icon.startswith(';'):
-                name = resource.name
-                path_to_icon = resolve_uri('%s/' % name, path_to_icon)
-            href = 'missions/%s' % mission.name
+            path_to_icon = '/ui/crm/icons/16x16/' + icon_name
             return path_to_icon
         elif column == 'alert_datetime':
             alert_date = alert_datetime.date()

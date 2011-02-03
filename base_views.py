@@ -35,13 +35,13 @@ from ikaaro.popup import DBResource_AddImage
 
 
 p_status_icons = {
-    'lead': '/ui/crm/images/status_yellow.gif',
-    'client': '/ui/crm/images/status_green.gif',
-    'dead': '/ui/crm/images/status_gray.gif' }
+    'lead': '/ui/crm/icons/16x16/status_yellow.gif',
+    'client': '/ui/crm/icons/16x16/status_green.gif',
+    'dead': '/ui/crm/icons/16x16/status_gray.gif' }
 m_status_icons = {
-    'opportunity': '/ui/crm/images/status_yellow.gif',
-    'project': '/ui/crm/images/status_green.gif',
-    'nogo': '/ui/crm/images/status_gray.gif' }
+    'opportunity': '/ui/crm/icons/16x16/status_yellow.gif',
+    'project': '/ui/crm/icons/16x16/status_green.gif',
+    'nogo': '/ui/crm/icons/16x16/status_gray.gif' }
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 

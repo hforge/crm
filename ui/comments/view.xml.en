@@ -21,13 +21,13 @@
     </tr>
     <tr stl:if="comment/alert_datetime" class="comment-alert">
       <td colspan="3">
-        <img src="/ui/crm/images/1240913119_bell.png" />
+        <img src="/ui/crm/icons/16x16/bell.png" />
         ${comment/alert_datetime}
         <form action=";cancel_alert" method="POST" style="display: inline;"
             onsubmit="return confirm('${msg_alert}');">
           <input type="hidden" name="id" value="${comment/id}" />
           <input type="image" title="Remove alert"
-            src="/ui/crm/icons/16x16/1240913137_bell_delete.png"
+            src="/ui/crm/icons/16x16/bell_delete.png"
             style="background-color: transparent; border: none;" />
         </form>
       </td>

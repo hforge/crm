@@ -38,8 +38,10 @@ class Company(CRMFolder):
         as logo, images, ...
     """
     class_id = 'company'
-    class_title = MSG(u'Company')
     class_version = '20100916'
+    class_title = MSG(u'Company')
+    class_icon16 = 'crm/icons/16x16/company.png'
+    class_icon48 = 'crm/icons/48x48/company.png'
 
     class_views = ['view', 'browse_content']
 

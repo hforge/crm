@@ -83,7 +83,7 @@
                 <!-- ALERT -->
                 <tr>
                   <td>
-                    <img src="/ui/crm/images/1240913081_bell_add.png" />
+                    <img src="/ui/crm/icons/16x16/bell_add.png" />
                     <label for="${widgets/alert_date/name}">
                       ${widgets/alert_date/title}
                     </label>
