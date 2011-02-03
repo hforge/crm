@@ -260,7 +260,7 @@ def send_notification(resource, context, form, changes, new=False):
     changes = u"\n".join(changes)
     # New comment
     comment = u""
-    if form['comment']:
+    if form.get('comment'):
         n = len(resource.get_property('comment')) - 1
         accept = context.accept_language
         date = format_datetime(datetime.now(), accept=accept)
