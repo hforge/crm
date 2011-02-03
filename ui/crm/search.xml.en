@@ -6,7 +6,7 @@
     <fieldset>
       <legend>Search</legend>
       ${search_term}
-      Tags: ${tags}
+      ${tags/title}: ${tags}
       <!-- OK -->
       <button type="submit" class="button-search">OK</button>
     </fieldset>

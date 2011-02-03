@@ -6,8 +6,8 @@
   <fieldset>
     <legend>Search</legend>
     ${search_term}
-    Status: <span style="border: 1px solid #ccc; padding: 3px">${status}</span>
-    Tags: ${tags}
+    ${status/title}: <span style="border: 1px solid #ccc; padding: 3px">${status}</span>
+    ${tags/title}: ${tags}
     <!-- OK -->
     <button type="submit" class="button-search">OK</button>
   </fieldset>

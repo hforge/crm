@@ -26,7 +26,6 @@ from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.uri import resolve_uri
 from itools.web import BaseView, STLView, ERROR, get_context
 
 # Import from ikaaro
@@ -47,9 +46,9 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 
-ALERT_ICON_RED = 'bell_notification.png'
-ALERT_ICON_ORANGE = 'bell_error.png'
-ALERT_ICON_GREEN = 'bell_go.png'
+ALERT_ICON_RED = '/ui/crm/icons/16x16/bell_notification.png'
+ALERT_ICON_ORANGE = '/ui/crm/icons/16x16/bell_error.png'
+ALERT_ICON_GREEN = '/ui/crm/icons/16x16/bell_go.png'
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
 
@@ -233,7 +232,7 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_items(self, resource, context, *args):
         query = self._get_query(resource, context, *args)
-        # Assigned To
+        # Assigned to
         assigned = context.query['assigned']
         if assigned:
             query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
@@ -548,25 +547,21 @@ class CRM_ExportToCSV(BaseView):
 
 
 
-class CRM_Alerts(SearchForm):
-    access = 'is_allowed_to_edit'
+class CRM_Alerts(CRM_Search):
     title = MSG(u'Alerts')
     template = '/ui/crm/crm/alerts.xml'
-    styles = ['/ui/crm/style.css']
 
-    query_schema = freeze(merge_dicts(
-        SearchForm.query_schema,
-        batch_size=Integer(default=0)))
     schema = freeze({
         'ids': String(multiple=True, mandatory=True)})
+    query_schema = freeze(merge_dicts(
+        CRM_Search.query_schema,
+        batch_size=Integer(default=0)))
 
-    search_template = '/ui/crm/crm/search_assigned.xml'
+    search_template = '/ui/crm/crm/search_alerts.xml'
     search_schema = freeze(merge_dicts(
-        SearchForm.search_schema,
+        CRM_Search.search_schema,
         assigned=String))
-    search_fields = freeze([
-        ('text', MSG(u'Text')),
-        ('assigned', MSG(u"Assigned To"))])
+    search_format = 'mission'
 
     table_columns = freeze([
         ('checkbox', None, False),
@@ -582,8 +577,8 @@ class CRM_Alerts(SearchForm):
     batch_msg2 = MSG(u'{n} alerts.')
 
     table_actions = freeze([
-            RemoveButton(name='remove', title=MSG(u'Remove alert'),
-                confirm=REMOVE_ALERT_MSG)])
+        RemoveButton(name='remove', title=MSG(u'Remove alert'),
+            confirm=REMOVE_ALERT_MSG)])
 
 
     def get_query_schema(self):
@@ -606,36 +601,31 @@ class CRM_Alerts(SearchForm):
 
 
     def get_search_namespace(self, resource, context):
-        namespace = {}
-        namespace['search_term'] = TextWidget('search_term', size=35,
-                value=context.query['search_term'])
+        proxy = super(CRM_Alerts, self)
+        namespace = proxy.get_search_namespace(resource, context)
+
+        # Assigned
         datatype = UsersList(resource=resource)
         namespace['assigned'] = SelectWidget(name='assigned',
                 title=MSG(u"Assigned To"), datatype=datatype,
                 value=context.query['assigned'])
+
         return namespace
 
 
     def get_items(self, resource, context, *args):
-        user = context.user
-
-        # Build the query
-        args = list(args)
-        args.append(PhraseQuery('format', 'mission'))
-        args.append(PhraseQuery('crm_m_has_alerts', True))
-        search_term = context.query['search_term'].strip()
-        if search_term:
-            args.append(PhraseQuery('text', search_term))
+        query = self._get_query(resource, context, *args)
+        # With alerts
+        query = AndQuery(query, PhraseQuery('crm_m_has_alerts', True))
+        # Assigned to
         assigned = context.query['assigned']
         if assigned:
-            args.append(PhraseQuery('crm_m_assigned', assigned))
-        query = AndQuery(*args)
+            query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
 
-        items = []
         # Check each mission to get only alerts
-        crm = get_crm(resource)
-        base_path_query = get_crm_path_query(crm)
-        results = context.root.search(AndQuery(query, base_path_query))
+        user = context.user
+        results = context.root.search(query)
+        items = []
         for doc in results.get_documents():
             mission = resource.get_resource(doc.abspath)
             # Check access FIXME should be done in catalog
@@ -662,13 +652,10 @@ class CRM_Alerts(SearchForm):
             return alert_id, False
         if column == 'icon':
             if alert_datetime.date() < date.today():
-                icon_name = ALERT_ICON_RED
+                return ALERT_ICON_RED
             elif alert_datetime < datetime.now():
-                icon_name = ALERT_ICON_ORANGE
-            else:
-                icon_name = ALERT_ICON_GREEN
-            path_to_icon = '/ui/crm/icons/16x16/' + icon_name
-            return path_to_icon
+                return ALERT_ICON_ORANGE
+            return ALERT_ICON_GREEN
         elif column == 'alert_datetime':
             alert_date = alert_datetime.date()
             accept = context.accept_language
@@ -711,11 +698,9 @@ class CRM_Alerts(SearchForm):
 
 
     def sort_and_batch(self, resource, context, results):
-        results.sort()
-
         items, past, future = [], [], []
         today = date.today()
-        for result in results:
+        for result in sorted(results):
             alert_datetime, m_nextaction, mission, comment_id = result
             alert_date = alert_datetime.date()
             if alert_date < today:
@@ -727,9 +712,7 @@ class CRM_Alerts(SearchForm):
             else:
                 # Future alerts between
                 future.append(result)
-        items.extend(future)
-        items.extend(past)
-        return items
+        return items + future + past
 
 
     def action_remove(self, resource, context, form):

@@ -8,6 +8,8 @@
       ${search_term}
       ${assigned/title}:
       ${assigned}
+      ${tags/title}:
+      ${tags}
       <!-- OK -->
       <button type="submit" class="button-search">OK</button>
     </fieldset>

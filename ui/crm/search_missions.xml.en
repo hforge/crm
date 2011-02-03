@@ -12,7 +12,7 @@
       <!-- With no alert only -->
       ${with_no_alert} With no alert only
     </stl:block>
-    Tags: ${tags}
+    ${tags/title}: ${tags}
     <!-- OK -->
     <button type="submit" class="button-search">OK</button>
   </fieldset>
