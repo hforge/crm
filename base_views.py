@@ -41,6 +41,7 @@ p_status_icons = {
 m_status_icons = {
     'opportunity': '/ui/crm/icons/16x16/status_yellow.gif',
     'project': '/ui/crm/icons/16x16/status_green.gif',
+    'finished': '/ui/crm/icons/16x16/status_blue.gif',
     'nogo': '/ui/crm/icons/16x16/status_gray.gif' }
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")

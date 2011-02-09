@@ -59,6 +59,7 @@ class MissionStatus(Enumerate):
     options = [
         {'name': 'opportunity', 'value': MSG(u"Opportunity")},
         {'name': 'project', 'value': MSG(u"Project")},
+        {'name': 'finished', 'value': MSG(u"Finished")},
         {'name': 'nogo', 'value': MSG(u"NoGo")}]
 
 
@@ -68,6 +69,7 @@ class MissionStatusShortened(Enumerate):
     options = [
         {'name': 'opportunity', 'value': MSG(u"Opp.")},
         {'name': 'project', 'value': MSG(u"Proj.")},
+        {'name': 'finished', 'value': MSG(u"Fin.")},
         {'name': 'nogo', 'value': MSG(u"NoGo")}]
 
 

@@ -12,6 +12,7 @@
       <!-- With no alert only -->
       ${with_no_alert} With no alert only
     </stl:block>
+    <br/>
     ${tags/title}: ${tags}
     <!-- OK -->
     <button type="submit" class="button-search">OK</button>
