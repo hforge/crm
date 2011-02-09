@@ -88,6 +88,7 @@ function crm_main(select_widget, first_widget_id)
 }
 
 
+/*
 $(document).ready(function() {
     $("textarea").each(function() {
         var textarea = $(this);
@@ -103,3 +104,4 @@ $(document).ready(function() {
         textarea.attr("rows", 1);
     });
 });
+*/

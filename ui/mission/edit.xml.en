@@ -198,10 +198,12 @@
     </p>
     <script language="javascript">
       $(document).ready(function() {
+        /*
         $("#edit-mission-comment legend").click(function() {
           $("#edit-mission-comment table").toggle();
         });
         $("#edit-mission-comment table").hide();
+        */
         $("#${first_widget}").focus();
       });
     </script>
