@@ -55,7 +55,6 @@ class CompanyName(Enumerate):
 
 
 class MissionStatus(Enumerate):
-
     options = [
         {'name': 'opportunity', 'value': MSG(u"Opportunity")},
         {'name': 'project', 'value': MSG(u"Project")},
@@ -65,7 +64,6 @@ class MissionStatus(Enumerate):
 
 
 class MissionStatusShortened(Enumerate):
-
     options = [
         {'name': 'opportunity', 'value': MSG(u"Opportunity")},
         {'name': 'project', 'value': MSG(u"Win")},
@@ -75,7 +73,6 @@ class MissionStatusShortened(Enumerate):
 
 
 class ContactStatus(Enumerate):
-
     options = [
         {'name': 'lead', 'value': MSG(u"Lead")},
         {'name': 'client', 'value': MSG(u"Client")},

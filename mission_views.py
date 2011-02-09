@@ -430,6 +430,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
                     attachment=attachment, crm_m_nextaction=m_nextaction,
                     alert_datetime=alert_datetime)
             resource.metadata.set_property(name, value)
+            context.database.change_resource(resource)
             return False
         return DBResource_Edit.set_value(self, resource, context, name, form)
 
