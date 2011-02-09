@@ -717,7 +717,7 @@ class Mission_EditAlerts(CRM_Alerts):
         ('alert_date', MSG(u"Date"), False),
         ('alert_time', MSG(u"Time"), False),
         ('comment', MSG(u"Comment"), False),
-        ('crm_m_nextaction', MSG(u"Next Action"), False)])
+        ('nextaction', MSG(u"Next Action"), False)])
 
 
     def get_items(self, resource, context, *args):
@@ -730,8 +730,17 @@ class Mission_EditAlerts(CRM_Alerts):
 
     def get_item_value(self, resource, context, item, column):
         alert_datetime, m_nextaction, mission, comment_id = item
-        if column == 'comment':
+        if column == 'alert_date':
+            alert_date = alert_datetime.date()
+            accept = context.accept_language
+            return format_date(alert_date, accept=accept)
+        elif column == 'alert_time':
+            alert_time = alert_datetime.time()
+            return Time.encode(alert_time)
+        elif column == 'comment':
             comments = mission.get_property('comment')
             return comments[comment_id]
+        elif column == 'nextaction':
+            return m_nextaction
         proxy = super(Mission_EditAlerts, self)
         return proxy.get_item_value(resource, context, item, column)
