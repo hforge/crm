@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-02-09 15:02+CET\n"
+"POT-Creation-Date: 2011-02-09 17:02+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "(No comment.)"
 msgstr "(Sans commentaire.)"
 
-#: ../mission_views.py:256
+#: ../mission_views.py:257
 msgid "-"
 msgstr "_"
 
@@ -413,15 +413,15 @@ msgctxt "legend"
 msgid "Add Comment"
 msgstr "Ajouter commentaire"
 
-#: ../mission_views.py:571
+#: ../mission_views.py:577
 msgid "Add Contacts"
 msgstr "Ajouter des contacts"
 
-#: ../mission_views.py:296
+#: ../mission_views.py:297
 msgid "Add Mission"
 msgstr "Ajouter une mission"
 
-#: ../mission_views.py:258
+#: ../mission_views.py:259
 msgid "Added"
 msgstr "Ajouté"
 
@@ -433,7 +433,7 @@ msgstr "Adresse"
 msgid "Address (next)"
 msgstr "Adresse (suite)"
 
-#: ../mission_views.py:102
+#: ../mission_views.py:103
 msgid "Alert On"
 msgstr "Alerte le"
 
@@ -441,7 +441,7 @@ msgstr "Alerte le"
 msgid "Alerts"
 msgstr "Alertes"
 
-#: ../mission_views.py:114 ../contact_views.py:306 ../crm_views.py:190
+#: ../mission_views.py:115 ../contact_views.py:306 ../crm_views.py:190
 msgid "Amount"
 msgstr "Montant"
 
@@ -449,7 +449,7 @@ msgstr "Montant"
 msgid "Are you sure you want to remove this alert?"
 msgstr "Etes-vous sûr de vouloir supprimer cette alerte ?"
 
-#: ../mission_views.py:106 ../crm_views.py:193 ../crm_views.py:214
+#: ../mission_views.py:107 ../crm_views.py:193 ../crm_views.py:214
 #: ../crm_views.py:574 ../crm_views.py:610
 msgid "Assigned To"
 msgstr ""
@@ -467,7 +467,7 @@ msgstr "Sûr:"
 msgid "At least one contact is required."
 msgstr "Au moins un contact est nécessaire."
 
-#: ../mission_views.py:100
+#: ../mission_views.py:101
 msgid "Attachment"
 msgstr "Pièce jointe"
 
@@ -476,11 +476,11 @@ msgctxt "table cell"
 msgid "Attachment:"
 msgstr "Pièce jointe:"
 
-#: ../mission_views.py:108
+#: ../mission_views.py:109
 msgid "CC"
 msgstr "CC"
 
-#: ../mission_views.py:249 ../crm_views.py:596 ../crm.py:46
+#: ../mission_views.py:250 ../crm_views.py:596 ../crm.py:46
 msgid "CRM"
 msgstr "CRM"
 
@@ -488,11 +488,11 @@ msgstr "CRM"
 msgid "CRM: Alerts (%s)"
 msgstr "CRM: Alertes (%s)"
 
-#: ../datatypes.py:81
+#: ../datatypes.py:78
 msgid "Client"
 msgstr "Client"
 
-#: ../mission_views.py:719 ../base_views.py:91 ../contact_views.py:137
+#: ../mission_views.py:725 ../base_views.py:91 ../contact_views.py:137
 msgid "Comment"
 msgstr "Commentaire"
 
@@ -581,15 +581,15 @@ msgstr ""
 "-- \n"
 "Vous recevez ce message car vous êtes en CC."
 
-#: ../mission_views.py:717 ../crm_views.py:569
+#: ../mission_views.py:723 ../crm_views.py:569
 msgid "Date"
 msgstr "Date"
 
-#: ../datatypes.py:82
+#: ../datatypes.py:79
 msgid "Dead"
 msgstr "Dead"
 
-#: ../mission_views.py:112 ../contact_views.py:308 ../crm_views.py:192
+#: ../mission_views.py:113 ../contact_views.py:308 ../crm_views.py:192
 msgid "Deadline"
 msgstr "Date limite"
 
@@ -601,15 +601,15 @@ msgstr "Éditer la société"
 msgid "Edit Contact"
 msgstr "Éditer le contact"
 
-#: ../mission_views.py:538
+#: ../mission_views.py:544
 msgid "Edit Contacts"
 msgstr "Éditer les contacts"
 
-#: ../mission_views.py:308
+#: ../mission_views.py:309
 msgid "Edit Mission"
 msgstr "Éditer la mission"
 
-#: ../mission_views.py:710
+#: ../mission_views.py:716
 msgid "Edit alerts"
 msgstr "Éditer les alertes"
 
@@ -634,7 +634,7 @@ msgstr "Fax"
 msgid "Fax: {phone}"
 msgstr ""
 
-#: ../datatypes.py:62 ../datatypes.py:72
+#: ../datatypes.py:61 ../datatypes.py:70
 msgid "Finished"
 msgstr "Terminé"
 
@@ -655,7 +655,7 @@ msgstr "Dernières modifications"
 msgid "Last name"
 msgstr "Nom"
 
-#: ../datatypes.py:80
+#: ../datatypes.py:77
 msgid "Lead"
 msgstr "Lead"
 
@@ -663,7 +663,7 @@ msgstr "Lead"
 msgid "Link Existing Contact"
 msgstr "Lier à un contact existant"
 
-#: ../mission_views.py:289
+#: ../mission_views.py:290
 msgid "Link Selected Contacts"
 msgstr "Lier les contacts sélectionnés"
 
@@ -705,7 +705,7 @@ msgstr "Portable"
 msgid "Mobile: {phone}"
 msgstr ""
 
-#: ../mission_views.py:97
+#: ../mission_views.py:98
 msgid "New Comment"
 msgstr "Commentaire"
 
@@ -717,7 +717,7 @@ msgstr "Nouvelle société"
 msgid "New Contact"
 msgstr "Nouveau contact"
 
-#: ../mission_views.py:459 ../mission_views.py:684 ../menus.py:187
+#: ../mission_views.py:465 ../mission_views.py:690 ../menus.py:187
 #: ../menus.py:193
 msgid "New Mission"
 msgstr "Nouvelle mission"
@@ -734,7 +734,7 @@ msgstr "Nouvelle société"
 msgid "New contact"
 msgstr "Nouveau contact"
 
-#: ../mission_views.py:99 ../mission_views.py:720 ../crm_views.py:573
+#: ../mission_views.py:100 ../mission_views.py:726 ../crm_views.py:573
 msgid "Next Action"
 msgstr "Prochaine action"
 
@@ -742,11 +742,15 @@ msgstr "Prochaine action"
 msgid "Next action"
 msgstr "Prochaine action"
 
+#: ../mission_views.py:75
+msgid "Next action is mandatory in an alert."
+msgstr "La prochaine action est obligatoire dans une alerte."
+
 #: ../crm_views.py:499
 msgid "No data to export."
 msgstr "Rien à exporter."
 
-#: ../crm_views.py:308 ../datatypes.py:63 ../datatypes.py:73
+#: ../crm_views.py:308 ../datatypes.py:62 ../datatypes.py:71
 msgid "NoGo"
 msgstr "NoGo"
 
@@ -762,7 +766,7 @@ msgstr "Une ou plusieurs alertes n'ont pas pu être supprimées."
 msgid "Opp."
 msgstr "Opp."
 
-#: ../datatypes.py:60 ../datatypes.py:70
+#: ../datatypes.py:59 ../datatypes.py:68
 msgid "Opportunity"
 msgstr "Opportunité"
 
@@ -771,7 +775,7 @@ msgstr "Opportunité"
 msgid "Phone"
 msgstr "Téléphone"
 
-#: ../mission_views.py:692
+#: ../mission_views.py:698
 msgid "Please select a valid contact before creating a mission."
 msgstr "Veuillez sélectionner un contact valide avant de créer une mission."
 
@@ -788,7 +792,7 @@ msgstr "Position"
 msgid "Prob."
 msgstr "Prob."
 
-#: ../mission_views.py:115
+#: ../mission_views.py:116
 msgid "Probability"
 msgstr "Probabilité"
 
@@ -801,7 +805,7 @@ msgstr "Probable :"
 msgid "Proj."
 msgstr "Proj."
 
-#: ../datatypes.py:61
+#: ../datatypes.py:60
 msgid "Project"
 msgstr "Projet gagné"
 
@@ -817,7 +821,7 @@ msgstr "Contacts liés"
 msgid "Related Missions"
 msgstr "Missions liées"
 
-#: ../mission_views.py:542
+#: ../mission_views.py:548
 msgid "Remove Contact"
 msgstr "Supprimer le contact"
 
@@ -830,11 +834,11 @@ msgctxt "title attribute"
 msgid "Remove alert"
 msgstr "Supprimer l'alerte"
 
-#: ../mission_views.py:105
+#: ../mission_views.py:106
 msgid "Remove previous alerts"
 msgstr "Supprimer les alertes précédentes"
 
-#: ../mission_views.py:257
+#: ../mission_views.py:258
 msgid "Removed"
 msgstr "Supprimé"
 
@@ -854,7 +858,7 @@ msgstr ""
 msgid "Sociétés"
 msgstr ""
 
-#: ../mission_views.py:110 ../contact_views.py:81 ../contact_views.py:407
+#: ../mission_views.py:111 ../contact_views.py:81 ../contact_views.py:407
 #: ../crm_views.py:222 ../crm_views.py:327
 msgid "Status"
 msgstr "Statut"
@@ -867,7 +871,7 @@ msgstr ""
 msgid "Text"
 msgstr "Texte"
 
-#: ../mission_views.py:718
+#: ../mission_views.py:724
 msgid "Time"
 msgstr "Heure"
 
@@ -888,7 +892,7 @@ msgstr "Ville"
 msgid "Update Contact"
 msgstr "Mettre à jour le contact"
 
-#: ../mission_views.py:303
+#: ../mission_views.py:304
 msgid "Update Mission"
 msgstr "Mettre à jour la mission"
 
@@ -900,7 +904,7 @@ msgstr "Voir la société"
 msgid "View Contact"
 msgstr "Voir le contact"
 
-#: ../mission_views.py:651
+#: ../mission_views.py:657
 msgid "View Mission"
 msgstr "Voir la mission"
 
@@ -908,11 +912,11 @@ msgstr "Voir la mission"
 msgid "Website"
 msgstr "Site web"
 
-#: ../mission_views.py:257
+#: ../mission_views.py:258
 msgid "What"
 msgstr "Quoi"
 
-#: ../datatypes.py:71
+#: ../datatypes.py:69
 msgid "Win"
 msgstr "Gagné"
 
@@ -924,7 +928,7 @@ msgstr "Sans alerte uniquement"
 msgid "Zip Code"
 msgstr "Code postal"
 
-#: ../mission_views.py:252
+#: ../mission_views.py:253
 msgid "[%s #%s] %s"
 msgstr "[%s #%s] %s"
 
@@ -932,7 +936,7 @@ msgstr "[%s #%s] %s"
 msgid "_"
 msgstr "_"
 
-#: ../mission_views.py:103
+#: ../mission_views.py:104
 msgid "at"
 msgstr "à"
 
@@ -1003,6 +1007,9 @@ msgstr "{what:>19}|{removed:<28}|{added:<27}"
 
 #~ msgid "Add contact"
 #~ msgstr "Ajouter un contact"
+
+#~ msgid "Alerts require next action."
+#~ msgstr "La prochaine action est obligatoire pour une alerte."
 
 #~ msgid "Description"
 #~ msgstr "Description"

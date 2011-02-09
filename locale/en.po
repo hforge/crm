@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-02-09 15:02+CET\n"
+"POT-Creation-Date: 2011-02-09 17:02+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "(No comment.)"
 msgstr ""
 
-#: ../mission_views.py:256
+#: ../mission_views.py:257
 msgid "-"
 msgstr ""
 
@@ -396,15 +396,15 @@ msgctxt "legend"
 msgid "Add Comment"
 msgstr ""
 
-#: ../mission_views.py:571
+#: ../mission_views.py:577
 msgid "Add Contacts"
 msgstr ""
 
-#: ../mission_views.py:296
+#: ../mission_views.py:297
 msgid "Add Mission"
 msgstr ""
 
-#: ../mission_views.py:258
+#: ../mission_views.py:259
 msgid "Added"
 msgstr ""
 
@@ -416,7 +416,7 @@ msgstr ""
 msgid "Address (next)"
 msgstr ""
 
-#: ../mission_views.py:102
+#: ../mission_views.py:103
 msgid "Alert On"
 msgstr ""
 
@@ -424,7 +424,7 @@ msgstr ""
 msgid "Alerts"
 msgstr ""
 
-#: ../mission_views.py:114 ../contact_views.py:306 ../crm_views.py:190
+#: ../mission_views.py:115 ../contact_views.py:306 ../crm_views.py:190
 msgid "Amount"
 msgstr ""
 
@@ -432,7 +432,7 @@ msgstr ""
 msgid "Are you sure you want to remove this alert?"
 msgstr ""
 
-#: ../mission_views.py:106 ../crm_views.py:193 ../crm_views.py:214
+#: ../mission_views.py:107 ../crm_views.py:193 ../crm_views.py:214
 #: ../crm_views.py:574 ../crm_views.py:610
 msgid "Assigned To"
 msgstr ""
@@ -450,7 +450,7 @@ msgstr ""
 msgid "At least one contact is required."
 msgstr ""
 
-#: ../mission_views.py:100
+#: ../mission_views.py:101
 msgid "Attachment"
 msgstr ""
 
@@ -459,11 +459,11 @@ msgctxt "table cell"
 msgid "Attachment:"
 msgstr ""
 
-#: ../mission_views.py:108
+#: ../mission_views.py:109
 msgid "CC"
 msgstr ""
 
-#: ../mission_views.py:249 ../crm_views.py:596 ../crm.py:46
+#: ../mission_views.py:250 ../crm_views.py:596 ../crm.py:46
 msgid "CRM"
 msgstr ""
 
@@ -471,11 +471,11 @@ msgstr ""
 msgid "CRM: Alerts (%s)"
 msgstr ""
 
-#: ../datatypes.py:81
+#: ../datatypes.py:78
 msgid "Client"
 msgstr ""
 
-#: ../mission_views.py:719 ../base_views.py:91 ../contact_views.py:137
+#: ../mission_views.py:725 ../base_views.py:91 ../contact_views.py:137
 msgid "Comment"
 msgstr ""
 
@@ -551,15 +551,15 @@ msgid ""
 "You are receiving this e-mail because you are in CC."
 msgstr ""
 
-#: ../mission_views.py:717 ../crm_views.py:569
+#: ../mission_views.py:723 ../crm_views.py:569
 msgid "Date"
 msgstr ""
 
-#: ../datatypes.py:82
+#: ../datatypes.py:79
 msgid "Dead"
 msgstr ""
 
-#: ../mission_views.py:112 ../contact_views.py:308 ../crm_views.py:192
+#: ../mission_views.py:113 ../contact_views.py:308 ../crm_views.py:192
 msgid "Deadline"
 msgstr ""
 
@@ -571,15 +571,15 @@ msgstr ""
 msgid "Edit Contact"
 msgstr ""
 
-#: ../mission_views.py:538
+#: ../mission_views.py:544
 msgid "Edit Contacts"
 msgstr ""
 
-#: ../mission_views.py:308
+#: ../mission_views.py:309
 msgid "Edit Mission"
 msgstr ""
 
-#: ../mission_views.py:710
+#: ../mission_views.py:716
 msgid "Edit alerts"
 msgstr ""
 
@@ -604,7 +604,7 @@ msgstr ""
 msgid "Fax: {phone}"
 msgstr ""
 
-#: ../datatypes.py:62 ../datatypes.py:72
+#: ../datatypes.py:61 ../datatypes.py:70
 msgid "Finished"
 msgstr ""
 
@@ -625,7 +625,7 @@ msgstr ""
 msgid "Last name"
 msgstr ""
 
-#: ../datatypes.py:80
+#: ../datatypes.py:77
 msgid "Lead"
 msgstr ""
 
@@ -633,7 +633,7 @@ msgstr ""
 msgid "Link Existing Contact"
 msgstr ""
 
-#: ../mission_views.py:289
+#: ../mission_views.py:290
 msgid "Link Selected Contacts"
 msgstr ""
 
@@ -675,7 +675,7 @@ msgstr ""
 msgid "Mobile: {phone}"
 msgstr ""
 
-#: ../mission_views.py:97
+#: ../mission_views.py:98
 msgid "New Comment"
 msgstr ""
 
@@ -687,7 +687,7 @@ msgstr ""
 msgid "New Contact"
 msgstr ""
 
-#: ../mission_views.py:459 ../mission_views.py:684 ../menus.py:187
+#: ../mission_views.py:465 ../mission_views.py:690 ../menus.py:187
 #: ../menus.py:193
 msgid "New Mission"
 msgstr ""
@@ -704,7 +704,7 @@ msgstr ""
 msgid "New contact"
 msgstr ""
 
-#: ../mission_views.py:99 ../mission_views.py:720 ../crm_views.py:573
+#: ../mission_views.py:100 ../mission_views.py:726 ../crm_views.py:573
 msgid "Next Action"
 msgstr ""
 
@@ -712,11 +712,15 @@ msgstr ""
 msgid "Next action"
 msgstr ""
 
+#: ../mission_views.py:75
+msgid "Next action is mandatory in an alert."
+msgstr ""
+
 #: ../crm_views.py:499
 msgid "No data to export."
 msgstr ""
 
-#: ../crm_views.py:308 ../datatypes.py:63 ../datatypes.py:73
+#: ../crm_views.py:308 ../datatypes.py:62 ../datatypes.py:71
 msgid "NoGo"
 msgstr ""
 
@@ -732,7 +736,7 @@ msgstr ""
 msgid "Opp."
 msgstr ""
 
-#: ../datatypes.py:60 ../datatypes.py:70
+#: ../datatypes.py:59 ../datatypes.py:68
 msgid "Opportunity"
 msgstr ""
 
@@ -741,7 +745,7 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-#: ../mission_views.py:692
+#: ../mission_views.py:698
 msgid "Please select a valid contact before creating a mission."
 msgstr ""
 
@@ -758,7 +762,7 @@ msgstr ""
 msgid "Prob."
 msgstr ""
 
-#: ../mission_views.py:115
+#: ../mission_views.py:116
 msgid "Probability"
 msgstr ""
 
@@ -771,7 +775,7 @@ msgstr ""
 msgid "Proj."
 msgstr ""
 
-#: ../datatypes.py:61
+#: ../datatypes.py:60
 msgid "Project"
 msgstr ""
 
@@ -787,7 +791,7 @@ msgstr ""
 msgid "Related Missions"
 msgstr ""
 
-#: ../mission_views.py:542
+#: ../mission_views.py:548
 msgid "Remove Contact"
 msgstr ""
 
@@ -800,11 +804,11 @@ msgctxt "title attribute"
 msgid "Remove alert"
 msgstr ""
 
-#: ../mission_views.py:105
+#: ../mission_views.py:106
 msgid "Remove previous alerts"
 msgstr ""
 
-#: ../mission_views.py:257
+#: ../mission_views.py:258
 msgid "Removed"
 msgstr ""
 
@@ -824,7 +828,7 @@ msgstr ""
 msgid "Sociétés"
 msgstr ""
 
-#: ../mission_views.py:110 ../contact_views.py:81 ../contact_views.py:407
+#: ../mission_views.py:111 ../contact_views.py:81 ../contact_views.py:407
 #: ../crm_views.py:222 ../crm_views.py:327
 msgid "Status"
 msgstr ""
@@ -837,7 +841,7 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
-#: ../mission_views.py:718
+#: ../mission_views.py:724
 msgid "Time"
 msgstr ""
 
@@ -858,7 +862,7 @@ msgstr ""
 msgid "Update Contact"
 msgstr ""
 
-#: ../mission_views.py:303
+#: ../mission_views.py:304
 msgid "Update Mission"
 msgstr ""
 
@@ -870,7 +874,7 @@ msgstr ""
 msgid "View Contact"
 msgstr ""
 
-#: ../mission_views.py:651
+#: ../mission_views.py:657
 msgid "View Mission"
 msgstr ""
 
@@ -878,11 +882,11 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
-#: ../mission_views.py:257
+#: ../mission_views.py:258
 msgid "What"
 msgstr ""
 
-#: ../datatypes.py:71
+#: ../datatypes.py:69
 msgid "Win"
 msgstr ""
 
@@ -894,7 +898,7 @@ msgstr ""
 msgid "Zip Code"
 msgstr ""
 
-#: ../mission_views.py:252
+#: ../mission_views.py:253
 msgid "[%s #%s] %s"
 msgstr ""
 
@@ -902,7 +906,7 @@ msgstr ""
 msgid "_"
 msgstr ""
 
-#: ../mission_views.py:103
+#: ../mission_views.py:104
 msgid "at"
 msgstr ""
 

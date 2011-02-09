@@ -72,6 +72,7 @@ BODY = MSG(u"""DO NOT REPLY TO THIS EMAIL. To comment on this mission, please vi
 You are receiving this e-mail because you are in CC.""")
 MSG_CONTACT_ADDED = INFO(u"Contact Added.")
 ERR_CONTACT_MANDATORY = ERROR(u"At least one contact is required.")
+ERR_NEXTACTION_MANDATORY = ERROR(u"Next action is mandatory in an alert.")
 
 
 mission_schema = freeze(merge_dicts(
@@ -414,6 +415,10 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
                 alert_datetime = datetime.combine(alert_date, alert_time)
             else:
                 alert_datetime = None
+            # Next action mandatory
+            if alert_datetime is not None and m_nextaction is None:
+                context.message = ERR_NEXTACTION_MANDATORY
+                return True
             # Value
             value = form[name]
             if not value:
