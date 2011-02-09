@@ -46,7 +46,7 @@ from ikaaro.views import CompositeForm
 from itws.tags import TagsAware_Edit
 
 # Import from crm
-from base_views import monolingual_widgets, reset_comment
+from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
 from base_views import Comments_View, CRMFolder_AddForm
 from crm_views import CRM_SearchContacts, CRM_Alerts
 from datatypes import MissionStatus, ContactName
@@ -418,7 +418,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
             value = form[name]
             if not value:
                 if attachment or m_nextaction or alert_datetime:
-                    value = u"_"
+                    value = DUMMY_COMMENT
                 else:
                     return False
             # Reset alerts?

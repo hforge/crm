@@ -183,7 +183,7 @@ class CRM_SearchMissions(CRM_Search):
 
     table_columns = freeze([
         ('icon', None, False),
-        ('title', MSG(u'Title'), True),
+        ('title', MSG(u'Mission'), True),
         ('crm_m_contacts', MSG(u'Contacts'), False),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('mtime', MSG(u'Last Modified'), True),
@@ -298,7 +298,7 @@ class CRM_SearchContacts(CRM_Search):
 
     table_columns = freeze([
         ('icon', None, False),
-        ('title', MSG(u'Name'), True),
+        ('title', MSG(u'Contact'), True),
         ('crm_p_company', MSG(u'Company'), False),
         ('crm_p_email', MSG(u'Email'), False),
         ('phones', MSG(u'Phone'), False),
@@ -415,7 +415,7 @@ class CRM_SearchCompanies(CRM_Search):
 
     table_columns = [
         ('icon', None, False),
-        ('title', MSG(u'Title'), True),
+        ('title', MSG(u'Company'), True),
         ('address', MSG(u'Address'), True),
         ('phones', MSG(u'Phone'), True),
         ('website', MSG(u'Website'), True),

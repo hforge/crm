@@ -44,6 +44,7 @@ m_status_icons = {
     'nogo': '/ui/crm/icons/16x16/status_gray.gif' }
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
+DUMMY_COMMENT = u"_"
 
 
 def format_amount(str_value, accept):
@@ -119,6 +120,13 @@ class Comments_View(STLView):
             if alert_datetime:
                 alert_datetime = format_datetime(alert_datetime,
                         accept=accept)
+            value = comment.value
+            if value == DUMMY_COMMENT:
+                # Only parameters displayed above the comment
+                if not alert_datetime and not attachment:
+                    continue
+                else:
+                    value = MSG(u"(No comment.)").gettext()
             # TODO Add diff (useful at creation without any comment)
             ns_comment = {
                 'id': i,
@@ -126,7 +134,7 @@ class Comments_View(STLView):
                 'datetime': format_datetime(comment_datetime, accept=accept),
                 'attachment': attachment,
                 'alert_datetime': alert_datetime,
-                'comment': indent(comment.value)}
+                'comment': indent(value)}
             ns_comments.append(ns_comment)
         # Sort comments from newer to older
         ns_comments = list(reversed(ns_comments))
