@@ -1,47 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stl:block xmlns="http://www.w3.org/1999/xhtml"
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
-<div id="crm-search">
-  <!-- Search -->
-  ${search}
-  <!-- Batch -->
-  ${batch}
-  <!-- Table -->
-  ${table}
-</div>
-<!-- Aggregate information -->
-<table cellpadding="0" cellspacing="0" id="crm-infos" stl:if="crm-infos">
-  <tbody>
-  <tr>
-    <td>Assured:</td>
-    <td class="amount">${assured}</td>
-  </tr>
-  <tr>
-    <td>Probable:</td>
-    <td class="amount">${probable}</td>
-  </tr>
-  <tr>
-    <td>Total:</td>
-    <td class="amount total">${total}</td>
-  </tr>
-  </tbody>
-</table>
-  <form action=";export_to_csv" method="GET" id="form-table" stl:if="export-csv">
-    <fieldset>
-      <legend>Export <em>all data</em> to CSV</legend>
-      Please select encoding:<br/><br/>
-      <input type="radio" name="editor" id="editor-oo" value="oo" checked="on" />
-      <label for="editor-oo">
-        For OpenOffice (Encoding: UTF-8, Separator: ",")
-      </label>
-      <br/>
-      <input type="radio" name="editor" id="editor-excel" value="excel" />
-      <label for="editor-excel">
-        For Excel (Encoding: CP1252, Separator: ";")
-      </label>
-      <br/><br/>
-      <button type="submit" name="action" value="export_to_csv"
-        class="button-ok" >Export</button>
-    </fieldset>
-  </form>
+  <div id="crm-search">
+    <!-- Search -->
+    ${search}
+    <!-- Batch -->
+    ${batch}
+    <!-- Table -->
+    ${table}
+  </div>
+  <!-- Aggregate information -->
+  <table cellpadding="0" cellspacing="0" id="crm-infos" stl:if="crm-infos">
+    <tbody>
+    <tr>
+      <td>Assured:</td>
+      <td class="amount">${assured}</td>
+    </tr>
+    <tr>
+      <td>Probable:</td>
+      <td class="amount">${probable}</td>
+    </tr>
+    <tr>
+      <td>Total:</td>
+      <td class="amount total">${total}</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div id="crm-csv">
+    <!-- CSV -->
+    ${csv}
+  </div>
 </stl:block>

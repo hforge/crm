@@ -26,7 +26,8 @@ from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.web import BaseView, STLView, ERROR, get_context
+from itools.stl import stl
+from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
@@ -42,6 +43,7 @@ from itws.tags import TagsList
 from base_views import m_status_icons, p_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
+from datatypes import CSVEditor
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
@@ -51,6 +53,8 @@ ALERT_ICON_ORANGE = '/ui/crm/icons/16x16/bell_error.png'
 ALERT_ICON_GREEN = '/ui/crm/icons/16x16/bell_go.png'
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
+
+ERR_NO_DATA = ERROR(u"No data to export.")
 
 
 def two_lines(one, two):
@@ -101,10 +105,15 @@ class CRM_Search(SearchForm):
     query_schema = freeze(merge_dicts(
         SearchForm.query_schema,
         tags=TagsList))
+    schema = freeze({
+        'editor': CSVEditor})
 
     search_template = '/ui/crm/crm/search.xml'
-    search_fields = [
-        ('text', MSG(u'Text'))]
+    search_fields = freeze([
+        ('text', MSG(u'Text'))])
+
+    csv_template = '/ui/crm/crm/csv.xml'
+    csv_columns = freeze([])
 
 
     def _get_query(self, resource, context, *args):
@@ -132,6 +141,21 @@ class CRM_Search(SearchForm):
         # Tags
         namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
                 datatype=TagsList, value=context.query['tags'])
+        return namespace
+
+
+    def get_namespace(self, resource, context):
+        proxy = super(CRM_Search, self)
+        namespace = proxy.get_namespace(resource, context)
+
+        # CSV
+        if self.csv_columns:
+            csv_template = resource.get_resource(self.csv_template)
+            csv_namespace = self.get_csv_namespace(resource, context)
+            namespace['csv'] = stl(csv_template, csv_namespace)
+        else:
+            namespace['csv'] = None
+
         return namespace
 
 
@@ -165,8 +189,70 @@ class CRM_Search(SearchForm):
         reverse = context.query['reverse']
 
         items = results.get_documents(sort_by=sort_by, reverse=reverse,
-                                      start=start, size=size)
+                start=start, size=size)
         return [(x, resource.get_resource(x.abspath)) for x in items]
+
+
+    def get_csv_columns(self, resource, context):
+        if self.csv_columns:
+            return self.csv_columns
+        table_columns = self.get_table_columns(resource, context)
+        return [name for name, title in table_columns]
+
+
+    def get_table_titles(self, resource, context):
+        table_columns = self.get_table_columns(resource, context)
+        titles = {}
+        for name, title in table_columns:
+            titles[name] = title.gettext()
+        return titles
+
+
+    def get_csv_namespace(self, resource, context):
+        namespace = {}
+        namespace['editor'] = SelectWidget('editor', value='excel',
+                datatype=CSVEditor, has_empty_option=False)
+        return namespace
+
+
+    def action_csv(self, resource, context, form):
+        context.query['batch_size'] = 0
+        encoding, separator = CSVEditor.get_parameters(form['editor'])
+
+        results = self.get_items(resource, context)
+        items = self.sort_and_batch(resource, context, results)
+        if not items:
+            context.message = ERR_NO_DATA
+            return
+
+        # Create the CSV
+        csv = CSVFile()
+
+        # Add the header
+        csv_columns = self.get_csv_columns(resource, context)
+        table_titles = self.get_table_titles(resource, context)
+        csv.add_row([table_titles.get(name, name).encode(encoding)
+            for name in csv_columns])
+
+        # Fill the CSV
+        for item in items:
+            row = []
+            for name in csv_columns:
+                value = self.get_item_value(resource, context, item, name)
+                if type(value) is str:
+                    value = value.decode('utf_8')
+                if type(value) is unicode:
+                    value = value.encode(encoding)
+                else:
+                    value = str(value)
+                row.append(value)
+            csv.add_row(row)
+
+        # Set response type
+        context.set_content_type('text/comma-separated-values')
+        context.set_content_disposition('attachment; filename="export.csv"')
+
+        return csv.to_str(separator=separator)
 
 
 
@@ -299,8 +385,8 @@ class CRM_SearchContacts(CRM_Search):
     table_columns = freeze([
         ('icon', None, False),
         ('title', MSG(u'Contact'), True),
-        ('crm_p_company', MSG(u'Company'), False),
-        ('crm_p_email', MSG(u'Email'), False),
+        ('company', MSG(u'Company'), False),
+        ('email', MSG(u'Email'), False),
         ('phones', MSG(u'Phone'), False),
         ('crm_p_position', MSG(u'Position'), False),
         ('crm_p_opportunity', MSG(u'Opp.'), True),
@@ -309,6 +395,11 @@ class CRM_SearchContacts(CRM_Search):
         ('crm_p_assured', MSG(u'Assured'), True),
         ('crm_p_probable', MSG(u'In pipe'), True),
         ('mtime', MSG(u'Last Modified'), True)])
+
+    csv_columns = freeze([
+        'lastname', 'firstname', 'company', 'contact_status', 'email',
+        'mission_title', 'amount', 'probability', 'mission status',
+        'deadline'])
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
@@ -351,7 +442,7 @@ class CRM_SearchContacts(CRM_Search):
             value = get_name(item_brain)
             href = '%s/' % context.get_link(item_resource)
             return value, href
-        elif column == 'crm_p_company':
+        elif column == 'company':
             p_company = item_brain.crm_p_company
             if not p_company:
                 return u''
@@ -360,7 +451,7 @@ class CRM_SearchContacts(CRM_Search):
             href = context.get_link(company)
             title = company.get_title()
             return title, href
-        elif column == 'crm_p_email':
+        elif column == 'email':
             value = item_brain.crm_p_email
             href = 'mailto:%s' % value
             return value, href
@@ -374,8 +465,8 @@ class CRM_SearchContacts(CRM_Search):
             value = item_brain.crm_p_probable
             accept = context.accept_language
             return format_amount(value, accept)
-        return super(CRM_SearchContacts, self).get_item_value(resource,
-                context, item, column)
+        proxy = super(CRM_SearchContacts, self)
+        return proxy.get_item_value(resource, context, item, column)
 
 
     def sort_and_batch(self, resource, context, results):
@@ -384,8 +475,8 @@ class CRM_SearchContacts(CRM_Search):
             self.assured += Decimal.decode(brain.crm_p_assured)
             self.probable += Decimal.decode(brain.crm_p_probable)
 
-        return super(CRM_SearchContacts, self).sort_and_batch(resource,
-                context, results)
+        proxy = super(CRM_SearchContacts, self)
+        return proxy.sort_and_batch(resource, context, results)
 
 
     def get_namespace(self, resource, context):
@@ -393,7 +484,6 @@ class CRM_SearchContacts(CRM_Search):
         self.probable = decimal('0.0')
         proxy = super(CRM_SearchContacts, self)
         namespace = proxy.get_namespace(resource, context)
-
         # Add infos about assured and probable amount
         # TODO Filter by year or semester
         total = self.assured + self.probable
@@ -403,7 +493,7 @@ class CRM_SearchContacts(CRM_Search):
         namespace['probable'] = format_amount(self.probable, accept)
         namespace['total'] = format_amount(total, accept)
         namespace['crm-infos'] = True
-        namespace['export-csv'] = True
+
         return namespace
 
 
@@ -446,104 +536,6 @@ class CRM_SearchCompanies(CRM_Search):
                 return None
             return value, value
         return proxy.get_item_value(resource, context, item, column)
-
-
-
-class CRM_ExportToCSV(BaseView):
-
-    access = 'is_allowed_to_edit'
-    title = MSG(u'Export to CSV')
-    query_schema = freeze({
-        'editor': String(default='excel')})
-
-
-    def get_contact_infos(self, resource, contact):
-        infos = []
-        get_property = contact.get_property
-        # Contact
-        infos.append(get_property('crm_p_lastname'))
-        infos.append(get_property('crm_p_firstname') or u"")
-        p_company = get_property('crm_p_company')
-        if p_company:
-            company = resource.get_resource('companies/%s' % p_company)
-            infos.append(company.get_property('title'))
-        else:
-            infos.append(u"")
-        infos.append(get_property('crm_p_status'))
-        infos.append(get_property('crm_p_email'))
-        return infos
-
-
-    def get_mission_infos(self, resource, mission):
-        contact = mission.get_property('crm_m_contact')[0]
-        contact = resource.get_resource('contacts/%s' % contact)
-        infos = self.get_contact_infos(resource, contact)
-        # Mission
-        l = ['title', 'crm_m_amount', 'crm_m_probability', 'crm_m_status',
-                'crm_m_deadline']
-        for property in l:
-            property = mission.get_property(property)
-            infos.append(property or u'')
-        else:
-            infos.append(u'')
-        return infos
-
-
-    def GET(self, resource, context):
-        query = PhraseQuery('format', 'mission')
-        crm = get_crm(resource)
-        base_path_query = get_crm_path_query(crm)
-        results = context.root.search(AndQuery(query, base_path_query))
-        missions = results.get_documents()
-        if len(missions) == 0:
-            context.message = ERROR(u"No data to export.")
-            return
-
-        # Get CSV encoding and separator (OpenOffice or Excel)
-        editor = context.query['editor']
-        if editor == 'oo':
-            separator = ','
-            encoding = 'utf-8'
-        else:
-            separator = ';'
-            encoding = 'cp1252'
-
-        # Create the CSV
-        csv = CSVFile()
-        # Add the header
-        csv.add_row([
-            'lastname', 'firstname', 'company', 'contact status', 'email',
-            'mission title', 'amount', 'probability', 'mission status',
-            'deadline'])
-        missions = [resource.get_resource(m.abspath) for m in missions]
-        # Contacts without mission
-        contacts_names = set(
-                m.get_property('crm_m_contact')[0] for m in missions)
-        query = PhraseQuery('format', 'contact')
-        results = context.root.search(AndQuery(query, base_path_query))
-        contacts = results.get_documents()
-        contacts = [p for p in contacts if p.name not in contacts_names]
-
-        infos = [self.get_mission_infos(resource, m) for m in missions]
-        infos.extend(self.get_contact_infos(resource,
-                resource.get_resource(p.abspath))
-            for p in contacts)
-
-        # Fill the CSV
-        for info in infos:
-            row = []
-            for value in info:
-                if isinstance(value, unicode):
-                    value = value.encode(encoding)
-                else:
-                    value = str(value)
-                row.append(value)
-            csv.add_row(row)
-
-        # Set response type
-        context.set_content_type('text/comma-separated-values')
-        context.set_content_disposition('attachment; filename="export.csv"')
-        return csv.to_str(separator=separator)
 
 
 

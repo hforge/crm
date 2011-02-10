@@ -31,7 +31,7 @@ from ikaaro.skins import register_skin
 from company import Companies
 from contact import Contacts
 from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_SearchMissions
-from crm_views import CRM_SearchCompanies, CRM_ExportToCSV, CRM_Test
+from crm_views import CRM_SearchCompanies, CRM_Test
 from mission import Missions
 
 
@@ -60,7 +60,6 @@ class CRM(Folder):
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
     preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
     backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
-    export_to_csv = CRM_ExportToCSV()
     goto_contacts = GoToSpecificDocument(specific_document='contacts',
         title=MSG(u'New contact'), access='is_allowed_to_edit')
     goto_companies = GoToSpecificDocument(specific_document='companies',

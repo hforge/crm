@@ -97,3 +97,23 @@ class ContactName(Enumerate):
 
         return options
 
+
+
+class CSVEditor(Enumerate):
+    options = [
+        {'name': 'oo', 'value': MSG(u"OpenOffice.org / LibreOffice"),
+            'parameters': ('UTF-8', ','),
+        },
+        {'name': 'excel', 'value': MSG(u"MS Excel"),
+            'parameters': ('CP1252', ';'),
+        }]
+
+
+    def get_parameters(cls, name):
+        """Returns the value matching the given name, or the default value.
+        """
+        for option in cls.options:
+            if option['name'] == name:
+                return option['parameters']
+
+        raise ValueError, name
