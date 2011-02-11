@@ -67,9 +67,9 @@ contact_schema = freeze(merge_dicts(
 contact_widgets = freeze([
     timestamp_widget,
     SelectCompanyWidget('crm_p_company', title=MSG(u'Company')),
-    TextWidget('crm_p_lastname', title=MSG(u'Last name'), default='',
+    TextWidget('crm_p_lastname', title=MSG(u'Last Name'), default='',
         size=30),
-    TextWidget('crm_p_firstname', title=MSG(u'First name'), default='',
+    TextWidget('crm_p_firstname', title=MSG(u'First Name'), default='',
         size=30),
     TextWidget('crm_p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('crm_p_mobile', title=MSG(u'Mobile'), default='', size=15),

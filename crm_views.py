@@ -22,7 +22,7 @@ from decimal import Decimal as decimal
 from itools.core import merge_dicts, freeze
 from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String, Integer
+from itools.datatypes import Boolean, Decimal, String, Integer, Enumerate
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
@@ -33,6 +33,7 @@ from itools.web import STLView, ERROR, get_context
 from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
 from ikaaro.buttons import RemoveButton
 from ikaaro.cc import UsersList
+from ikaaro.registry import get_resource_class
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
@@ -114,6 +115,7 @@ class CRM_Search(SearchForm):
 
     csv_template = '/ui/crm/crm/csv.xml'
     csv_columns = freeze([])
+    csv_filename = None
 
 
     def _get_query(self, resource, context, *args):
@@ -193,18 +195,15 @@ class CRM_Search(SearchForm):
         return [(x, resource.get_resource(x.abspath)) for x in items]
 
 
-    def get_csv_columns(self, resource, context):
-        if self.csv_columns:
-            return self.csv_columns
-        table_columns = self.get_table_columns(resource, context)
-        return [name for name, title in table_columns]
-
-
     def get_table_titles(self, resource, context):
         table_columns = self.get_table_columns(resource, context)
         titles = {}
-        for name, title in table_columns:
-            titles[name] = title.gettext()
+        for name, title, sortable in table_columns:
+            if title is None:
+                title = name
+            else:
+                title = title.gettext()
+            titles[name] = title
         return titles
 
 
@@ -216,41 +215,56 @@ class CRM_Search(SearchForm):
 
 
     def action_csv(self, resource, context, form):
-        context.query['batch_size'] = 0
         encoding, separator = CSVEditor.get_parameters(form['editor'])
 
         results = self.get_items(resource, context)
-        items = self.sort_and_batch(resource, context, results)
-        if not items:
+        if not len(results):
             context.message = ERR_NO_DATA
             return
+        items = results.get_documents(sort_by='crm_p_lastname', reverse=False,
+                start=0, size=0)
+        items = [(x, resource.get_resource(x.abspath)) for x in items]
 
         # Create the CSV
         csv = CSVFile()
 
         # Add the header
-        csv_columns = self.get_csv_columns(resource, context)
-        table_titles = self.get_table_titles(resource, context)
-        csv.add_row([table_titles.get(name, name).encode(encoding)
-            for name in csv_columns])
+        csv.add_row([title.gettext().encode(encoding)
+            for name, title in self.csv_columns])
 
         # Fill the CSV
+        resource_class = get_resource_class(self.search_format)
+        class_schema = resource_class.class_schema
+        mission_cache = {}
         for item in items:
             row = []
-            for name in csv_columns:
-                value = self.get_item_value(resource, context, item, name)
+            for name, title in self.csv_columns:
+                value = self.get_item_value(resource, context, item, name,
+                        cache=mission_cache)
+                if type(value) is tuple:
+                    value, href = value
                 if type(value) is str:
                     value = value.decode('utf_8')
-                if type(value) is unicode:
-                    value = value.encode(encoding)
+                if value is None:
+                    data = ''
+                elif type(value) is unicode:
+                    data = value.encode(encoding)
                 else:
-                    value = str(value)
-                row.append(value)
+                    datatype = class_schema.get(name)
+                    print "datatype", datatype
+                    if (datatype is not None
+                            and issubclass(datatype, Enumerate)):
+                        value = datatype.get_value(value)
+                        data = value.encode(encoding)
+                    else:
+                        data = str(value)
+                row.append(data)
             csv.add_row(row)
 
         # Set response type
         context.set_content_type('text/comma-separated-values')
-        context.set_content_disposition('attachment; filename="export.csv"')
+        context.set_content_disposition('attachment; filename="{0}"'.format(
+            self.csv_filename))
 
         return csv.to_str(separator=separator)
 
@@ -397,9 +411,17 @@ class CRM_SearchContacts(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True)])
 
     csv_columns = freeze([
-        'lastname', 'firstname', 'company', 'contact_status', 'email',
-        'mission_title', 'amount', 'probability', 'mission status',
-        'deadline'])
+        ('crm_p_lastname', MSG(u"Last Name")),
+        ('crm_p_firstname', MSG(u"First Name")),
+        ('company', MSG(u"Company")),
+        ('crm_p_status', MSG(u"Status")),
+        ('crm_p_email', MSG(u"E-mail")),
+        ('crm_m_title', MSG(u"Mission")),
+        ('crm_m_amount', MSG(u"Amount")),
+        ('crm_m_probability', MSG(u"Probability")),
+        ('crm_m_status', MSG(u"Status")),
+        ('crm_m_deadline', MSG(u"Deadline"))])
+    csv_filename = 'contacts.csv'
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
@@ -433,7 +455,7 @@ class CRM_SearchContacts(CRM_Search):
         return context.root.search(query)
 
 
-    def get_item_value(self, resource, context, item, column):
+    def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
         if column == 'icon':
             # Status
@@ -465,6 +487,25 @@ class CRM_SearchContacts(CRM_Search):
             value = item_brain.crm_p_probable
             accept = context.accept_language
             return format_amount(value, accept)
+        elif column.startswith('crm_m_'):
+            # CSV export
+            contact_name = item_brain.name
+            mission_brain = cache.get(contact_name)
+            if mission_brain is None:
+                crm = get_crm(resource)
+                query = AndQuery(
+                        get_crm_path_query(crm),
+                        PhraseQuery('format', 'mission'),
+                        PhraseQuery('crm_m_contact', item_brain.name))
+                results = context.root.search(query)
+                last_missions = results.get_documents(sort_by='mtime',
+                        reverse=True, size=1)
+                if not last_missions:
+                    return None
+                mission_brain = cache[contact_name] = last_missions[0]
+            if column == 'crm_m_title':
+                column = 'title'
+            return getattr(mission_brain, column)
         proxy = super(CRM_SearchContacts, self)
         return proxy.get_item_value(resource, context, item, column)
 

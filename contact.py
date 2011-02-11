@@ -33,6 +33,7 @@ from base import CRMFolder
 from base_views import Comments_View
 from contact_views import Contact_AddForm, Contact_EditForm, Contact_View
 from contact_views import Contact_SearchMissions, Contact_ViewMissions
+from datatypes import ContactStatus
 from mission_views import Mission_EditForm
 from utils import generate_code
 
@@ -57,7 +58,8 @@ class Contact(CRMFolder):
         crm_p_email=Email(source='metadata', stored=True),
         crm_p_position=Unicode(source='metadata'),
         crm_p_description=Unicode(source='metadata'),
-        crm_p_status=String(source='metadata', indexed=True, stored=True),
+        crm_p_status=ContactStatus(source='metadata', indexed=True,
+            stored=True),
         crm_p_assured=Decimal(source='metadata', stored=True),
         crm_p_probable=Decimal(source='metadata', stored=True),
         crm_p_opportunity=Integer(source='metadata', stored=True),
