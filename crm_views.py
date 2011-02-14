@@ -100,6 +100,8 @@ class CRM_Search(CSV_Export, SearchForm):
     access = 'is_allowed_to_edit'
     query_schema = freeze(merge_dicts(
         SearchForm.query_schema,
+        sort_by=String(default='mtime'),
+        reverse=Boolean(default=True),
         tags=TagsList))
     styles = ['/ui/crm/style.css']
     template = '/ui/crm/crm/search.xml'
