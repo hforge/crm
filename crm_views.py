@@ -20,20 +20,17 @@ from decimal import Decimal as decimal
 
 # Import from itools
 from itools.core import merge_dicts, freeze
-from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String, Integer, Enumerate
+from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.stl import stl
 from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
 from ikaaro.buttons import RemoveButton
 from ikaaro.cc import UsersList
-from ikaaro.registry import get_resource_class
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
@@ -43,8 +40,8 @@ from itws.tags import TagsList
 # Import from crm
 from base_views import m_status_icons, p_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
+from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
-from datatypes import CSVEditor
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
@@ -55,7 +52,6 @@ ALERT_ICON_GREEN = '/ui/crm/icons/16x16/bell_go.png'
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
 
-ERR_NO_DATA = ERROR(u"No data to export.")
 
 
 def two_lines(one, two):
@@ -100,22 +96,16 @@ def get_name(brain):
 
 
 
-class CRM_Search(SearchForm):
+class CRM_Search(CSV_Export, SearchForm):
     access = 'is_allowed_to_edit'
-    styles = ['/ui/crm/style.css']
     query_schema = freeze(merge_dicts(
         SearchForm.query_schema,
         tags=TagsList))
-    schema = freeze({
-        'editor': CSVEditor})
+    styles = ['/ui/crm/style.css']
+    template = '/ui/crm/crm/search.xml'
 
-    search_template = '/ui/crm/crm/search.xml'
     search_fields = freeze([
         ('text', MSG(u'Text'))])
-
-    csv_template = '/ui/crm/crm/csv.xml'
-    csv_columns = freeze([])
-    csv_filename = None
 
 
     def _get_query(self, resource, context, *args):
@@ -147,18 +137,9 @@ class CRM_Search(SearchForm):
 
 
     def get_namespace(self, resource, context):
-        proxy = super(CRM_Search, self)
-        namespace = proxy.get_namespace(resource, context)
-
-        # CSV
-        if self.csv_columns:
-            csv_template = resource.get_resource(self.csv_template)
-            csv_namespace = self.get_csv_namespace(resource, context)
-            namespace['csv'] = stl(csv_template, csv_namespace)
-        else:
-            namespace['csv'] = None
-
-        return namespace
+        return merge_dicts(
+            SearchForm.get_namespace(self, resource, context),
+            CSV_Export.get_namespace(self, resource, context))
 
 
     def get_items(self, resource, context, *args):
@@ -166,7 +147,7 @@ class CRM_Search(SearchForm):
         return context.root.search(query)
 
 
-    def get_item_value(self, resource, context, item, column):
+    def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
         if column == 'checkbox':
             return item_brain.name, False
@@ -207,68 +188,6 @@ class CRM_Search(SearchForm):
         return titles
 
 
-    def get_csv_namespace(self, resource, context):
-        namespace = {}
-        namespace['editor'] = SelectWidget('editor', value='excel',
-                datatype=CSVEditor, has_empty_option=False)
-        return namespace
-
-
-    def action_csv(self, resource, context, form):
-        encoding, separator = CSVEditor.get_parameters(form['editor'])
-
-        results = self.get_items(resource, context)
-        if not len(results):
-            context.message = ERR_NO_DATA
-            return
-        items = results.get_documents(sort_by='crm_p_lastname', reverse=False,
-                start=0, size=0)
-        items = [(x, resource.get_resource(x.abspath)) for x in items]
-
-        # Create the CSV
-        csv = CSVFile()
-
-        # Add the header
-        csv.add_row([title.gettext().encode(encoding)
-            for name, title in self.csv_columns])
-
-        # Fill the CSV
-        resource_class = get_resource_class(self.search_format)
-        class_schema = resource_class.class_schema
-        mission_cache = {}
-        for item in items:
-            row = []
-            for name, title in self.csv_columns:
-                value = self.get_item_value(resource, context, item, name,
-                        cache=mission_cache)
-                if type(value) is tuple:
-                    value, href = value
-                if type(value) is str:
-                    value = value.decode('utf_8')
-                if value is None:
-                    data = ''
-                elif type(value) is unicode:
-                    data = value.encode(encoding)
-                else:
-                    datatype = class_schema.get(name)
-                    print "datatype", datatype
-                    if (datatype is not None
-                            and issubclass(datatype, Enumerate)):
-                        value = datatype.get_value(value)
-                        data = value.encode(encoding)
-                    else:
-                        data = str(value)
-                row.append(data)
-            csv.add_row(row)
-
-        # Set response type
-        context.set_content_type('text/comma-separated-values')
-        context.set_content_disposition('attachment; filename="{0}"'.format(
-            self.csv_filename))
-
-        return csv.to_str(separator=separator)
-
-
 
 class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
@@ -285,12 +204,22 @@ class CRM_SearchMissions(CRM_Search):
         ('icon', None, False),
         ('title', MSG(u'Mission'), True),
         ('crm_m_contacts', MSG(u'Contacts'), False),
-        ('crm_m_nextaction', MSG(u'Next action'), True),
+        ('crm_m_nextaction', MSG(u'Next Action'), True),
         ('mtime', MSG(u'Last Modified'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
         ('crm_m_probability', MSG(u'Prob.'), False),
         ('crm_m_deadline', MSG(u'Deadline'), False),
         ('assigned', MSG(u'Assigned To'), False)])
+
+    csv_columns = freeze([
+        ('title', MSG(u"Mission")),
+        ('crm_m_contacts_csv', MSG(u"Contacts")),
+        ('crm_m_nextaction', MSG(u"Next Action")),
+        ('crm_m_amount', MSG(u"Amount")),
+        ('crm_m_probability', MSG(u"Probability")),
+        ('crm_m_deadline', MSG(u"Deadline")),
+        ('assigned', MSG(u"Assigned To"))])
+    csv_filename = 'missions.csv'
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -351,12 +280,12 @@ class CRM_SearchMissions(CRM_Search):
         return context.root.search(query)
 
 
-    def get_item_value(self, resource, context, item, column):
+    def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
         if column == 'icon':
             # Status
             return m_status_icons[item_brain.crm_m_status]
-        elif column == 'crm_m_contacts':
+        elif column in ('crm_m_contacts', 'crm_m_contacts_csv'):
             m_contact = item_brain.crm_m_contact
             query = [PhraseQuery('name', name) for name in m_contact]
             if len(query) == 1:
@@ -367,7 +296,10 @@ class CRM_SearchMissions(CRM_Search):
             query = AndQuery(get_crm_path_query(crm), query)
             query = AndQuery(PhraseQuery('format', 'contact'), query)
             results = context.root.search(query)
-            pattern = u'<a href="{link}">{lastname}<br/>{firstname}</a>'
+            if column == 'crm_m_contacts':
+                pattern = u'<a href="{link}">{lastname}<br/>{firstname}</a>'
+            else:
+                pattern = u"{lastname} {firstname}"
             names = []
             for brain in results.get_documents(sort_by='crm_p_lastname'):
                 link = context.get_link(brain)
@@ -375,14 +307,16 @@ class CRM_SearchMissions(CRM_Search):
                 firstname = brain.crm_p_firstname
                 names.append(pattern.format(link=link, lastname=lastname,
                     firstname=firstname))
-            return MSG(u"<br/>".join(names), format='html')
+            if column == 'crm_m_contacts':
+                return MSG(u"<br/>".join(names), format='html')
+            return u"\n".join(names)
         elif column == 'crm_m_nextaction':
             return item_resource.find_next_action()
         elif column == 'assigned':
             user_id = item_brain.crm_m_assigned
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
-                context, item, column)
+                context, item, column, cache={})
 
 
 
@@ -507,7 +441,7 @@ class CRM_SearchContacts(CRM_Search):
                 column = 'title'
             return getattr(mission_brain, column)
         proxy = super(CRM_SearchContacts, self)
-        return proxy.get_item_value(resource, context, item, column)
+        return proxy.get_item_value(resource, context, item, column, cache={})
 
 
     def sort_and_batch(self, resource, context, results):
@@ -542,6 +476,7 @@ class CRM_SearchContacts(CRM_Search):
 class CRM_SearchCompanies(CRM_Search):
     title = MSG(u'Companies')
 
+    search_template = '/ui/crm/crm/search_companies.xml'
     search_format = 'company'
 
     table_columns = [
@@ -553,17 +488,31 @@ class CRM_SearchCompanies(CRM_Search):
         ('crm_c_activity', MSG(u'Activity'), True),
         ('mtime', MSG(u'Last Modified'), True)]
 
+    csv_columns = freeze([
+        ('title', MSG(u"Company")),
+        ('crm_c_address_1', MSG(u"Address 1")),
+        ('crm_c_address_2', MSG(u"Address 2")),
+        ('crm_c_zipcode', MSG(u"Zip Code")),
+        ('crm_c_town', MSG(u"Town")),
+        ('crm_c_country', MSG(u"Country")),
+        ('crm_c_phone', MSG(u"Phone")),
+        ('crm_c_fax', MSG(u"Fax")),
+        ('crm_c_website', MSG(u"Website")),
+        ('crm_c_activity', MSG(u"Activity"))])
+    csv_filename = 'companies.csv'
+
     batch_msg1 = MSG(u'1 company.')
     batch_msg2 = MSG(u'{n} companies.')
 
 
-    def get_item_value(self, resource, context, item, column):
+    def get_item_value(self, resource, context, item, column, cache={}):
         proxy = super(CRM_SearchCompanies, self)
         item_brain, item_resource = item
         if column == 'icon':
             logo = item_brain.crm_c_logo
             if not logo or logo == '.':
-                return proxy.get_item_value(resource, context, item, column)
+                return proxy.get_item_value(resource, context, item, column,
+                        cache={})
             return context.get_link(item_resource.get_resource(logo))
         elif column == 'address':
             return merge_columns(item_brain, 'crm_c_address_1',
@@ -576,7 +525,7 @@ class CRM_SearchCompanies(CRM_Search):
             if value == 'http://':
                 return None
             return value, value
-        return proxy.get_item_value(resource, context, item, column)
+        return proxy.get_item_value(resource, context, item, column, cache={})
 
 
 
@@ -584,8 +533,10 @@ class CRM_Alerts(CRM_Search):
     title = MSG(u'Alerts')
     template = '/ui/crm/crm/alerts.xml'
 
-    schema = freeze({
-        'ids': String(multiple=True, mandatory=True)})
+    schema = freeze(merge_dicts(
+        CRM_Search.schema,
+        # XXX Not mandatory for CSV export
+        ids=String(multiple=True, mandatory=False)))
     query_schema = freeze(merge_dicts(
         CRM_Search.query_schema,
         batch_size=Integer(default=0)))
@@ -605,6 +556,15 @@ class CRM_Alerts(CRM_Search):
         ('mission', MSG(u'Mission'), False),
         ('nextaction', MSG(u'Next Action'), False),
         ('assigned', MSG(u'Assigned To'), False)])
+
+    csv_columns = freeze([
+        ('alert_datetime_csv', MSG(u"Date")),
+        ('contact_csv', MSG(u"Contact")),
+        ('company', MSG(u"Company")),
+        ('mission', MSG(u"Mission")),
+        ('nextaction', MSG(u"Next Action")),
+        ('assigned', MSG(u"Assigned To"))])
+    csv_filename = 'alerts.csv'
 
     batch_msg1 = MSG(u'1 alert.')
     batch_msg2 = MSG(u'{n} alerts.')
@@ -677,7 +637,7 @@ class CRM_Alerts(CRM_Search):
         return items
 
 
-    def get_item_value(self, resource, context, item, column):
+    def get_item_value(self, resource, context, item, column, cache={}):
         alert_datetime, m_nextaction, mission, comment_id = item
         if column == 'checkbox':
             alert_id = '%s__%d' % (mission.name, comment_id)
@@ -696,16 +656,20 @@ class CRM_Alerts(CRM_Search):
             alert_time = alert_datetime.time()
             alert_time = Time.encode(alert_time)
             return two_lines(alert_date, alert_time)
-        elif column == 'contact':
+        elif column == 'alert_datetime_csv':
+            return alert_datetime
+        elif column in ('contact', 'contact_csv'):
             contact_id = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/' + contact_id)
             lastname = contact.get_property('crm_p_lastname').upper()
             firstname = contact.get_property('crm_p_firstname')
-            value = two_lines(lastname, firstname)
-            if mission.is_allowed_to_edit(context.user, mission):
-                href = context.get_link(contact)
-                return value, href
-            return value
+            if column == 'contact':
+                value = two_lines(lastname, firstname)
+                if mission.is_allowed_to_edit(context.user, mission):
+                    href = context.get_link(contact)
+                    return value, href
+                return value
+            return u" ".join((lastname, firstname))
         elif column == 'company':
             contact_id = mission.get_property('crm_m_contact')[0]
             contact = resource.get_resource('contacts/' + contact_id)
