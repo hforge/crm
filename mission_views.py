@@ -415,10 +415,12 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
                 alert_time = form['alert_time'] or time(9, 0)
                 alert_datetime = datetime.combine(alert_date, alert_time)
             else:
-                status = form['crm_m_status']
-                if status not in ('finished', 'nogo'):
-                    context.message = ERR_ALERT_MANDATORY
-                    return True
+                has_alert = resource.find_alert_datetime() is not None
+                if not has_alert:
+                    status = form['crm_m_status']
+                    if status not in ('finished', 'nogo'):
+                        context.message = ERR_ALERT_MANDATORY
+                        return True
                 alert_datetime = None
             # Next action mandatory
             if alert_datetime is not None and m_nextaction is None:
