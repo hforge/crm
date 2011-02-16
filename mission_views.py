@@ -501,6 +501,8 @@ class Mission_ViewContacts(CRM_SearchContacts):
     batch_msg1 = MSG(' ')
     batch_msg2 = MSG(' ')
 
+    csv_columns = None
+
     columns_to_keep = (
             'icon', 'title', 'crm_p_company', 'crm_p_email', 'phones',
             'crm_p_position')
@@ -587,6 +589,7 @@ class Mission_AddContacts(CRM_SearchContacts):
     search_template = '/ui/crm/mission/search_contacts.xml'
     table_actions = freeze([
         ButtonAddContact])
+    csv_columns = None
 
 
     def _get_default_company(self, resource, context):
@@ -722,6 +725,7 @@ class Mission_EditAlerts(CRM_Alerts):
     access = 'is_allowed_to_edit'
     title = MSG(u"Edit alerts")
     search_template = None
+    csv_columns = None
 
     # Table
     table_columns = freeze([
