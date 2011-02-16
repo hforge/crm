@@ -173,8 +173,21 @@ class CRM_Search(CSV_Export, SearchForm):
         sort_by = context.query['sort_by']
         reverse = context.query['reverse']
 
-        items = results.get_documents(sort_by=sort_by, reverse=reverse,
-                start=start, size=size)
+        if sort_by is None:
+            get_key = None
+        else:
+            get_key = getattr(self, 'get_key_sorted_by_' + sort_by, None)
+        if get_key is not None:
+            items = results.get_documents()
+            items.sort(key=get_key(), reverse=reverse)
+            if size:
+                items = items[start:start+size]
+            elif start:
+                items = items[start:]
+        else:
+            items = results.get_documents(sort_by=sort_by, reverse=reverse,
+                    start=start, size=size)
+
         return [(x, resource.get_resource(x.abspath)) for x in items]
 
 
@@ -205,17 +218,17 @@ class CRM_SearchMissions(CRM_Search):
     table_columns = freeze([
         ('icon', None, False),
         ('title', MSG(u'Mission'), True),
-        ('crm_m_contacts', MSG(u'Contacts'), False),
+        ('contacts', MSG(u'Contacts'), True),
         ('crm_m_nextaction', MSG(u'Next Action'), True),
         ('mtime', MSG(u'Last Modified'), True),
-        ('crm_m_amount', MSG(u'Amount'), False),
-        ('crm_m_probability', MSG(u'Prob.'), False),
-        ('crm_m_deadline', MSG(u'Deadline'), False),
-        ('assigned', MSG(u'Assigned To'), False)])
+        ('crm_m_amount', MSG(u'Amount'), True),
+        ('crm_m_probability', MSG(u'Prob.'), True),
+        ('crm_m_deadline', MSG(u'Deadline'), True),
+        ('assigned', MSG(u'Assigned To'), True)])
 
     csv_columns = freeze([
         ('title', MSG(u"Mission")),
-        ('crm_m_contacts_csv', MSG(u"Contacts")),
+        ('contacts_csv', MSG(u"Contacts")),
         ('crm_m_nextaction', MSG(u"Next Action")),
         ('crm_m_amount', MSG(u"Amount")),
         ('crm_m_probability', MSG(u"Probability")),
@@ -282,14 +295,47 @@ class CRM_SearchMissions(CRM_Search):
         return context.root.search(query)
 
 
+    def get_key_sorted_by_contacts(self):
+        context = get_context()
+        get_user = context.root.get_user
+        def key(item, cache={}):
+            m_contacts = tuple(item.crm_m_contact)
+            if m_contacts in cache:
+                return cache[m_contacts]
+            value = []
+            for m_contact in m_contacts:
+                user = get_user(m_contact)
+                if user is not None:
+                    get_property = user.get_property
+                    value.append((
+                        get_property('lastname').upper(),
+                        get_property('firstname').upper()))
+            cache[m_contacts] = tuple(value)
+            return value
+        return key
+
+
+    def get_key_sorted_by_assigned(self):
+        context = get_context()
+        get_user_title = context.root.get_user_title
+        def key(item, cache={}):
+            assigned = item.crm_m_assigned
+            if assigned in cache:
+                return cache[assigned]
+            value = get_user_title(assigned)
+            cache[assigned] = value
+            return value
+        return key
+
+
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
         if column == 'icon':
             # Status
             return m_status_icons[item_brain.crm_m_status]
-        elif column in ('crm_m_contacts', 'crm_m_contacts_csv'):
-            m_contact = item_brain.crm_m_contact
-            query = [PhraseQuery('name', name) for name in m_contact]
+        elif column in ('contacts', 'contacts_csv'):
+            m_contacts = item_brain.crm_m_contact
+            query = [PhraseQuery('name', name) for name in m_contacts]
             if len(query) == 1:
                 query = query[0]
             else:
@@ -298,7 +344,7 @@ class CRM_SearchMissions(CRM_Search):
             query = AndQuery(get_crm_path_query(crm), query)
             query = AndQuery(PhraseQuery('format', 'contact'), query)
             results = context.root.search(query)
-            if column == 'crm_m_contacts':
+            if column == 'contacts':
                 pattern = u'<a href="{link}">{lastname}<br/>{firstname}</a>'
             else:
                 pattern = u"{lastname} {firstname}"
@@ -309,7 +355,7 @@ class CRM_SearchMissions(CRM_Search):
                 firstname = brain.crm_p_firstname
                 names.append(pattern.format(link=link, lastname=lastname,
                     firstname=firstname))
-            if column == 'crm_m_contacts':
+            if column == 'contacts':
                 return MSG(u"<br/>".join(names), format='html')
             return u"\n".join(names)
         elif column == 'crm_m_nextaction':
