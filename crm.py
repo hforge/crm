@@ -19,7 +19,6 @@
 # Import from itools
 from itools.core import get_abspath
 from itools.gettext import MSG
-from itools.handlers import folder as FolderHandler
 
 # Import from ikaaro
 from ikaaro.folder import Folder
@@ -74,16 +73,12 @@ class CRM(Folder):
         # Companies
         self.make_resource('companies', Companies,
             title={'en': u'Companies', 'fr': u'Sociétés'})
-        handler = FolderHandler()
-        folder.set_handler('companies', handler)
         # Contacts
         self.make_resource('contacts', Contacts,
             title={'en': u'Contacts', 'fr': u'Contacts'})
-        folder.set_handler('contacts', handler)
         # Missions
         self.make_resource('missions', Missions,
             title={'en': u'Missions', 'fr': u'Missions'})
-        folder.set_handler('missions', handler)
 
 
     def update_20100920(self):
