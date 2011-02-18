@@ -68,8 +68,6 @@ class CRM(Folder):
 
     def init_resource(self, **kw):
         Folder.init_resource(self, **kw)
-        folder = self.handler
-
         # Companies
         self.make_resource('companies', Companies,
             title={'en': u'Companies', 'fr': u'Sociétés'})
