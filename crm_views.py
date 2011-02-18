@@ -309,7 +309,7 @@ class CRM_SearchMissions(CRM_Search):
             # Future
             if alert_date > today:
                 return (1, alert_datetime)
-            # Paste
+            # Past
             return (2, alert_datetime)
         return key
 
