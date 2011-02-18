@@ -15,16 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import datetime, date
+from datetime import date
 from decimal import Decimal as decimal
 
 # Import from itools
 from itools.core import merge_dicts, freeze
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String, Integer
+from itools.datatypes import Boolean, Decimal, String
 from itools.gettext import MSG
-from itools.i18n import format_datetime, format_date
-from itools.ical import Time
+from itools.handlers.utils import transmap
+from itools.i18n import format_datetime
 from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
@@ -206,6 +206,10 @@ class CRM_Search(CSV_Export, SearchForm):
 
 class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
+    query_schema = freeze(merge_dicts(
+        CRM_Search.query_schema,
+        sort_by=String(default='alert'),
+        reverse=Boolean(default=False)))
 
     search_template = '/ui/crm/crm/search_missions.xml'
     search_schema = freeze(merge_dicts(
@@ -216,24 +220,27 @@ class CRM_SearchMissions(CRM_Search):
     search_format = 'mission'
 
     table_columns = freeze([
-        ('icon', None, False),
+        ('crm_m_alert_datetime', MSG(u"Alert"), True),
+        ('icon', MSG(u"State"), True),
         ('title', MSG(u'Mission'), True),
-        ('contacts', MSG(u'Contacts'), True),
         ('crm_m_nextaction', MSG(u'Next Action'), True),
-        ('mtime', MSG(u'Last Modified'), True),
-        ('crm_m_amount', MSG(u'Amount'), True),
-        ('crm_m_probability', MSG(u'Prob.'), True),
-        ('crm_m_deadline', MSG(u'Deadline'), True),
-        ('assigned', MSG(u'Assigned To'), True)])
+        ('contacts', MSG(u'Contacts'), True),
+        ('company', MSG(u'Company'), True),
+        ('assigned', MSG(u'Assigned To'), True),
+        ('mtime', MSG(u'Last Modified'), True)])
+    table_actions = freeze([
+        RemoveButton(name='remove', title=MSG(u'Remove alert'),
+            confirm=REMOVE_ALERT_MSG)])
 
     csv_columns = freeze([
-        ('title', MSG(u"Mission")),
-        ('contacts_csv', MSG(u"Contacts")),
-        ('crm_m_nextaction', MSG(u"Next Action")),
-        ('crm_m_amount', MSG(u"Amount")),
-        ('crm_m_probability', MSG(u"Probability")),
-        ('crm_m_deadline', MSG(u"Deadline")),
-        ('assigned', MSG(u"Assigned To"))])
+        ('crm_m_alert_datetime', MSG(u"Alert")),
+        ('status', MSG(u"Status")),
+        ('title', MSG(u'Mission')),
+        ('crm_m_nextaction', MSG(u'Next Action')),
+        ('contacts_csv', MSG(u'Contacts')),
+        ('company', MSG(u'Company')),
+        ('assigned', MSG(u'Assigned To')),
+        ('mtime', MSG(u'Last Modified'))])
     csv_filename = 'missions.csv'
 
     batch_msg1 = MSG(u'1 mission.')
@@ -288,24 +295,78 @@ class CRM_SearchMissions(CRM_Search):
         return context.root.search(query)
 
 
+    def get_key_sorted_by_alert(self):
+        today = date.today()
+        def key(item):
+            alert_datetime = item.crm_m_alert_datetime
+            # XXX no alert
+            if alert_datetime is None:
+                return (-1, None)
+            alert_date = alert_datetime.date()
+            # Present
+            if alert_date == today:
+                return (0, alert_datetime)
+            # Future
+            if alert_date > today:
+                return (1, alert_datetime)
+            # Paste
+            return (2, alert_datetime)
+        return key
+
+
+    def get_key_sorted_by_icon(self):
+        def key(item):
+            return item.crm_m_status
+        return key
+
+
+    def get_key_sorted_by_title(self):
+        def key(item):
+            return item.title.lower().translate(transmap)
+        return key
+
+
+    def get_key_sorted_by_nextaction(self):
+        def key(item):
+            return item.crm_m_nextaction.lower().translate(transmap)
+        return key
+
+
+    # FIXME broken somehow
     def get_key_sorted_by_contacts(self):
         context = get_context()
-        get_user = context.root.get_user
+        contacts = context.resource.get_resource('contacts')
         def key(item, cache={}):
             m_contacts = tuple(item.crm_m_contact)
-            if m_contacts in cache:
-                return cache[m_contacts]
-            value = []
-            for m_contact in m_contacts:
-                user = get_user(m_contact)
-                if user is not None:
-                    get_property = user.get_property
-                    value.append((
-                        get_property('lastname').upper(),
-                        get_property('firstname').upper()))
-            cache[m_contacts] = tuple(value)
-            return value
+            if m_contacts not in cache:
+                value = None
+                for m_contact in m_contacts:
+                    contact = contacts.get_resource(m_contact)
+                    value = contact.get_title().lower().translate(transmap)
+                    break
+                cache[m_contacts] = value
+            return cache[m_contacts]
         return key
+
+
+    def get_key_sorted_by_company(self):
+        context = get_context()
+        contacts = context.resource.get_resource('contacts')
+        companies = context.resource.get_resource('companies')
+        def key(item, cache={}):
+            m_contacts = tuple(item.crm_m_contact)
+            if m_contacts not in cache:
+                value = None
+                for m_contact in m_contacts:
+                    contact = contacts.get_resource(m_contact)
+                    p_company = contact.get_property('crm_p_company')
+                    company = companies.get_resource(p_company)
+                    value = company.get_title().lower().translate(transmap)
+                    break
+                cache[m_contacts] = value
+            return cache[m_contacts]
+        return key
+
 
 
     def get_key_sorted_by_assigned(self):
@@ -313,17 +374,20 @@ class CRM_SearchMissions(CRM_Search):
         get_user_title = context.root.get_user_title
         def key(item, cache={}):
             assigned = item.crm_m_assigned
-            if assigned in cache:
-                return cache[assigned]
-            value = get_user_title(assigned)
-            cache[assigned] = value
-            return value
+            if assigned not in cache:
+                cache[assigned] = get_user_title(assigned)
+            return cache[assigned]
         return key
 
 
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
-        if column == 'icon':
+        if column == 'crm_m_alert_datetime':
+            alert_datetime = item_brain.crm_m_alert_datetime
+            if alert_datetime:
+                return alert_datetime.date()
+            return None
+        elif column == 'icon':
             # Status
             return m_status_icons[item_brain.crm_m_status]
         elif column in ('contacts', 'contacts_csv'):
@@ -351,13 +415,45 @@ class CRM_SearchMissions(CRM_Search):
             if column == 'contacts':
                 return MSG(u"<br/>".join(names), format='html')
             return u"\n".join(names)
-        elif column == 'crm_m_nextaction':
-            return item_resource.find_next_action()
+        elif column == 'company':
+            contact_id = item_brain.crm_m_contact[0]
+            contact = resource.get_resource('contacts/' + contact_id)
+            p_company = contact.get_property('crm_p_company')
+            if not p_company:
+                return u""
+            company = resource.get_resource('companies/' + p_company)
+            title = company.get_title()
+            href = context.get_link(company)
+            return title, href
         elif column == 'assigned':
             user_id = item_brain.crm_m_assigned
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
                 context, item, column, cache={})
+
+
+    def action_remove(self, resource, context, form):
+        not_removed = []
+        for alert_id in form.get('ids', []):
+            try:
+                mission_name, comment_id = alert_id.split('__')
+                comment_id = int(comment_id)
+            except ValueError:
+                not_removed.append(alert_id)
+                continue
+            # Remove alert_datetime
+            crm = get_crm(resource)
+            mission = crm.get_resource('missions/%s' % mission_name)
+            comments = mission.metadata.get_property('comment')
+            comments[comment_id].set_parameter('alert_datetime', None)
+            mission.set_property('comment', comments)
+
+        if not_removed:
+            msg = ERROR(u'One or more alert could not have been removed.')
+        else:
+            msg = MSG_CHANGES_SAVED
+
+        context.message = msg
 
 
 
@@ -567,207 +663,6 @@ class CRM_SearchCompanies(CRM_Search):
                 return None
             return value, value
         return proxy.get_item_value(resource, context, item, column, cache={})
-
-
-
-class CRM_Alerts(CRM_Search):
-    title = MSG(u'Alerts')
-    template = '/ui/crm/crm/alerts.xml'
-
-    schema = freeze(merge_dicts(
-        CRM_Search.schema,
-        # XXX Not mandatory for CSV export
-        ids=String(multiple=True, mandatory=False)))
-    query_schema = freeze(merge_dicts(
-        CRM_Search.query_schema,
-        batch_size=Integer(default=0)))
-
-    search_template = '/ui/crm/crm/search_alerts.xml'
-    search_schema = freeze(merge_dicts(
-        CRM_Search.search_schema,
-        assigned=AssignedList))
-    search_format = 'mission'
-
-    table_columns = freeze([
-        ('checkbox', None, False),
-        ('icon', None, False),
-        ('alert_datetime', MSG(u'Date'), False),
-        ('contact', MSG(u'Contact'), False),
-        ('company', MSG(u'Company'), False),
-        ('mission', MSG(u'Mission'), False),
-        ('nextaction', MSG(u'Next Action'), False),
-        ('assigned', MSG(u'Assigned To'), False)])
-
-    csv_columns = freeze([
-        ('alert_datetime_csv', MSG(u"Date")),
-        ('contact_csv', MSG(u"Contact")),
-        ('company', MSG(u"Company")),
-        ('mission', MSG(u"Mission")),
-        ('nextaction', MSG(u"Next Action")),
-        ('assigned', MSG(u"Assigned To"))])
-    csv_filename = 'alerts.csv'
-
-    batch_msg1 = MSG(u'1 alert.')
-    batch_msg2 = MSG(u'{n} alerts.')
-
-    table_actions = freeze([
-        RemoveButton(name='remove', title=MSG(u'Remove alert'),
-            confirm=REMOVE_ALERT_MSG)])
-
-
-    def get_page_title(self, resource, context):
-        user = context.user
-        if user:
-            return u'CRM: Alerts (%s)' % user.get_title()
-        return u'CRM'
-
-
-    def get_table_columns(self, resource, context):
-        return self.table_columns
-
-
-    def get_search_namespace(self, resource, context):
-        proxy = super(CRM_Alerts, self)
-        namespace = proxy.get_search_namespace(resource, context)
-
-        # Assigned
-        datatype = self.search_schema['assigned'](resource=resource)
-        namespace['assigned'] = SelectWidget('assigned', datatype=datatype,
-                title=MSG(u"Assigned To"), value=context.query['assigned'])
-
-        return namespace
-
-
-    def get_items(self, resource, context, *args):
-        query = self._get_query(resource, context, *args)
-        # With alerts
-        query = AndQuery(query, PhraseQuery('crm_m_has_alerts', True))
-        # Assigned to
-        assigned = context.query['assigned']
-        if assigned:
-            if assigned == AssignedList.NOT_ASSIGNED:
-                assigned = ''
-            query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
-
-        # Check each mission to get only alerts
-        user = context.user
-        results = context.root.search(query)
-        items = []
-        for doc in results.get_documents():
-            mission = resource.get_resource(doc.abspath)
-            # Check access FIXME should be done in catalog
-            if not mission.is_allowed_to_view(user, mission):
-                continue
-            # Get alert
-            comments = mission.metadata.get_property('comment') or []
-            for comment_id, comment in enumerate(comments):
-                alert_datetime = comment.get_parameter('alert_datetime')
-                if not alert_datetime:
-                    continue
-                m_nextaction = comment.get_parameter('crm_m_nextaction')
-                items.append((alert_datetime, m_nextaction, mission,
-                    comment_id))
-
-        return items
-
-
-    def get_item_value(self, resource, context, item, column, cache={}):
-        alert_datetime, m_nextaction, mission, comment_id = item
-        if column == 'checkbox':
-            alert_id = '%s__%d' % (mission.name, comment_id)
-            # checkbox
-            return alert_id, False
-        if column == 'icon':
-            if alert_datetime.date() < date.today():
-                return ALERT_ICON_RED
-            elif alert_datetime < datetime.now():
-                return ALERT_ICON_ORANGE
-            return ALERT_ICON_GREEN
-        elif column == 'alert_datetime':
-            alert_date = alert_datetime.date()
-            accept = context.accept_language
-            alert_date = format_date(alert_date, accept=accept)
-            alert_time = alert_datetime.time()
-            alert_time = Time.encode(alert_time)
-            return two_lines(alert_date, alert_time)
-        elif column == 'alert_datetime_csv':
-            return alert_datetime
-        elif column in ('contact', 'contact_csv'):
-            contact_id = mission.get_property('crm_m_contact')[0]
-            contact = resource.get_resource('contacts/' + contact_id)
-            lastname = contact.get_property('crm_p_lastname').upper()
-            firstname = contact.get_property('crm_p_firstname')
-            if column == 'contact':
-                value = two_lines(lastname, firstname)
-                if mission.is_allowed_to_edit(context.user, mission):
-                    href = context.get_link(contact)
-                    return value, href
-                return value
-            return u" ".join((lastname, firstname))
-        elif column == 'company':
-            contact_id = mission.get_property('crm_m_contact')[0]
-            contact = resource.get_resource('contacts/' + contact_id)
-            company_id = contact.get_property('crm_p_company')
-            if not company_id:
-                return u""
-            company = mission.get_resource('../../companies/' + company_id)
-            title = company.get_title()
-            href = context.get_link(company)
-            return title, href
-        elif column == 'mission':
-            value = mission.get_property('title')
-            if mission.is_allowed_to_edit(context.user, mission):
-                href = context.get_link(mission)
-                return value, href
-            return value
-        elif column == 'nextaction':
-            return m_nextaction
-        elif column == 'assigned':
-            user_id = mission.get_property('crm_m_assigned')
-            return context.root.get_user_title(user_id)
-        raise ValueError, column
-
-
-    def sort_and_batch(self, resource, context, results):
-        items, past, future = [], [], []
-        today = date.today()
-        for result in sorted(results):
-            alert_datetime, m_nextaction, mission, comment_id = result
-            alert_date = alert_datetime.date()
-            if alert_date < today:
-                # Past alerts at the bottom
-                past.append(result)
-            elif alert_date == today:
-                # Today alerts at the top
-                items.append(result)
-            else:
-                # Future alerts between
-                future.append(result)
-        return items + future + past
-
-
-    def action_remove(self, resource, context, form):
-        not_removed = []
-        for alert_id in form.get('ids', []):
-            try:
-                mission_name, comment_id = alert_id.split('__')
-                comment_id = int(comment_id)
-            except ValueError:
-                not_removed.append(alert_id)
-                continue
-            # Remove alert_datetime
-            crm = get_crm(resource)
-            mission = crm.get_resource('missions/%s' % mission_name)
-            comments = mission.metadata.get_property('comment')
-            comments[comment_id].set_parameter('alert_datetime', None)
-            mission.set_property('comment', comments)
-
-        if not_removed:
-            msg = ERROR(u'One or more alert could not have been removed.')
-        else:
-            msg = MSG_CHANGES_SAVED
-
-        context.message = msg
 
 
 

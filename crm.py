@@ -29,7 +29,7 @@ from ikaaro.skins import register_skin
 # Import from crm
 from company import Companies
 from contact import Contacts
-from crm_views import CRM_Alerts, CRM_SearchContacts, CRM_SearchMissions
+from crm_views import CRM_SearchMissions, CRM_SearchContacts
 from crm_views import CRM_SearchCompanies, CRM_Test
 from mission import Missions
 
@@ -52,7 +52,6 @@ class CRM(Folder):
             'contacts', 'missions']
 
     # Views
-    alerts = CRM_Alerts()
     missions = CRM_SearchMissions()
     contacts = CRM_SearchContacts()
     companies = CRM_SearchCompanies()

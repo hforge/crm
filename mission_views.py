@@ -48,7 +48,7 @@ from itws.tags import TagsAware_Edit
 # Import from crm
 from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
 from base_views import Comments_View, CRMFolder_AddForm
-from crm_views import CRM_SearchContacts, CRM_Alerts
+from crm_views import CRM_SearchContacts, CRM_SearchMissions
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
 from utils import get_crm
@@ -721,7 +721,7 @@ class Mission_Add(Mission_View):
 
 
 
-class Mission_EditAlerts(CRM_Alerts):
+class Mission_EditAlerts(CRM_SearchMissions):
     access = 'is_allowed_to_edit'
     title = MSG(u"Edit alerts")
     search_template = None

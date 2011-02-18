@@ -67,7 +67,9 @@ class Mission(CRMFolder):
             attachment=String,
             alert_datetime=DateTime,
             crm_m_nextaction=Unicode)),
-        crm_m_has_alerts=Boolean(indexed=True)))
+        crm_m_has_alerts=Boolean(indexed=True),
+        crm_m_alert_datetime=DateTime(indexed=False, stored=True),
+        crm_m_nextaction=Unicode(indexed=False, stored=True)))
 
     # Views
     add_contacts = Mission_AddContacts()
@@ -103,16 +105,18 @@ class Mission(CRMFolder):
             title = contact.get_property('title')
             if title:
                 values.append(title)
-        alert_datetime = self.find_alert_datetime()
         # Comment
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
         # Index contact
         document['crm_m_contact'] = m_contact
-        # Index alerts
+        # Index last alert
+        alert_datetime = self.find_alert_datetime()
         document['crm_m_has_alerts'] = alert_datetime is not None
-        # Index status
-        document['crm_m_status'] = self.get_property('crm_m_status')
+        document['crm_m_alert_datetime'] = alert_datetime
+        # Index last next action
+        next_action = self.find_next_action()
+        document['crm_m_nextaction'] = next_action
         return document
 
 
