@@ -332,7 +332,6 @@ class CRM_SearchMissions(CRM_Search):
         return key
 
 
-    # FIXME broken somehow
     def get_key_sorted_by_contacts(self):
         context = get_context()
         contacts = context.resource.get_resource('contacts')
