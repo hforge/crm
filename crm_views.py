@@ -30,7 +30,6 @@ from itools.web import STLView, ERROR, get_context
 # Import from ikaaro
 from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
 from ikaaro.buttons import RemoveButton
-from ikaaro.cc import UsersList
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
@@ -42,6 +41,7 @@ from base_views import m_status_icons, p_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
+from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
@@ -210,7 +210,7 @@ class CRM_SearchMissions(CRM_Search):
     search_template = '/ui/crm/crm/search_missions.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
-        assigned=String,
+        assigned=AssignedList,
         status=MissionStatus(multiple=True),
         with_no_alert=Boolean))
     search_format = 'mission'
@@ -240,23 +240,14 @@ class CRM_SearchMissions(CRM_Search):
     batch_msg2 = MSG(u'{n} missions.')
 
 
-    def get_query_schema(self):
-        schema = super(CRM_SearchMissions, self).get_query_schema()
-        context = get_context()
-        return freeze(merge_dicts(
-            schema,
-            assigned=schema['assigned'](default=context.user.name)))
-
-
     def get_search_namespace(self, resource, context):
         proxy = super(CRM_SearchMissions, self)
         namespace = proxy.get_search_namespace(resource, context)
 
         # Assigned
-        datatype = UsersList(resource=resource)
-        namespace['assigned'] = SelectWidget(name='assigned',
-                title=MSG(u"Assigned To"), datatype=datatype,
-                value=context.query['assigned'])
+        datatype = self.search_schema['assigned'](resource=resource)
+        namespace['assigned'] = SelectWidget('assigned', datatype=datatype,
+                title=MSG(u"Assigned To"), value=context.query['assigned'])
         # Status
         default_status = ['opportunity', 'project']
         m_status = context.query['status']
@@ -279,6 +270,8 @@ class CRM_SearchMissions(CRM_Search):
         # Assigned to
         assigned = context.query['assigned']
         if assigned:
+            if assigned == AssignedList.NOT_ASSIGNED:
+                assigned = ''
             query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
         # Insert status filter
         m_status = context.query['status']
@@ -592,7 +585,7 @@ class CRM_Alerts(CRM_Search):
     search_template = '/ui/crm/crm/search_alerts.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
-        assigned=String))
+        assigned=AssignedList))
     search_format = 'mission'
 
     table_columns = freeze([
@@ -622,14 +615,6 @@ class CRM_Alerts(CRM_Search):
             confirm=REMOVE_ALERT_MSG)])
 
 
-    def get_query_schema(self):
-        schema = super(CRM_Alerts, self).get_query_schema()
-        context = get_context()
-        return freeze(merge_dicts(
-            schema,
-            assigned=schema['assigned'](default=context.user.name)))
-
-
     def get_page_title(self, resource, context):
         user = context.user
         if user:
@@ -646,10 +631,9 @@ class CRM_Alerts(CRM_Search):
         namespace = proxy.get_search_namespace(resource, context)
 
         # Assigned
-        datatype = UsersList(resource=resource)
-        namespace['assigned'] = SelectWidget(name='assigned',
-                title=MSG(u"Assigned To"), datatype=datatype,
-                value=context.query['assigned'])
+        datatype = self.search_schema['assigned'](resource=resource)
+        namespace['assigned'] = SelectWidget('assigned', datatype=datatype,
+                title=MSG(u"Assigned To"), value=context.query['assigned'])
 
         return namespace
 
@@ -661,6 +645,8 @@ class CRM_Alerts(CRM_Search):
         # Assigned to
         assigned = context.query['assigned']
         if assigned:
+            if assigned == AssignedList.NOT_ASSIGNED:
+                assigned = ''
             query = AndQuery(query, PhraseQuery('crm_m_assigned', assigned))
 
         # Check each mission to get only alerts

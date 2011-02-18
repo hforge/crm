@@ -16,11 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
+from itools.core import thingy_property
 from itools.datatypes import Enumerate
 from itools.gettext import MSG
 from itools.web import get_context
 
 # Import from ikaaro
+from ikaaro.cc import UsersList
 
 # Import from crm
 from utils import get_crm
@@ -117,3 +119,24 @@ class CSVEditor(Enumerate):
                 return option['parameters']
 
         raise ValueError, name
+
+
+
+class AssignedList(UsersList):
+    NOT_ASSIGNED = 'notassigned'
+
+    def get_default(self):
+        return get_context().user.name
+
+
+    @thingy_property
+    def resource(self):
+        return get_context().resource
+
+
+    def get_options(self):
+        options = super(AssignedList, self).get_options()
+        options.append({
+            'name': self.NOT_ASSIGNED,
+            'value': MSG(u"(Not Assigned)")})
+        return options
