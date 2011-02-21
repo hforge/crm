@@ -28,7 +28,7 @@ from itools.i18n import format_datetime
 from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
-from ikaaro.autoform import CheckboxWidget, TextWidget, SelectWidget
+from ikaaro.autoform import TextWidget, SelectWidget
 from ikaaro.buttons import RemoveButton
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
@@ -217,8 +217,7 @@ class CRM_SearchMissions(CRM_Search):
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         assigned=AssignedList,
-        status=MissionStatus(multiple=True),
-        with_no_alert=Boolean))
+        status=MissionStatus(multiple=True)))
     search_format = 'mission'
 
     table_columns = freeze([
@@ -266,11 +265,6 @@ class CRM_SearchMissions(CRM_Search):
         namespace['status'] = MultipleCheckboxWidget('status',
                 title=MSG(u'Status'), datatype=MissionStatusShortened,
                 value=m_status)
-        # Add with_no_alert
-        with_no_alert = context.query['with_no_alert']
-        namespace['with_no_alert'] = CheckboxWidget('with_no_alert',
-                title=MSG(u'With no alert only'), datatype=Boolean,
-                value=with_no_alert, oneline=True)
 
         return namespace
 
@@ -290,10 +284,6 @@ class CRM_SearchMissions(CRM_Search):
             for s in m_status:
                 status_query.append(PhraseQuery('crm_m_status', s))
             query = AndQuery(query, OrQuery(*status_query))
-        # Insert with_no_alert filter
-        with_no_alert = context.query['with_no_alert']
-        if with_no_alert:
-            query = AndQuery(query, PhraseQuery('crm_m_has_alerts', False))
         # Ok
         return context.root.search(query)
 
@@ -302,9 +292,9 @@ class CRM_SearchMissions(CRM_Search):
         today = date.today()
         def key(item):
             alert_datetime = item.crm_m_alert_datetime
-            # XXX no alert
+            # No alert
             if alert_datetime is None:
-                return (-1, None)
+                return (3, None)
             alert_date = alert_datetime.date()
             # Present
             if alert_date == today:

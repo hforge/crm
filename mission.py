@@ -67,7 +67,6 @@ class Mission(CRMFolder):
             attachment=String,
             alert_datetime=DateTime,
             crm_m_nextaction=Unicode)),
-        crm_m_has_alerts=Boolean(indexed=True),
         crm_m_alert_datetime=DateTime(indexed=False, stored=True),
         crm_m_nextaction=Unicode(indexed=False, stored=True)))
 
@@ -111,9 +110,7 @@ class Mission(CRMFolder):
         # Index contact
         document['crm_m_contact'] = m_contact
         # Index last alert
-        alert_datetime = self.find_alert_datetime()
-        document['crm_m_has_alerts'] = alert_datetime is not None
-        document['crm_m_alert_datetime'] = alert_datetime
+        document['crm_m_alert_datetime'] = self.find_alert_datetime()
         # Index last next action
         next_action = self.find_next_action()
         document['crm_m_nextaction'] = next_action
