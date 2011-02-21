@@ -78,12 +78,6 @@ class CRM(Folder):
             title={'en': u'Missions', 'fr': u'Missions'})
 
 
-    def update_20100920(self):
-        """Rename prospect to contact
-        """
-        self.move_resource('prospects', 'contacts')
-
-
 
 # Register crm skin
 path = get_abspath('ui')

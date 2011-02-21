@@ -159,18 +159,6 @@ class Mission(CRMFolder):
         self.metadata.set_property('comment', comments)
 
 
-    #############################################
-    # Updates
-    #############################################
-    def update_20100923(self):
-        """'crm_m_prospects' -> 'crm_m_contact'
-        """
-        m_contact = self.get_property('crm_m_prospect')
-        m_contact = [c.replace('p', 'c') for c in m_contact]
-        self.set_property('crm_m_contact', m_contact)
-        self.set_property('crm_m_prospect', None)
-
-
 
 ###################################
 # Container                       #

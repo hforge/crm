@@ -167,14 +167,6 @@ class Contact(CRMFolder):
         return mission[0].name
 
 
-    #############################################
-    # Updates
-    #############################################
-    def update_20100921(self):
-        self.metadata.set_changed()
-        self.metadata.format = 'contact'
-
-
 
 ###################################
 # Container                       #
@@ -196,15 +188,3 @@ class Contacts(Folder):
         names = self.get_names()
         name = generate_code(names, 'c%06d')
         return self.make_resource(name, Contact, **values)
-
-
-    def update_20100921(self):
-        self.metadata.set_changed()
-        self.metadata.format = 'contacts'
-
-
-    def update_20100922(self):
-        """'p000001' -> 'c000001'
-        """
-        for name in self.get_names():
-            self.move_resource(name, name.replace('p', 'c'))
