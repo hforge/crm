@@ -149,13 +149,6 @@ class Mission(CRMFolder):
         return u""
 
 
-    def remove_alerts(self):
-        comments = self.metadata.get_property('comment') or []
-        for comment in comments:
-            comment.set_parameter('alert_datetime', None)
-        self.metadata.set_property('comment', comments)
-
-
 
 ###################################
 # Container                       #
