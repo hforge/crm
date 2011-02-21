@@ -14,10 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Import from the Standard Library
+from decimal import Decimal as dec
+
 # Import from itools
-from itools.core import freeze
+from itools.core import freeze, is_thingy
 from itools.csv import CSVFile
 from itools.datatypes import Enumerate
+from itools.gettext import MSG
 from itools.stl import stl
 from itools.web import ERROR
 
@@ -68,6 +72,8 @@ class CSV_Export(object):
             return
         # XXX
         context.query['batch_start'] = context.query['batch_size'] = 0
+        self.assured = dec('0.0')
+        self.probable = dec('0.0')
         items = self.sort_and_batch(resource, context, results)
 
         # Create the CSV
@@ -79,7 +85,6 @@ class CSV_Export(object):
 
         # Fill the CSV
         resource_class = get_resource_class(self.search_format)
-        class_schema = resource_class.class_schema
         cache = {}
         for item in items:
             row = []
@@ -88,17 +93,20 @@ class CSV_Export(object):
                         cache=cache)
                 if type(value) is tuple:
                     value, href = value
-                if type(value) is str:
-                    value = value.decode('utf_8')
                 if value is None:
                     data = ''
                 elif type(value) is unicode:
-                    data = value.encode(encoding)
+                    data = value.encode(encoding, 'replace')
                 else:
-                    datatype = class_schema.get(name)
+                    try:
+                        datatype = resource_class.get_property_datatype(name)
+                    except ValueError:
+                        datatype = None
                     if (datatype is not None
                             and issubclass(datatype, Enumerate)):
                         value = datatype.get_value(value)
+                        if is_thingy(value, MSG):
+                            value = value.gettext()
                         data = value.encode(encoding)
                     else:
                         data = str(value)

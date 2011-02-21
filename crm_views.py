@@ -16,7 +16,7 @@
 
 # Import from the Standard Library
 from datetime import date
-from decimal import Decimal as decimal
+from decimal import Decimal as dec
 
 # Import from itools
 from itools.core import merge_dicts, freeze
@@ -221,7 +221,7 @@ class CRM_SearchMissions(CRM_Search):
 
     table_columns = freeze([
         ('crm_m_alert_datetime', MSG(u"Alert"), True),
-        ('icon', MSG(u"State"), True),
+        ('icon', MSG(u"Status"), True),
         ('title', MSG(u'Mission'), True),
         ('crm_m_nextaction', MSG(u'Next Action'), True),
         ('contacts', MSG(u'Contacts'), True),
@@ -234,7 +234,7 @@ class CRM_SearchMissions(CRM_Search):
 
     csv_columns = freeze([
         ('crm_m_alert_datetime', MSG(u"Alert")),
-        ('status', MSG(u"Status")),
+        ('crm_m_status', MSG(u"Status")),
         ('title', MSG(u'Mission')),
         ('crm_m_nextaction', MSG(u'Next Action')),
         ('contacts_csv', MSG(u'Contacts')),
@@ -367,7 +367,6 @@ class CRM_SearchMissions(CRM_Search):
         return key
 
 
-
     def get_key_sorted_by_assigned(self):
         context = get_context()
         get_user_title = context.root.get_user_title
@@ -428,7 +427,7 @@ class CRM_SearchMissions(CRM_Search):
             user_id = item_brain.crm_m_assigned
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
-                context, item, column, cache={})
+                context, item, column, cache=cache)
 
 
     def action_remove(self, resource, context, form):
@@ -577,7 +576,8 @@ class CRM_SearchContacts(CRM_Search):
                 column = 'title'
             return getattr(mission_brain, column)
         proxy = super(CRM_SearchContacts, self)
-        return proxy.get_item_value(resource, context, item, column, cache={})
+        return proxy.get_item_value(resource, context, item, column,
+                cache=cache)
 
 
     def sort_and_batch(self, resource, context, results):
@@ -591,8 +591,8 @@ class CRM_SearchContacts(CRM_Search):
 
 
     def get_namespace(self, resource, context):
-        self.assured = decimal('0.0')
-        self.probable = decimal('0.0')
+        self.assured = dec('0.0')
+        self.probable = dec('0.0')
         proxy = super(CRM_SearchContacts, self)
         namespace = proxy.get_namespace(resource, context)
         # Add infos about assured and probable amount
@@ -661,7 +661,8 @@ class CRM_SearchCompanies(CRM_Search):
             if value == 'http://':
                 return None
             return value, value
-        return proxy.get_item_value(resource, context, item, column, cache={})
+        return proxy.get_item_value(resource, context, item, column,
+                cache=cache)
 
 
 
