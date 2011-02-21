@@ -117,33 +117,29 @@ class Comments_View(STLView):
                     author = user.get_title()
             comment_datetime = comment.get_parameter('date')
             attachment = comment.get_parameter('attachment')
-            alert_datetime = comment.get_parameter('alert_datetime')
-            if alert_datetime:
-                alert_datetime = format_datetime(alert_datetime,
-                        accept=accept)
             value = comment.value
             if value == DUMMY_COMMENT:
-                # Only parameters displayed above the comment
-                if not alert_datetime and not attachment:
+                # Parameters displayed above the comment
+                if not attachment:
                     continue
                 else:
-                    value = MSG(u"(No comment.)").gettext()
+                    value = u""
             # TODO Add diff (useful at creation without any comment)
             ns_comment = {
                 'id': i,
                 'author': author,
                 'datetime': format_datetime(comment_datetime, accept=accept),
                 'attachment': attachment,
-                'alert_datetime': alert_datetime,
                 'comment': indent(value)}
             ns_comments.append(ns_comment)
         # Sort comments from newer to older
         ns_comments = list(reversed(ns_comments))
 
         path_to_resource = context.get_link(resource)
-        namespace = {'comments': ns_comments,
-                     'path_to_resource': path_to_resource,
-                     'msg_alert': REMOVE_ALERT_MSG }
+        namespace = {
+            'comments': ns_comments,
+            'path_to_resource': path_to_resource,
+            'msg_alert': REMOVE_ALERT_MSG }
         return namespace
 
 

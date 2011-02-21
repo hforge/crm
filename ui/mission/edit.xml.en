@@ -18,7 +18,7 @@
               ${widgets/title/title}
             </label>
           </td>
-          <td colspan="5">
+          <td colspan="3">
             <span stl:if="widgets/title/error"
               class="field-error">${widgets/title/error}<br/></span>
             ${widgets/title/widget}
@@ -30,80 +30,39 @@
               ${widgets/description/title}
             </label>
           </td>
-          <td colspan="5">
+          <td colspan="3">
             <span stl:if="widgets/description/error"
               class="field-error">${widgets/description/error}<br/></span>
             ${widgets/description/widget}
           </td>
         </tr>
-        <!-- COMMENT BLOCK -->
-        <!-- XXX couldn't apply a border on tbody -->
         <tr>
-          <td colspan="6">
-            <fieldset id="edit-mission-comment">
-              <legend>Add Comment</legend>
-              <table cellpadding="0" cellspacing="5">
-                <tr>
-                  <td>
-                    <label for="${widgets/comment/name}">
-                      ${widgets/comment/title}
-                    </label>
-                  </td>
-                  <td>
-                    <span stl:if="widgets/comment/error"
-                      class="field-error">${widgets/comment/error}<br/></span>
-                    ${widgets/comment/widget}
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <label for="${widgets/crm_m_nextaction/name}">
-                      ${widgets/crm_m_nextaction/title}
-                    </label>
-                  </td>
-                  <td>
-                    <span stl:if="widgets/crm_m_nextaction/error"
-                      class="field-error">${widgets/crm_m_nextaction/error}<br/></span>
-                    ${widgets/crm_m_nextaction/widget}
-                  </td>
-                </tr>
-                <!-- ATTACHMENT -->
-                <tr>
-                  <td>
-                    <label for="${widgets/attachment/name}">
-                      ${widgets/attachment/title}
-                    </label>
-                  </td>
-                  <td>
-                    <span stl:if="widgets/attachment/error"
-                      class="field-error">${widgets/attachment/error}<br/></span>
-                    ${widgets/attachment/widget}
-                  </td>
-                </tr>
-                <!-- ALERT -->
-                <tr>
-                  <td>
-                    <img src="/ui/crm/icons/16x16/bell_add.png" />
-                    <label for="${widgets/alert_date/name}">
-                      ${widgets/alert_date/title}
-                    </label>
-                  </td>
-                  <td>
-                    <span stl:if="widgets/alert_date/error"
-                      class="field-error">${widgets/alert_date/error}<br/></span>
-                    ${widgets/alert_date/widget}
-                    <label for="${widgets/alert_time/name}">
-                      ${widgets/alert_time/title}
-                    </label>
-                    <span stl:if="widgets/alert_time/error"
-                      class="field-error">${widgets/alert_time/error}<br/></span>
-                    ${widgets/alert_time/widget}
-                    <input type="checkbox" name="remove_previous_alerts"
-                    value="1" checked="checked"/>Remove previous alerts
-                  </td>
-                </tr>
-              </table>
-            </fieldset>
+          <td>
+            <label for="${widgets/crm_m_nextaction/name}">
+              ${widgets/crm_m_nextaction/title}
+            </label>
+          </td>
+          <td>
+            <span stl:if="widgets/crm_m_nextaction/error"
+              class="field-error">${widgets/crm_m_nextaction/error}<br/></span>
+            ${widgets/crm_m_nextaction/widget}
+          </td>
+          <td>
+            <img src="/ui/crm/icons/16x16/bell_add.png" />
+            <label for="${widgets/alert_date/name}">
+              ${widgets/alert_date/title}
+            </label>
+          </td>
+          <td>
+            <span stl:if="widgets/alert_date/error"
+              class="field-error">${widgets/alert_date/error}<br/></span>
+            ${widgets/alert_date/widget}
+            <label for="${widgets/alert_time/name}">
+              ${widgets/alert_time/title}
+            </label>
+            <span stl:if="widgets/alert_time/error"
+              class="field-error">${widgets/alert_time/error}<br/></span>
+            ${widgets/alert_time/widget}
           </td>
         </tr>
         <tr>
@@ -112,7 +71,7 @@
               ${widgets/crm_m_assigned/title}
             </label>
           </td>
-          <td colspan="2">
+          <td>
             <span stl:if="widgets/crm_m_assigned/error"
               class="field-error">${widgets/crm_m_assigned/error}<br/></span>
             ${widgets/crm_m_assigned/widget}
@@ -122,7 +81,7 @@
               ${widgets/crm_m_cc/title}
             </label>
           </td>
-          <td colspan="2">
+          <td>
             <span stl:if="widgets/crm_m_cc/error"
               class="field-error">${widgets/crm_m_cc/error}<br/></span>
             ${widgets/crm_m_cc/widget}
@@ -134,7 +93,7 @@
               ${widgets/crm_m_status/title}
             </label>
           </td>
-          <td colspan="2">
+          <td>
             <span stl:if="widgets/crm_m_status/error"
               class="field-error">${widgets/crm_m_status/error}<br/></span>
             ${widgets/crm_m_status/widget}
@@ -159,7 +118,7 @@
           <td class="amount">
             <span stl:if="widgets/crm_m_amount/error"
               class="field-error">${widgets/crm_m_amount/error}<br/></span>
-            ${widgets/crm_m_amount/widget}
+            ${widgets/crm_m_amount/widget}&nbsp;€
           </td>
           <td>
             <label for="${widgets/crm_m_probability/name}">
@@ -178,10 +137,44 @@
               ${widgets/tags/title}
             </label>
           </td>
-          <td colspan="5">
+          <td colspan="3">
             <span stl:if="widgets/tags/error"
               class="field-error">${widgets/tags/error}<br/></span>
             ${widgets/tags/widget}
+          </td>
+        </tr>
+        <!-- COMMENT BLOCK -->
+        <tr>
+          <td colspan="4">
+            <fieldset id="edit-mission-comment">
+              <table cellpadding="0" cellspacing="5">
+                <tr>
+                  <td>
+                    <label for="${widgets/comment/name}">
+                      ${widgets/comment/title}
+                    </label>
+                  </td>
+                  <td>
+                    <span stl:if="widgets/comment/error"
+                      class="field-error">${widgets/comment/error}<br/></span>
+                    ${widgets/comment/widget}
+                  </td>
+                </tr>
+                <!-- ATTACHMENT -->
+                <tr>
+                  <td>
+                    <label for="${widgets/attachment/name}">
+                      ${widgets/attachment/title}
+                    </label>
+                  </td>
+                  <td>
+                    <span stl:if="widgets/attachment/error"
+                      class="field-error">${widgets/attachment/error}<br/></span>
+                    ${widgets/attachment/widget}
+                  </td>
+                </tr>
+              </table>
+            </fieldset>
           </td>
         </tr>
       </tbody>
@@ -198,12 +191,6 @@
     </p>
     <script language="javascript">
       $(document).ready(function() {
-        /*
-        $("#edit-mission-comment legend").click(function() {
-          $("#edit-mission-comment table").toggle();
-        });
-        $("#edit-mission-comment table").hide();
-        */
         $("#${first_widget}").focus();
       });
     </script>

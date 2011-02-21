@@ -223,7 +223,7 @@ class CRM_SearchMissions(CRM_Search):
 
     table_columns = freeze([
         ('icon', MSG(u" "), True),
-        ('crm_m_alert_datetime', MSG(u"Alert"), True),
+        ('crm_m_alert', MSG(u"Alert"), True),
         ('status', MSG(u" "), True),
         ('title', MSG(u'Mission'), True),
         ('crm_m_nextaction', MSG(u'Next Action'), True),
@@ -236,7 +236,7 @@ class CRM_SearchMissions(CRM_Search):
             confirm=REMOVE_ALERT_MSG)])
 
     csv_columns = freeze([
-        ('crm_m_alert_datetime', MSG(u"Alert")),
+        ('crm_m_alert', MSG(u"Alert")),
         ('crm_m_status', MSG(u"Status")),
         ('title', MSG(u'Mission')),
         ('crm_m_nextaction', MSG(u'Next Action')),
@@ -292,19 +292,19 @@ class CRM_SearchMissions(CRM_Search):
     def get_key_sorted_by_icon(self):
         today = date.today()
         def key(item):
-            alert_datetime = item.crm_m_alert_datetime
+            alert = item.crm_m_alert
             # No alert
-            if alert_datetime is None:
+            if alert is None:
                 return (3, None)
-            alert_date = alert_datetime.date()
+            alert_date = alert.date()
             # Present
             if alert_date == today:
-                return (0, alert_datetime)
+                return (0, alert)
             # Future
             if alert_date > today:
-                return (1, alert_datetime)
+                return (1, alert)
             # Past
-            return (2, alert_datetime)
+            return (2, alert)
         return key
 
 
@@ -375,18 +375,18 @@ class CRM_SearchMissions(CRM_Search):
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
         if column == 'icon':
-            alert_datetime = item_brain.crm_m_alert_datetime
-            if alert_datetime is None:
+            alert = item_brain.crm_m_alert
+            if alert is None:
                 return None
-            elif alert_datetime.date() < date.today():
+            elif alert.date() < date.today():
                 return ALERT_ICON_PAST
-            elif alert_datetime < datetime.now():
+            elif alert < datetime.now():
                 return ALERT_ICON_NOW
             return ALERT_ICON_FUTURE
-        elif column == 'crm_m_alert_datetime':
-            alert_datetime = item_brain.crm_m_alert_datetime
-            if alert_datetime:
-                return alert_datetime.date()
+        elif column == 'crm_m_alert':
+            alert = item_brain.crm_m_alert
+            if alert:
+                return alert.date()
             return None
         elif column == 'status':
             # Status

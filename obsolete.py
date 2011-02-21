@@ -15,20 +15,47 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
-from itools.core import merge_dicts, freeze
-from itools.csv import Table as TableFile
-from itools.datatypes import Date, DateTime, Decimal, Email, Integer
-from itools.datatypes import PathDataType, String, Unicode
-from itools.gettext import MSG
+from itools.core import freeze, merge_dicts
+from itools.datatypes import DateTime, Unicode
 
 # Import from ikaaro
 from ikaaro.registry import register_resource_class
-from ikaaro.table import Table
 
 # Import from crm
 from mission import Mission
-from contact import Contacts, Contact
-from datatypes import CompanyName, MissionStatus, ContactStatus
-from company import Company
 
 
+comment_datatype = Mission.class_schema['comment']
+
+
+class MissionUpdate(Mission):
+    class_schema = freeze(merge_dicts(
+        Mission.class_schema,
+        comment=comment_datatype(parameters_schema=merge_dicts(
+            comment_datatype.parameters_schema,
+            alert_datetime=DateTime,
+            crm_m_nextaction=Unicode))))
+
+
+    def update_20100927(self):
+        comments = self.metadata.get_property('comment') or []
+        # Migrate alert
+        for comment in reversed(comments):
+            alert = comment.get_parameter('alert_datetime')
+            if alert:
+                self.set_property('crm_m_alert', alert)
+        # Migrate next action
+        for comment in reversed(comments):
+            nextaction = comment.get_parameter('crm_m_nextaction')
+            if nextaction:
+                self.set_property('crm_m_nextaction', nextaction)
+        # Remove parameters
+        for comment in comments:
+            comment.set_parameter('alert_datetime', None)
+            comment.set_parameter('crm_m_nextaction', None)
+        # Save
+        self.metadata.set_property('comment', comments)
+
+
+
+register_resource_class(MissionUpdate)

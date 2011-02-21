@@ -22,18 +22,18 @@ from itools.core import merge_dicts, freeze, is_thingy
 from itools.csv import Property
 from itools.database import OrQuery, PhraseQuery
 from itools.datatypes import Date, Decimal, Integer
-from itools.datatypes import String, Unicode, Boolean
+from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 from itools.handlers import checkid
 from itools.fs import FileName
 from itools.i18n import format_datetime, format_date
 from itools.ical import Time
-from itools.web import BaseForm, INFO, ERROR, get_context
+from itools.web import INFO, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
-from ikaaro.autoform import DateWidget, MultilineWidget, CheckboxWidget
-from ikaaro.autoform import FileWidget, RadioWidget, TextWidget, SelectWidget
+from ikaaro.autoform import DateWidget, MultilineWidget
+from ikaaro.autoform import FileWidget, TextWidget, SelectWidget
 from ikaaro.cc import UsersList
 from ikaaro.datatypes import FileDataType, Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE, MSG_CHANGES_SAVED
@@ -48,7 +48,7 @@ from itws.tags import TagsAware_Edit
 # Import from crm
 from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
 from base_views import Comments_View, CRMFolder_AddForm
-from crm_views import CRM_SearchContacts, CRM_SearchMissions
+from crm_views import CRM_SearchContacts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
 from utils import get_crm
@@ -84,33 +84,30 @@ mission_schema = freeze(merge_dicts(
     attachment=FileDataType,
     alert_date=Date,
     alert_time=Time,
-    remove_previous_alerts=Boolean,
-    # XXX must add resource in "_get_schema"
-    crm_m_assigned=UsersList,
-    crm_m_cc=UsersList(multiple=True),
     crm_m_status=MissionStatus,
     crm_m_deadline=Date,
     crm_m_amount=Decimal,
-    crm_m_probability=Integer))
+    crm_m_probability=Integer,
+    # XXX must add resource in "_get_schema"
+    crm_m_assigned=UsersList,
+    crm_m_cc=UsersList(multiple=True)))
 
 
 mission_widgets = freeze(
     DBResource_Edit.widgets[:3] + [
         MultilineWidget('comment', title=MSG(u"New Comment"), default='',
                         rows=3),
-        TextWidget('crm_m_nextaction', title=MSG(u"Next Action")),
+        TextWidget('crm_m_nextaction', title=MSG(u"Next Action"), size=20),
         FileWidget('attachment', title=MSG(u"Attachment"), size=35,
             default=''),
         DateWidget('alert_date', title=MSG(u"Alert On"), size=8),
         TimeWidget('alert_time', title=MSG(u"at")),
-        CheckboxWidget('remove_previous_alerts', default=True,
-            title=MSG(u"Remove previous alerts")),
         SelectWidget('crm_m_assigned', title=MSG(u"Assigned To"),
             has_empty_option=True),
         SelectWidget('crm_m_cc', title=MSG(u"CC"), multiple=True, size=5,
             has_empty_option=False),
-        RadioWidget('crm_m_status', title=MSG(u"Status"), oneline=True,
-                    has_empty_option=False),
+        SelectWidget('crm_m_status', title=MSG(u"Status"),
+            has_empty_option=False),
         DateWidget('crm_m_deadline', title=MSG(u"Deadline"), default='',
             size=8),
         TextWidget('crm_m_amount', title=MSG(u"Amount"), default='', size=8),
@@ -124,8 +121,7 @@ def get_changes(resource, context, form, new=False):
     last_comment = resource.get_last_comment()
     for key, datatype in mission_schema.iteritems():
         # Comment is treated separately
-        if key in ('comment', 'remove_previous_alerts', 'subject',
-                'timestamp'):
+        if key in ('comment', 'subject', 'timestamp'):
             continue
         elif key not in form:
             continue
@@ -136,18 +132,19 @@ def get_changes(resource, context, form, new=False):
         if new:
             old_value = datatype.get_default()
         else:
-            if key in ('alert_date', 'alert_time', 'attachment',
-                    'crm_m_nextaction'):
+            if key in ('attachment',):
                 if last_comment is None:
                     old_value = None
                 else:
                     old_value = last_comment.get_parameter(key)
-                    if key == 'alert_date':
-                        if old_value is not None:
-                            old_value = old_value.date()
-                    elif key == 'alert_time':
-                        if old_value is not None:
-                            old_value = old_value.time()
+            elif key in ('alert_date', 'alert_time'):
+                old_value = resource.get_property('crm_m_alert')
+                if key == 'alert_date':
+                    if old_value is not None:
+                        old_value = old_value.date()
+                elif key == 'alert_time':
+                    if old_value is not None:
+                        old_value = old_value.time()
             else:
                 old_value = resource.get_property(key)
         if new_value == old_value:
@@ -339,18 +336,19 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
 
     def get_value(self, resource, context, name, datatype):
         if name == 'tags':
-            return TagsAware_Edit.get_value(self, resource, context, name,
-                    datatype)
+            proxy = TagsAware_Edit
+            return proxy.get_value(self, resource, context, name, datatype)
         elif name in ('alert_date', 'alert_time'):
-            return datatype.get_default()
+            value = resource.get_property('crm_m_alert')
+            if value is None:
+                return datatype.get_default()
+            if name == 'alert_date':
+                return value.date()
+            return value.time()
         elif name in ('comment', 'attachment'):
             return context.query.get(name) or datatype.get_default()
-        elif name == 'crm_m_nextaction':
-            return resource.find_next_action()
-        elif name == 'remove_previous_alerts':
-            return True
-        return DBResource_Edit.get_value(self, resource, context, name,
-                datatype)
+        proxy = DBResource_Edit
+        return proxy.get_value(self, resource, context, name, datatype)
 
 
     def is_edit(self, context):
@@ -388,15 +386,38 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
 
     def set_value(self, resource, context, name, form):
         if name == 'tags':
-            return TagsAware_Edit.set_value(self, resource, context, name,
-                    form)
-        elif name in ('attachment', 'crm_m_nextaction', 'alert_date',
-                'alert_time', 'remove_previous_alerts'):
+            proxy = TagsAware_Edit
+            return proxy.set_value(self, resource, context, name, form)
+        elif name in ('attachment', 'alert_time'):
+            return False
+        if name == 'alert_date':
+            alert_date = form['alert_date']
+            if alert_date:
+                alert_time = form['alert_time'] or time(9, 0)
+                value = datetime.combine(alert_date, alert_time)
+            else:
+                status = form['crm_m_status']
+                if status not in ('finished', 'nogo'):
+                    context.message = ERR_ALERT_MANDATORY
+                    return True
+                value = None
+            resource.set_property('crm_m_alert', value)
+            return False
+        elif name == 'crm_m_nextaction':
+            value = form[name]
+            if not value:
+                context.message = ERR_NEXTACTION_MANDATORY
+                return True
+            resource.set_property('crm_m_nextaction', value)
             return False
         elif name == 'comment':
+            value = form[name]
             # Attachment
             attachment = form['attachment']
-            if attachment is not None:
+            if attachment is None:
+                if not value:
+                    return False
+            else:
                 filename, mimetype, body = attachment
                 # Find a non used name
                 attachment = checkid(filename)
@@ -407,64 +428,17 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
                 resource.make_resource(attachment, cls, body=body,
                     filename=filename, extension=extension,
                     format=mimetype)
-            # Next action
-            m_nextaction = form['crm_m_nextaction'] or None
-            # Alert
-            alert_date = form['alert_date']
-            if alert_date:
-                alert_time = form['alert_time'] or time(9, 0)
-                alert_datetime = datetime.combine(alert_date, alert_time)
-            else:
-                has_alert = resource.find_alert_datetime() is not None
-                if not has_alert:
-                    status = form['crm_m_status']
-                    if status not in ('finished', 'nogo'):
-                        context.message = ERR_ALERT_MANDATORY
-                        return True
-                alert_datetime = None
-            # Next action mandatory
-            if alert_datetime is not None and m_nextaction is None:
-                context.message = ERR_NEXTACTION_MANDATORY
-                return True
-            # Value
-            value = form[name]
-            if not value:
-                if attachment or m_nextaction or alert_datetime:
+                if not value:
                     value = DUMMY_COMMENT
-                else:
-                    return False
-            # Reset alerts?
-            if form['remove_previous_alerts'] and form['alert_date']:
-                resource.remove_alerts()
             user = context.user
             author = user.name if user else None
             value = Property(value, date=context.timestamp, author=author,
-                    attachment=attachment, crm_m_nextaction=m_nextaction,
-                    alert_datetime=alert_datetime)
+                    attachment=attachment)
             resource.metadata.set_property(name, value)
             context.database.change_resource(resource)
             return False
-        return DBResource_Edit.set_value(self, resource, context, name, form)
-
-
-
-class CancelAlert(BaseForm):
-    """ Form accessed from Mission_View.
-    """
-    access = 'is_allowed_to_edit'
-    schema = freeze({
-        'id': Integer(mandatory=True)})
-
-
-    def action(self, resource, context, form):
-        comment_id = form['id']
-        # Remove alert_datetime
-        mission = resource
-        comments = mission.metadata.get_property('comment')
-        comments[comment_id].set_parameter('alert_datetime', None)
-        resource.set_property('comment', comments)
-
-        return context.come_back(MSG_CHANGES_SAVED, './')
+        proxy = DBResource_Edit
+        return proxy.set_value(self, resource, context, name, form)
 
 
 
@@ -718,46 +692,3 @@ class Mission_Add(Mission_View):
             'view_comments': None,
             'view_contacts': view_contact}
         return namespace
-
-
-
-class Mission_EditAlerts(CRM_SearchMissions):
-    access = 'is_allowed_to_edit'
-    title = MSG(u"Edit alerts")
-    search_template = None
-    csv_columns = None
-
-    # Table
-    table_columns = freeze([
-        ('checkbox', None),
-        ('icon', None, False),
-        ('alert_date', MSG(u"Date"), False),
-        ('alert_time', MSG(u"Time"), False),
-        ('comment', MSG(u"Comment"), False),
-        ('nextaction', MSG(u"Next Action"), False)])
-
-
-    def get_items(self, resource, context, *args):
-        args = list(args)
-        abspath = resource.get_canonical_path()
-        args.append(PhraseQuery('abspath', str(abspath)))
-        proxy = super(Mission_EditAlerts, self)
-        return proxy.get_items(resource, context, *args)
-
-
-    def get_item_value(self, resource, context, item, column):
-        alert_datetime, m_nextaction, mission, comment_id = item
-        if column == 'alert_date':
-            alert_date = alert_datetime.date()
-            accept = context.accept_language
-            return format_date(alert_date, accept=accept)
-        elif column == 'alert_time':
-            alert_time = alert_datetime.time()
-            return Time.encode(alert_time)
-        elif column == 'comment':
-            comments = mission.get_property('comment')
-            return comments[comment_id]
-        elif column == 'nextaction':
-            return m_nextaction
-        proxy = super(Mission_EditAlerts, self)
-        return proxy.get_item_value(resource, context, item, column)

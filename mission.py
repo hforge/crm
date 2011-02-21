@@ -31,9 +31,9 @@ from ikaaro.folder_views import Folder_BrowseContent
 from base import CRMFolder
 from base_views import Comments_View
 from mission_views import Mission_Add, Mission_AddForm, Mission_EditForm
-from mission_views import Mission_View, Mission_ViewContacts, CancelAlert
+from mission_views import Mission_View, Mission_ViewContacts
 from mission_views import Mission_EditContacts, Mission_AddContacts
-from mission_views import Mission_ViewContact, Mission_EditAlerts
+from mission_views import Mission_ViewContact
 from datatypes import MissionStatus
 from utils import generate_code
 
@@ -44,7 +44,7 @@ class Mission(CRMFolder):
         - documents related to comments
     """
     class_id = 'mission'
-    class_version = '20100926'
+    class_version = '20100927'
     class_title = MSG(u'Mission')
     class_icon16 = 'crm/icons/16x16/mission.png'
     class_icon48 = 'crm/icons/48x48/mission.png'
@@ -62,19 +62,16 @@ class Mission(CRMFolder):
         crm_m_amount=Decimal(source='metadata', stored=True),
         crm_m_probability=Integer(source='metadata', stored=True),
         crm_m_deadline=Date(source='metadata', stored=True),
+        crm_m_alert=DateTime(source='metadata', indexed=False, stored=True),
+        crm_m_nextaction=Unicode(source='metadata', indexed=False,
+            stored=True),
         comment=comment_datatype(parameters_schema=merge_dicts(
             comment_datatype.parameters_schema,
-            attachment=String,
-            alert_datetime=DateTime,
-            crm_m_nextaction=Unicode)),
-        crm_m_alert_datetime=DateTime(indexed=False, stored=True),
-        crm_m_nextaction=Unicode(indexed=False, stored=True)))
+            attachment=String))))
 
     # Views
     add_contacts = Mission_AddContacts()
-    cancel_alert = CancelAlert()
     browse_content = Folder_BrowseContent(access=False)
-    edit_alerts = Mission_EditAlerts()
     edit_form = Mission_EditForm()
     edit_contacts = Mission_EditContacts()
     preview_content = None
@@ -90,15 +87,15 @@ class Mission(CRMFolder):
         document = super(Mission, self).get_catalog_values()
         title = self.get_property('title')
         description = self.get_property('description')
-        m_nextaction  = self.find_next_action()
+        nextaction  = self.get_property('crm_m_nextaction')
         # Index all comments as 'text'
         values = [title or u'',
                   description or u'',
-                  m_nextaction or u'']
-        m_contact = self.get_property('crm_m_contact')
+                  nextaction or u'']
+        m_contacts = self.get_property('crm_m_contact')
         contacts = self.parent.parent.get_resource('contacts')
-        for contact_id in m_contact:
-            contact = contacts.get_resource(contact_id)
+        for m_contact in m_contacts:
+            contact = contacts.get_resource(m_contact)
             values.append(contact.get_property('crm_p_lastname'))
             values.append(contact.get_property('crm_p_firstname'))
             title = contact.get_property('title')
@@ -107,13 +104,6 @@ class Mission(CRMFolder):
         # Comment
         values.extend(self.get_property('comment'))
         document['text'] = u' '.join(values)
-        # Index contact
-        document['crm_m_contact'] = m_contact
-        # Index last alert
-        document['crm_m_alert_datetime'] = self.find_alert_datetime()
-        # Index last next action
-        next_action = self.find_next_action()
-        document['crm_m_nextaction'] = next_action
         return document
 
 
@@ -125,35 +115,6 @@ class Mission(CRMFolder):
         if comments:
             return comments[-1]
         return None
-
-
-    def find_alert_datetime(self):
-        """Last alert
-        """
-        comments = self.metadata.get_property('comment') or []
-        for comment in reversed(comments):
-            alert_datetime = comment.get_parameter('alert_datetime')
-            if alert_datetime:
-                return alert_datetime
-        return None
-
-
-    def find_next_action(self):
-        """Last next action
-        """
-        comments = self.metadata.get_property('comment') or []
-        for comment in reversed(comments):
-            m_nextaction = comment.get_parameter('crm_m_nextaction')
-            if m_nextaction:
-                return m_nextaction
-        return u""
-
-
-    def remove_alerts(self):
-        comments = self.metadata.get_property('comment') or []
-        for comment in comments:
-            comment.set_parameter('alert_datetime', None)
-        self.metadata.set_property('comment', comments)
 
 
 

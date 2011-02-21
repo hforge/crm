@@ -378,10 +378,10 @@ class Contact_SearchMissions(SearchForm):
                 accept = context.accept_language
                 value = format_number(value, curr=u' €', accept=accept)
             return value
-        elif column in ('crm_m_probability', 'crm_m_deadline'):
+        try:
+            return getattr(item_brain, column)
+        except AttributeError:
             return get_property(column)
-        elif column == 'crm_m_nextaction':
-            return item_resource.find_next_action()
 
 
     def sort_and_batch(self, resource, context, results):

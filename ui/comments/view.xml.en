@@ -19,19 +19,6 @@
           href="${path_to_resource}/${comment/attachment}/;download">${comment/attachment}</a>
       </td>
     </tr>
-    <tr stl:if="comment/alert_datetime" class="comment-alert">
-      <td colspan="3">
-        <img src="/ui/crm/icons/16x16/bell.png" />
-        ${comment/alert_datetime}
-        <form action=";cancel_alert" method="POST" style="display: inline;"
-            onsubmit="return confirm('${msg_alert}');">
-          <input type="hidden" name="id" value="${comment/id}" />
-          <input type="image" title="Remove alert"
-            src="/ui/crm/icons/16x16/bell_delete.png"
-            style="background-color: transparent; border: none;" />
-        </form>
-      </td>
-    </tr>
     <tr class="comment-text">
       <td colspan="3">
         <pre class="com">${comment/comment}</pre>
