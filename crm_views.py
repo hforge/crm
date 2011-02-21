@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal as dec
 
 # Import from itools
@@ -46,12 +46,14 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 
-ALERT_ICON_RED = '/ui/crm/icons/16x16/bell_notification.png'
-ALERT_ICON_ORANGE = '/ui/crm/icons/16x16/bell_error.png'
-ALERT_ICON_GREEN = '/ui/crm/icons/16x16/bell_go.png'
+ALERT_ICON_PAST = '/ui/crm/icons/16x16/bell_notification.png'
+ALERT_ICON_NOW = '/ui/crm/icons/16x16/bell_error.png'
+ALERT_ICON_FUTURE = '/ui/crm/icons/16x16/bell_go.png'
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
 
+STATUS_ICON = MSG(u'<img src="{icon}" title="{title}"/>',
+        format='replace_html')
 
 
 def two_lines(one, two):
@@ -208,7 +210,7 @@ class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
     query_schema = freeze(merge_dicts(
         CRM_Search.query_schema,
-        sort_by=String(default='alert'),
+        sort_by=String(default='icon'),
         reverse=Boolean(default=False)))
 
     search_template = '/ui/crm/crm/search_missions.xml'
@@ -220,8 +222,9 @@ class CRM_SearchMissions(CRM_Search):
     search_format = 'mission'
 
     table_columns = freeze([
+        ('icon', MSG(u" "), True),
         ('crm_m_alert_datetime', MSG(u"Alert"), True),
-        ('icon', MSG(u"Status"), True),
+        ('status', MSG(u" "), True),
         ('title', MSG(u'Mission'), True),
         ('crm_m_nextaction', MSG(u'Next Action'), True),
         ('contacts', MSG(u'Contacts'), True),
@@ -295,7 +298,7 @@ class CRM_SearchMissions(CRM_Search):
         return context.root.search(query)
 
 
-    def get_key_sorted_by_alert(self):
+    def get_key_sorted_by_icon(self):
         today = date.today()
         def key(item):
             alert_datetime = item.crm_m_alert_datetime
@@ -314,7 +317,7 @@ class CRM_SearchMissions(CRM_Search):
         return key
 
 
-    def get_key_sorted_by_icon(self):
+    def get_key_sorted_by_status(self):
         def key(item):
             return item.crm_m_status
         return key
@@ -380,14 +383,26 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
-        if column == 'crm_m_alert_datetime':
+        if column == 'icon':
+            alert_datetime = item_brain.crm_m_alert_datetime
+            if alert_datetime is None:
+                return None
+            elif alert_datetime.date() < date.today():
+                return ALERT_ICON_PAST
+            elif alert_datetime < datetime.now():
+                return ALERT_ICON_NOW
+            return ALERT_ICON_FUTURE
+        elif column == 'crm_m_alert_datetime':
             alert_datetime = item_brain.crm_m_alert_datetime
             if alert_datetime:
                 return alert_datetime.date()
             return None
-        elif column == 'icon':
+        elif column == 'status':
             # Status
-            return m_status_icons[item_brain.crm_m_status]
+            m_status = item_brain.crm_m_status
+            icon = m_status_icons[m_status]
+            title = MissionStatusShortened.get_value(m_status)
+            return STATUS_ICON(icon=icon, title=title)
         elif column in ('contacts', 'contacts_csv'):
             m_contacts = item_brain.crm_m_contact
             query = [PhraseQuery('name', name) for name in m_contacts]
