@@ -563,6 +563,8 @@ class Mission_AddContacts(CRM_SearchContacts):
     table_actions = freeze([
         ButtonAddContact])
     csv_columns = None
+    # Hide itws sidebar
+    display_sidebar = False
 
 
     def _get_default_company(self, resource, context):
