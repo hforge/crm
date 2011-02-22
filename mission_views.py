@@ -391,7 +391,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         elif name in ('attachment', 'alert_time'):
             return False
         if name == 'alert_date':
-            alert_date = form['alert_date']
+            alert_date = form[name]
             if alert_date:
                 alert_time = form['alert_time'] or time(9, 0)
                 value = datetime.combine(alert_date, alert_time)
@@ -406,8 +406,10 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         elif name == 'crm_m_nextaction':
             value = form[name]
             if not value:
-                context.message = ERR_NEXTACTION_MANDATORY
-                return True
+                status = form['crm_m_status']
+                if status not in ('finished', 'nogo'):
+                    context.message = ERR_NEXTACTION_MANDATORY
+                    return True
             resource.set_property('crm_m_nextaction', value)
             return False
         elif name == 'comment':
