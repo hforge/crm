@@ -21,7 +21,7 @@ from decimal import Decimal as dec
 # Import from itools
 from itools.core import merge_dicts, freeze
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String
+from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
 from itools.i18n import format_datetime
@@ -210,6 +210,7 @@ class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
     query_schema = freeze(merge_dicts(
         CRM_Search.query_schema,
+        batch_size=Integer(default=100),
         sort_by=String(default='icon'),
         reverse=Boolean(default=False)))
 
