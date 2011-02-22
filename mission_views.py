@@ -26,7 +26,6 @@ from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 from itools.handlers import checkid
 from itools.fs import FileName
-from itools.i18n import format_datetime, format_date
 from itools.ical import Time
 from itools.web import INFO, ERROR, get_context
 
@@ -208,13 +207,12 @@ def get_changes(resource, context, form, new=False):
                 changes.append(CHANGES_LINE.gettext(what=title,
                     removed=u"", added=added))
         elif key == 'alert_date' or key == 'crm_m_deadline':
-            accept = context.accept_language
             removed = u""
             if old_value:
-                removed = format_date(old_value, accept=accept)
+                removed = context.format_date(old_value)
             added = u""
             if new_value:
-                added = format_date(new_value, accept=accept)
+                added = context.format_date(new_value)
             changes.append(CHANGES_LINE.gettext(what=title,
                 removed=removed, added=added))
         elif key == 'alert_time':
@@ -261,8 +259,7 @@ def send_notification(resource, context, form, changes, new=False):
     comment = u""
     if form.get('comment'):
         n = len(resource.get_property('comment')) - 1
-        accept = context.accept_language
-        date = format_datetime(datetime.now(), accept=accept)
+        date = context.format_datetime(datetime.now())
         comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
             user_email=user_email, date=date)]
         comment.extend(form['comment'].splitlines())

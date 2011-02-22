@@ -23,7 +23,6 @@ from itools.csv import Property
 from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Email, Integer, Unicode, DateTime, String
 from itools.gettext import MSG
-from itools.i18n import format_datetime, format_number
 from itools.web import FormError
 
 # Import from ikaaro
@@ -370,13 +369,11 @@ class Contact_SearchMissions(SearchForm):
             return MissionStatus.get_value(get_property('crm_m_status'))
         elif column == 'mtime':
             # Last Modified
-            accept = context.accept_language
-            return format_datetime(item_brain.mtime, accept=accept)
+            return context.format_datetime(item_brain.mtime)
         elif column == 'crm_m_amount':
             value = get_property(column)
             if value:
-                accept = context.accept_language
-                value = format_number(value, curr=u' €', accept=accept)
+                value = context.format_number(value, curr=u' €')
             return value
         try:
             return getattr(item_brain, column)

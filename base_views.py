@@ -21,7 +21,6 @@ from decimal import Decimal as dec
 from itools.core import freeze
 from itools.datatypes import Decimal, Unicode
 from itools.gettext import MSG
-from itools.i18n import format_datetime, format_number
 from itools.web import STLView
 from itools.web import get_context
 
@@ -48,10 +47,10 @@ REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 DUMMY_COMMENT = u"_"
 
 
-def format_amount(str_value, accept):
+def format_amount(str_value, context):
     value = Decimal.decode(str_value)
     value = value / dec('1000')
-    return format_number(value, curr=u' k€', accept=accept)
+    return context.format_number(value, curr=u' k€')
 
 
 # TODO delete
@@ -108,7 +107,6 @@ class Comments_View(STLView):
     def get_namespace(self, resource, context):
         ns_comments = []
         comments = resource.metadata.get_property('comment') or []
-        accept = context.accept_language
         for i, comment in enumerate(comments):
             author = comment.get_parameter('author')
             if author:
@@ -128,7 +126,7 @@ class Comments_View(STLView):
             ns_comment = {
                 'id': i,
                 'author': author,
-                'datetime': format_datetime(comment_datetime, accept=accept),
+                'datetime': context.format_datetime(comment_datetime),
                 'attachment': attachment,
                 'comment': indent(value)}
             ns_comments.append(ns_comment)

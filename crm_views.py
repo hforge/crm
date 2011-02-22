@@ -24,7 +24,6 @@ from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Boolean, Decimal, String, Integer
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
-from itools.i18n import format_datetime
 from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
@@ -161,8 +160,7 @@ class CRM_Search(CSV_Export, SearchForm):
             href = context.get_link(item_resource)
             return item_brain.title, href
         elif column == 'mtime':
-            accept = context.accept_language
-            return format_datetime(item_brain.mtime, accept=accept)
+            return context.format_datetime(item_brain.mtime)
         try:
             return getattr(item_brain, column)
         except AttributeError:
@@ -556,12 +554,10 @@ class CRM_SearchContacts(CRM_Search):
             return get_phones(item_brain, 'crm_p_phone', 'crm_p_mobile')
         elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
-            accept = context.accept_language
-            return format_amount(value, accept)
+            return format_amount(value, context)
         elif column == 'crm_p_probable':
             value = item_brain.crm_p_probable
-            accept = context.accept_language
-            return format_amount(value, accept)
+            return format_amount(value, context)
         elif column.startswith('crm_m_'):
             # CSV export
             contact_name = item_brain.name
@@ -605,10 +601,9 @@ class CRM_SearchContacts(CRM_Search):
         # TODO Filter by year or semester
         total = self.assured + self.probable
 
-        accept = context.accept_language
-        namespace['assured'] = format_amount(self.assured, accept)
-        namespace['probable'] = format_amount(self.probable, accept)
-        namespace['total'] = format_amount(total, accept)
+        namespace['assured'] = format_amount(self.assured, context)
+        namespace['probable'] = format_amount(self.probable, context)
+        namespace['total'] = format_amount(total, context)
         namespace['crm-infos'] = True
 
         return namespace
