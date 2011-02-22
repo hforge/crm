@@ -25,10 +25,12 @@ from itools.datatypes import Boolean, Decimal, String
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
 from itools.i18n import format_datetime
-from itools.web import STLView, get_context
+from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import TextWidget, SelectWidget
+from ikaaro.buttons import RemoveButton
+from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
 # Import from itws
@@ -36,6 +38,7 @@ from itws.tags import TagsList
 
 # Import from crm
 from base_views import m_status_icons, p_status_icons, format_amount
+from base_views import REMOVE_ALERT_MSG
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
@@ -227,7 +230,9 @@ class CRM_SearchMissions(CRM_Search):
         ('company', MSG(u'Company'), True),
         ('assigned', MSG(u'Assigned To'), True),
         ('mtime', MSG(u'Last Modified'), True)])
-    table_actions = freeze([])
+    table_actions = freeze([
+        RemoveButton(name='remove', title=MSG(u'Remove alert'),
+            confirm=REMOVE_ALERT_MSG)])
 
     csv_columns = freeze([
         ('crm_m_alert_datetime', MSG(u"Alert")),
@@ -428,6 +433,30 @@ class CRM_SearchMissions(CRM_Search):
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
                 context, item, column, cache=cache)
+
+
+    def action_remove(self, resource, context, form):
+        not_removed = []
+        for alert_id in form.get('ids', []):
+            try:
+                mission_name, comment_id = alert_id.split('__')
+                comment_id = int(comment_id)
+            except ValueError:
+                not_removed.append(alert_id)
+                continue
+            # Remove alert_datetime
+            crm = get_crm(resource)
+            mission = crm.get_resource('missions/%s' % mission_name)
+            comments = mission.metadata.get_property('comment')
+            comments[comment_id].set_parameter('alert_datetime', None)
+            mission.set_property('comment', comments)
+
+        if not_removed:
+            msg = ERROR(u'One or more alert could not have been removed.')
+        else:
+            msg = MSG_CHANGES_SAVED
+
+        context.message = msg
 
 
 
