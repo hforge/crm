@@ -18,7 +18,7 @@
 
 # Import from itools
 from itools.core import merge_dicts, freeze
-from itools.datatypes import Boolean, Date, DateTime, Decimal, Integer
+from itools.datatypes import Date, DateTime, Decimal, Integer
 from itools.datatypes import String, Unicode
 from itools.gettext import MSG
 

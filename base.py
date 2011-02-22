@@ -18,7 +18,6 @@
 
 # Import from itools
 from itools.core import merge_dicts, freeze
-from itools.csv import Property
 from itools.datatypes import PathDataType, Unicode
 from itools.uri import get_reference, Path
 from itools.web import get_context
