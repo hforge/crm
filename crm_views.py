@@ -21,7 +21,7 @@ from decimal import Decimal as dec
 # Import from itools
 from itools.core import merge_dicts, freeze
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, Decimal, String, Integer
+from itools.datatypes import Boolean, String, Integer
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
 from itools.web import STLView, ERROR, get_context

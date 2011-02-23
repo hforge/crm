@@ -22,18 +22,11 @@ from sys import argv
 from itools.core import get_abspath, get_version
 from itools.gettext import register_domain
 
-# Import from itws
-from itws.skin import register_not_allowed_cls_for_sidebar_view
-
 # Import from crm
 from crm import CRM
 
 # Make the product version available to Python code
 __version__ = get_version()
-
-############################################################################
-# DOMAIN
-############################################################################
 
 # Register the crm domain
 path = get_abspath('locale')
@@ -44,5 +37,5 @@ if argv[0].endswith('icms-update.py'):
     import obsolete
     print 'Imported', obsolete.__name__
 
-# Hide sidebar in crm root
-register_not_allowed_cls_for_sidebar_view(CRM)
+# Silent pyflakes
+CRM

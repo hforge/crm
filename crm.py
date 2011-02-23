@@ -51,6 +51,9 @@ class CRM(Folder):
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies',
             'contacts', 'missions']
 
+    # Hide itws sidebar
+    display_sidebar = False
+
     # Views
     missions = CRM_SearchMissions()
     contacts = CRM_SearchContacts()
