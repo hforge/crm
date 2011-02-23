@@ -589,8 +589,8 @@ class CRM_SearchContacts(CRM_Search):
     def sort_and_batch(self, resource, context, results):
         # Calculate the probable and assured amount
         for brain in results.get_documents():
-            self.assured += Decimal.decode(brain.crm_p_assured)
-            self.probable += Decimal.decode(brain.crm_p_probable)
+            self.assured += brain.crm_p_assured
+            self.probable += brain.crm_p_probable
 
         proxy = super(CRM_SearchContacts, self)
         return proxy.sort_and_batch(resource, context, results)

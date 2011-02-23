@@ -60,12 +60,14 @@ class Contact(CRMFolder):
         crm_p_description=Unicode(source='metadata'),
         crm_p_status=ContactStatus(source='metadata', indexed=True,
             stored=True),
-        crm_p_assured=Decimal(source='metadata', stored=True),
-        crm_p_probable=Decimal(source='metadata', stored=True),
-        crm_p_opportunity=Integer(source='metadata', stored=True),
-        crm_p_project=Integer(source='metadata', stored=True),
-        crm_p_nogo=Integer(source='metadata', stored=True),
-        comment=comment_datatype))
+        comment=comment_datatype,
+        # Store contact statistics
+        crm_p_assured=Decimal(stored=True),
+        crm_p_probable=Decimal(stored=True),
+        crm_p_opportunity=Integer(stored=True),
+        crm_p_project=Integer(stored=True),
+        crm_p_finished=Integer(stored=True),
+        crm_p_nogo=Integer(stored=True)))
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')
@@ -110,10 +112,11 @@ class Contact(CRMFolder):
 
         # Index assured amount (sum projects amounts)
         # Index probable amount (average missions amount by probability)
-        p_assured = p_probable = decimal('0.0')
+        assured = probable = decimal('0.0')
         cent = decimal('100.0')
         document['crm_p_opportunity'] = 0
         document['crm_p_project'] = 0
+        document['crm_p_finished'] = 0
         document['crm_p_nogo'] = 0
         missions = crm.get_resource('missions')
         contact = self.name
@@ -123,21 +126,23 @@ class Contact(CRMFolder):
                 continue
             status = get_property('crm_m_status')
             if status:
-                key = 'crm_p_%s' % status
-                document[key] += 1
+                document['crm_p_' + status] += 1
             if status == 'nogo':
                 continue
             # Get mission amount
-            m_amount = (get_property('crm_m_amount') or 0)
-            if status == 'project':
-                p_assured += m_amount
+            amount = (get_property('crm_m_amount') or 0)
+            if status in ('project', 'finished'):
+                assured += amount
             else:
                 # Get mission probability
-                m_probability = (get_property('crm_m_probability')or 0)
-                value = (m_probability * m_amount) / cent
-                p_probable += value
-        document['crm_p_assured'] = p_assured
-        document['crm_p_probable'] = p_probable
+                if status == 'finished':
+                    value = amount
+                else:
+                    probability = (get_property('crm_m_probability') or 0)
+                    value = (probability * amount) / cent
+                probable += value
+        document['crm_p_assured'] = assured
+        document['crm_p_probable'] = probable
 
         return document
 
