@@ -39,12 +39,10 @@ __version__ = get_version()
 path = get_abspath('locale')
 register_domain('crm', path)
 
-# Special for obsolete
 # Import obsolete if command is icms-update.py
 if argv[0].endswith('icms-update.py'):
     import obsolete
-    # Silent pyflakes
-    obsolete
+    print 'Imported', obsolete.__name__
 
 # Hide sidebar in crm root
 register_not_allowed_cls_for_sidebar_view(CRM)
