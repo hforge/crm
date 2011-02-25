@@ -7,8 +7,9 @@
 <div class="context-menu" stl:if="items">
   <div class="context-menu-title">${title}</div>
   <ul>
-    <li class="${item/class}" stl:repeat="item items">
-      <img stl:if="item/src" src="${item/src}" alt="" width="16" height="16" />
+    <li class="${item/css_class}" stl:repeat="item items">
+    <img stl:if="item/src" src="${item/src}" alt="" title="${item/src_title}"
+      width="16" height="16" />
       <strong stl:omit-tag="not item/selected"><a href="${item/href}"
           stl:omit-tag="not item/href">${item/title}</a></strong>
     </li>

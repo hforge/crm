@@ -15,20 +15,40 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from itools
+from itools.core import thingy
 from itools.database import OrQuery, PhraseQuery, AndQuery
 from itools.gettext import MSG
 from itools.web import get_context
 
 # Import from ikaaro
-from ikaaro.views import ContextMenu
+from ikaaro.utils import CMSTemplate
 
 # Import from crm
 from base_views import m_status_icons
+from datatypes import MissionStatus
 from utils import get_crm, get_crm_path_query, get_contact_title
 
 
-class ContactsMenu(ContextMenu):
+class item(thingy):
+    title = u""
+    src = None
+    src_title = None
+    href = None
+    css_class = None
+    selected = False
+
+
+
+class ContextMenu(CMSTemplate):
     template = '/ui/crm/generic/menu.xml'
+
+
+    def items(self):
+        raise NotImplementedError
+
+
+
+class ContactsMenu(ContextMenu):
     title = MSG(u"Related Contacts")
 
 
@@ -61,46 +81,46 @@ class ContactsMenu(ContextMenu):
         return brain.abspath == context.abspath
 
 
-    def get_items(self):
+    def items(self):
         context = get_context()
         resource = context.resource
         items = []
         for brain in self.get_contacts(context):
-            items.append({
-                'title': get_contact_title(brain, context),
-                'src': '/ui/crm/icons/16x16/contact.png',
-                'href': context.get_link(brain),
-                'selected': self.is_selected(brain, resource, context)})
+            items.append(item(
+                title=get_contact_title(brain, context),
+                src='/ui/crm/icons/16x16/contact.png',
+                href=context.get_link(brain),
+                selected=self.is_selected(brain, resource, context)))
         # New contact
         if resource.class_id == 'mission':
-            items.append({
-                'title': MSG(u"Link Existing Contact"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': ';add_contacts',
-                'selected': False})
+            items.append(item(
+                title=MSG(u"Link Existing Contact"),
+                src='/ui/icons/16x16/add.png',
+                href=';add_contacts',
+                selected=False))
             m_contact = resource.get_property('crm_m_contact')
             if m_contact:
                 contacts = resource.get_resource('../../contacts')
                 contact = contacts.get_resource(m_contact[0])
                 p_company = contact.get_property('crm_p_company')
-                items.append({
-                    'title': MSG(u"New Contact"),
-                    'src': '/ui/icons/16x16/add.png',
-                    'href': '../../contacts/?crm_p_company=' + p_company,
-                    'selected': False})
+                items.append(item(
+                    title=MSG(u"New Contact"),
+                    src='/ui/icons/16x16/add.png',
+                    href='../../contacts/?crm_p_company=' + p_company,
+                    selected=False))
         elif resource.class_id == 'contact':
             p_company = resource.get_property('crm_p_company')
-            items.append({
-                'title': MSG(u"New Contact"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': '../?crm_p_company=' + p_company,
-                'selected': False})
+            items.append(item(
+                title=MSG(u"New Contact"),
+                src='/ui/icons/16x16/add.png',
+                href='../?crm_p_company=' + p_company,
+                selected=False))
         elif resource.class_id == 'company':
-            items.append({
-                'title': MSG(u"New Contact"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': '../../contacts/?crm_p_company=' + resource.name,
-                'selected': False})
+            items.append(item(
+                title=MSG(u"New Contact"),
+                src='/ui/icons/16x16/add.png',
+                href='../../contacts/?crm_p_company=' + resource.name,
+                selected=False))
         return items
 
 
@@ -152,12 +172,11 @@ class ContactsByCompanyMenu(ContactsMenu):
 
 
 class MissionsMenu(ContextMenu):
-    template = '/ui/crm/generic/menu.xml'
     title = MSG(u"Related Missions")
     contact_menu = None
 
 
-    def get_items(self):
+    def items(self):
         context = get_context()
         resource = context.resource
         abspath = resource.abspath
@@ -176,36 +195,36 @@ class MissionsMenu(ContextMenu):
                 selected = brain.abspath == abspath
             elif resource.class_id == 'contact':
                 selected = (resource.name in brain.crm_m_contact)
-            items.append({
-                'title': brain.title,
-                'src': m_status_icons[brain.crm_m_status],
-                'href': context.get_link(brain),
-                'selected': selected})
+            items.append(item(
+                title=brain.title,
+                src=m_status_icons[brain.crm_m_status],
+                src_title=MissionStatus.get_value(brain.crm_m_status),
+                href=context.get_link(brain),
+                selected=selected))
         # New mission
         if resource.class_id == 'mission':
             m_contact = resource.get_property('crm_m_contact')[0]
-            items.append({
-                'title': MSG(u"New Mission"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': ('../;new_mission?crm_m_contact=' + m_contact),
-                'selected': False})
+            items.append(item(
+                title=MSG(u"New Mission"),
+                src='/ui/icons/16x16/add.png',
+                href=('../;new_mission?crm_m_contact=' + m_contact),
+                selected=False))
         elif resource.class_id == 'contact':
-            items.append({
-                'title': MSG(u"New Mission"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': ('../../missions/;new_mission?crm_m_contact=' +
+            items.append(item(
+                title=MSG(u"New Mission"),
+                src='/ui/icons/16x16/add.png',
+                href=('../../missions/;new_mission?crm_m_contact=' +
                     resource.name),
-                'selected': False})
+                selected=False))
         return items
 
 
 
 class CompaniesMenu(ContextMenu):
-    template = '/ui/crm/generic/menu.xml'
     title = u"Related Companies"
 
 
-    def get_items(self):
+    def items(self):
         context = get_context()
         resource = context.resource
         items = []
@@ -224,34 +243,33 @@ class CompaniesMenu(ContextMenu):
             companies = resource.get_resource('../../companies')
             for p_company in todo:
                 company = companies.get_resource(p_company)
-                items.append({
-                    'title': company.get_property('title'),
-                    'src': '/ui/crm/icons/16x16/company.png',
-                    'href': context.get_link(company),
-                    'selected': True})
-        items.append({
-            'title': MSG(u"New Company"),
-            'src': '/ui/icons/16x16/add.png',
-            'href': context.get_link(companies),
-            'selected': False})
+                items.append(item(
+                    title=company.get_property('title'),
+                    src='/ui/crm/icons/16x16/company.png',
+                    href=context.get_link(company),
+                    selected=True))
+        items.append(item(
+            title=MSG(u"New Company"),
+            src='/ui/icons/16x16/add.png',
+            href=context.get_link(companies),
+            selected=False))
         return items
 
 
 
 class CompanyMenu(ContextMenu):
-    template = '/ui/crm/generic/menu.xml'
     title = MSG(u"New Company")
     contact_menu = None
 
 
-    def get_items(self):
+    def items(self):
         context = get_context()
         resource = context.resource
         items = []
         if resource.class_id == 'company':
-            items.append({
-                'title': MSG(u"New Company"),
-                'src': '/ui/icons/16x16/add.png',
-                'href': '..',
-                'selected': False})
+            items.append(item(
+                title=MSG(u"New Company"),
+                src='/ui/icons/16x16/add.png',
+                href='..',
+                selected=False))
         return items
