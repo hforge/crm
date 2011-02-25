@@ -23,6 +23,7 @@ from itools.web import get_context
 from ikaaro.views import ContextMenu
 
 # Import from crm
+from base_views import m_status_icons
 from utils import get_crm, get_crm_path_query, get_contact_title
 
 
@@ -177,7 +178,7 @@ class MissionsMenu(ContextMenu):
                 selected = (resource.name in brain.crm_m_contact)
             items.append({
                 'title': brain.title,
-                'src': '/ui/crm/icons/16x16/mission.png',
+                'src': m_status_icons[brain.crm_m_status],
                 'href': context.get_link(brain),
                 'selected': selected})
         # New mission
