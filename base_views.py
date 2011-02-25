@@ -33,15 +33,11 @@ from ikaaro.popup import DBResource_AddImage
 # Import from crm
 
 
-p_status_icons = {
-    'lead': '/ui/crm/icons/16x16/status_yellow.gif',
-    'client': '/ui/crm/icons/16x16/status_green.gif',
-    'dead': '/ui/crm/icons/16x16/status_gray.gif' }
 m_status_icons = {
-    'opportunity': '/ui/crm/icons/16x16/status_yellow.gif',
-    'project': '/ui/crm/icons/16x16/status_green.gif',
-    'finished': '/ui/crm/icons/16x16/status_blue.gif',
-    'nogo': '/ui/crm/icons/16x16/status_gray.gif' }
+    'opportunity': '/ui/crm/icons/16x16/mission.png',
+    'project': '/ui/crm/icons/16x16/project.png',
+    'finished': '/ui/crm/icons/16x16/finished.png',
+    'nogo': '/ui/crm/icons/16x16/nogo.png' }
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 DUMMY_COMMENT = u"_"

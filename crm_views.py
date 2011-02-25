@@ -36,7 +36,7 @@ from ikaaro.views import SearchForm
 from itws.tags import TagsList
 
 # Import from crm
-from base_views import m_status_icons, p_status_icons, format_amount
+from base_views import m_status_icons, format_amount
 from base_views import REMOVE_ALERT_MSG
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
@@ -487,7 +487,6 @@ class CRM_SearchContacts(CRM_Search):
         ('crm_p_lastname', MSG(u"Last Name")),
         ('crm_p_firstname', MSG(u"First Name")),
         ('company', MSG(u"Company")),
-        ('crm_p_status', MSG(u"Status")),
         ('crm_p_email', MSG(u"E-mail")),
         ('crm_m_title', MSG(u"Mission")),
         ('crm_m_amount', MSG(u"Amount")),
@@ -530,10 +529,7 @@ class CRM_SearchContacts(CRM_Search):
 
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
-        if column == 'icon':
-            # Status
-            return p_status_icons[item_brain.crm_p_status]
-        elif column == 'title':
+        if column == 'title':
             value = get_name(item_brain)
             href = '%s/' % context.get_link(item_resource)
             return value, href
