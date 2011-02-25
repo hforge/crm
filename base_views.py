@@ -132,8 +132,7 @@ class Comments_View(STLView):
         path_to_resource = context.get_link(resource)
         namespace = {
             'comments': ns_comments,
-            'path_to_resource': path_to_resource,
-            'msg_alert': REMOVE_ALERT_MSG }
+            'path_to_resource': path_to_resource}
         return namespace
 
 

@@ -28,7 +28,6 @@ from itools.web import STLView, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import TextWidget, SelectWidget
-from ikaaro.buttons import RemoveButton
 from ikaaro.messages import MSG_CHANGES_SAVED
 from ikaaro.views import SearchForm
 
@@ -37,7 +36,6 @@ from itws.tags import TagsList
 
 # Import from crm
 from base_views import m_status_icons, format_amount
-from base_views import REMOVE_ALERT_MSG
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
@@ -229,9 +227,7 @@ class CRM_SearchMissions(CRM_Search):
         ('company', MSG(u'Company'), True),
         ('assigned', MSG(u'Assigned To'), True),
         ('mtime', MSG(u'Last Modified'), True)])
-    table_actions = freeze([
-        RemoveButton(name='remove', title=MSG(u'Remove alert'),
-            confirm=REMOVE_ALERT_MSG)])
+    table_actions = freeze([])
 
     csv_columns = freeze([
         ('crm_m_alert', MSG(u"Alert")),
