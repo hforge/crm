@@ -44,7 +44,7 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
-PHONE = MSG(u'<img src="{icon}"/>{phone}')
+PHONE = MSG(u'<img src="{icon}" class="icon phone"/>{phone}')
 STATUS_ICON = MSG(u'<img src="{icon}" title="{title}"/>',
         format='replace_html')
 

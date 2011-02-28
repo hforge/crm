@@ -263,3 +263,7 @@ fieldset#company legend a {
 .ms2side__div select {
   width: 200px !important;
 }
+
+.icon.phone {
+  vertical-align: top;
+}
