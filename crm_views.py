@@ -471,12 +471,13 @@ class CRM_SearchContacts(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True)])
 
     csv_columns = freeze([
-        ('crm_p_lastname', MSG(u"Last Name")),
-        ('crm_p_firstname', MSG(u"First Name")),
-        ('company', MSG(u"Company")),
-        ('crm_p_email', MSG(u"E-mail Address")),
-        ('crm_p_phone', MSG(u"Phone")),
-        ('crm_p_mobile', MSG(u"Mobile Phone")),
+        # Not translated for Gmail
+        ('crm_p_lastname', u"Last Name"),
+        ('crm_p_firstname', u"First Name"),
+        ('company', u"Company"),
+        ('crm_p_email', u"E-mail Address"),
+        ('crm_p_phone', u"Business Phone"),
+        ('crm_p_mobile', u"Mobile Phone"),
         ('crm_m_title', MSG(u"Mission")),
         ('crm_m_amount', MSG(u"Amount")),
         ('crm_m_probability', MSG(u"Probability")),

@@ -80,8 +80,12 @@ class CSV_Export(object):
         csv = CSVFile()
 
         # Add the header
-        csv.add_row([title.gettext().encode(encoding)
-            for name, title in self.csv_columns])
+        row = []
+        for name, title in self.csv_columns:
+            if is_thingy(title, MSG):
+                title = title.gettext()
+            row.append(title.encode(encoding))
+        csv.add_row(row)
 
         # Fill the CSV
         resource_class = get_resource_class(self.search_format)
