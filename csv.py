@@ -20,7 +20,7 @@ from decimal import Decimal as dec
 # Import from itools
 from itools.core import freeze, is_thingy
 from itools.csv import CSVFile
-from itools.datatypes import Enumerate
+from itools.datatypes import Enumerate, String
 from itools.gettext import MSG
 from itools.stl import stl
 from itools.web import ERROR
@@ -50,6 +50,23 @@ class CSV_Export(object):
         namespace['editor'] = SelectWidget('editor', value='excel',
                 datatype=CSVEditor, has_empty_option=False)
         return namespace
+
+
+    def get_csv_datatype(self, name):
+        if name.startswith('crm_m_'):
+            format = 'mission'
+        elif name.startswith('crm_p_'):
+            format = 'contact'
+        elif name.startswith('crm_c_'):
+            format = 'company'
+        else:
+            raise ValueError, name
+        resource_class = get_resource_class(format)
+        try:
+            return resource_class.get_property_datatype(name)
+        except ValueError:
+            return String
+
 
 
     def get_namespace(self, resource, context):
@@ -88,7 +105,6 @@ class CSV_Export(object):
         csv.add_row(row)
 
         # Fill the CSV
-        resource_class = get_resource_class(self.search_format)
         cache = {}
         for item in items:
             row = []
@@ -102,12 +118,8 @@ class CSV_Export(object):
                 elif type(value) is unicode:
                     data = value.encode(encoding, 'replace')
                 else:
-                    try:
-                        datatype = resource_class.get_property_datatype(name)
-                    except ValueError:
-                        datatype = None
-                    if (datatype is not None
-                            and issubclass(datatype, Enumerate)):
+                    datatype = self.get_csv_datatype(name)
+                    if issubclass(datatype, Enumerate):
                         value = datatype.get_value(value)
                         if is_thingy(value, MSG):
                             value = value.gettext()
