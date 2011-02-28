@@ -267,3 +267,10 @@ fieldset#company legend a {
 .icon.phone {
   vertical-align: top;
 }
+
+.crmbar16 {
+  background-image: url("/ui/crm/icons/16x16/sprites.png");
+}
+.crmbar16.mission { background-position: -2px -2px; }
+.crmbar16.contact { background-position: -2px -20px; }
+.crmbar16.company { background-position: -2px -38px; }

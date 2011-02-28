@@ -43,7 +43,8 @@ class Company(CRMFolder):
     class_icon16 = 'crm/icons/16x16/company.png'
     class_icon48 = 'crm/icons/48x48/company.png'
 
-    class_views = ['view', 'browse_content']
+    class_views = ['view', 'goto_missions', 'goto_contacts',
+            'goto_companies']
 
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,

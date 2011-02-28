@@ -45,7 +45,7 @@ class Contact(CRMFolder):
     class_icon16 = 'crm/icons/16x16/contact.png'
     class_icon48 = 'crm/icons/48x48/contact.png'
 
-    class_views = ['view']
+    class_views = ['view', 'goto_missions', 'goto_contacts', 'goto_companies']
 
     # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = freeze(merge_dicts(

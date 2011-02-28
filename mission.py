@@ -48,7 +48,8 @@ class Mission(CRMFolder):
     class_title = MSG(u'Mission')
     class_icon16 = 'crm/icons/16x16/mission.png'
     class_icon48 = 'crm/icons/48x48/mission.png'
-    class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
+    class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts',
+            'goto_missions', 'goto_contacts', 'goto_companies']
 
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,

@@ -19,12 +19,14 @@
 # Import from itools
 from itools.core import merge_dicts, freeze
 from itools.datatypes import PathDataType, Unicode
+from itools.gettext import MSG
 from itools.uri import get_reference, Path
 from itools.web import get_context
 
 # Import from ikaaro
 from ikaaro.access import RoleAware
 from ikaaro.folder import Folder
+from ikaaro.folder_views import GoToSpecificDocument
 
 # Import from itws
 from itws.tags import TagsAware
@@ -48,6 +50,21 @@ class CRMFolder(TagsAware, RoleAware, Folder):
 
     # Views
     add_logo = CRMFolder_AddImage()
+    goto_missions = GoToSpecificDocument(
+            title=MSG(u"Missions"),
+            specific_document='../..',
+            specific_view='missions',
+            adminbar_icon='crmbar16 mission')
+    goto_contacts = GoToSpecificDocument(
+            title=MSG(u"Contacts"),
+            specific_document='../..',
+            specific_view='contacts',
+            adminbar_icon='crmbar16 contact')
+    goto_companies = GoToSpecificDocument(
+            title=MSG(u"Companies"),
+            specific_document='../..',
+            specific_view='companies',
+            adminbar_icon='crmbar16 company')
 
 
     def init_resource(self, **kw):
