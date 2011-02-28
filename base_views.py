@@ -38,6 +38,15 @@ m_status_icons = {
     'project': '/ui/crm/icons/16x16/project.png',
     'finished': '/ui/crm/icons/16x16/finished.png',
     'nogo': '/ui/crm/icons/16x16/nogo.png' }
+alert_icons = {
+    'past': '/ui/crm/icons/16x16/bell_notification.png',
+    'now': '/ui/crm/icons/16x16/bell_error.png',
+    'future': '/ui/crm/icons/16x16/bell_go.png'}
+phone_icons = {
+    'crm_p_phone': '/ui/crm/icons/16x16/phone.png',
+    'crm_p_mobile': '/ui/crm/icons/16x16/mobile.png',
+    'crm_c_phone': '/ui/crm/icons/16x16/phone.png',
+    'crm_c_fax': '/ui/crm/icons/16x16/fax.png'}
 
 REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
 DUMMY_COMMENT = u"_"

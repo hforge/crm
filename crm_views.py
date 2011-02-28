@@ -35,20 +35,16 @@ from ikaaro.views import SearchForm
 from itws.tags import TagsList
 
 # Import from crm
-from base_views import m_status_icons, format_amount
+from base_views import m_status_icons, phone_icons, alert_icons
+from base_views import format_amount
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
-
-ALERT_ICON_PAST = '/ui/crm/icons/16x16/bell_notification.png'
-ALERT_ICON_NOW = '/ui/crm/icons/16x16/bell_error.png'
-ALERT_ICON_FUTURE = '/ui/crm/icons/16x16/bell_go.png'
-
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
-
+PHONE = MSG(u'<img src="{icon}"/>{phone}')
 STATUS_ICON = MSG(u'<img src="{icon}" title="{title}"/>',
         format='replace_html')
 
@@ -57,20 +53,15 @@ def two_lines(one, two):
     return TWO_LINES.gettext(one=one, two=two)
 
 
-phone_messages = {
-    'crm_p_phone': MSG(u"{phone}"),
-    'crm_p_mobile': MSG(u"Mobile:\u00a0{phone}"),
-    'crm_c_phone': MSG(u"{phone}"),
-    'crm_c_fax': MSG(u"Fax:\u00a0{phone}")}
-
 def get_phones(brain, *fields):
     phones = []
     for field in fields:
         value = getattr(brain, field)
         if not value:
             continue
-        message = phone_messages[field]
-        phones.append(message.gettext(phone=value))
+        icon = phone_icons[field]
+        phone = value.replace(u" ", u"\u00a0")
+        phones.append(PHONE.gettext(icon=icon, phone=phone))
     if not phones:
         return None
     return MSG(u"<br/>".join(phones), format='html')
@@ -373,10 +364,10 @@ class CRM_SearchMissions(CRM_Search):
             if alert is None:
                 return None
             elif alert.date() < date.today():
-                return ALERT_ICON_PAST
+                return alert_icons['past']
             elif alert < datetime.now():
-                return ALERT_ICON_NOW
-            return ALERT_ICON_FUTURE
+                return alert_icons['now']
+            return alert_icons['future']
         elif column == 'crm_m_alert':
             alert = item_brain.crm_m_alert
             if alert:
