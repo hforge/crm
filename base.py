@@ -18,7 +18,7 @@
 
 # Import from itools
 from itools.core import merge_dicts, freeze
-from itools.datatypes import PathDataType, Unicode
+from itools.datatypes import PathDataType, Unicode, String
 from itools.gettext import MSG
 from itools.uri import get_reference, Path
 from itools.web import get_context
@@ -41,11 +41,12 @@ class CRMFolder(TagsAware, RoleAware, Folder):
     """
     class_version = '20100912'
     class_document_types = []
-
+    class_sprite16 = None
     class_schema = freeze(merge_dicts(
         Folder.class_schema,
         RoleAware.class_schema,
         TagsAware.class_schema,
+        sprite16=String(stored=True),
         comment=Unicode(source='metadata', mandatory=True, multiple=True)))
 
     # Views
@@ -54,17 +55,17 @@ class CRMFolder(TagsAware, RoleAware, Folder):
             title=MSG(u"Missions"),
             specific_document='../..',
             specific_view='missions',
-            adminbar_icon='crmbar16 mission')
+            adminbar_icon='crmsprites16 mission-go')
     goto_contacts = GoToSpecificDocument(
             title=MSG(u"Contacts"),
             specific_document='../..',
             specific_view='contacts',
-            adminbar_icon='crmbar16 contact')
+            adminbar_icon='crmsprites16 contact-go')
     goto_companies = GoToSpecificDocument(
             title=MSG(u"Companies"),
             specific_document='../..',
             specific_view='companies',
-            adminbar_icon='crmbar16 company')
+            adminbar_icon='crmsprites16 company-go')
 
 
     def init_resource(self, **kw):
@@ -78,8 +79,9 @@ class CRMFolder(TagsAware, RoleAware, Folder):
 
     def get_catalog_values(self):
         return merge_dicts(
-                Folder.get_catalog_values(self),
-                TagsAware.get_catalog_values(self))
+            Folder.get_catalog_values(self),
+            TagsAware.get_catalog_values(self),
+            sprite16=self.class_sprite16)
 
 
     def get_edit_languages(self, context):

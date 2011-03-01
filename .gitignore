@@ -1,8 +1,7 @@
-Makefile
-build
-dist
 version.txt
 MANIFEST
+build
+dist
 *.swp
 *.swo
 *.pyc

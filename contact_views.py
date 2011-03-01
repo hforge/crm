@@ -38,7 +38,7 @@ from itws.tags import TagsAware_Edit
 
 # Import from crm
 from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
-from base_views import monolingual_widgets
+from base_views import monolingual_widgets, ICON
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
@@ -299,7 +299,7 @@ class Contact_SearchMissions(SearchForm):
         ('text', MSG(u'Text')) ])
 
     table_columns = freeze([
-        ('icon', None, False),
+        ('sprite', None, False),
         ('title', MSG(u'Title'), True),
         ('crm_m_nextaction', MSG(u'Next action'), True),
         ('crm_m_amount', MSG(u'Amount'), False),
@@ -356,10 +356,10 @@ class Contact_SearchMissions(SearchForm):
             # checkbox
             return item_brain.name, False
         get_property = item_resource.get_property
-        if column == 'icon':
+        if column == 'sprite':
             # Status
             value = get_property('crm_m_status')
-            return m_status_icons[value]
+            return ICON(icon=m_status_icons[value])
         # FIXME
         elif column == 'title':
             # Title

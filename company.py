@@ -42,7 +42,7 @@ class Company(CRMFolder):
     class_title = MSG(u'Company')
     class_icon16 = 'crm/icons/16x16/company.png'
     class_icon48 = 'crm/icons/48x48/company.png'
-
+    class_sprite16 = 'company'
     class_views = ['view', 'goto_missions', 'goto_contacts',
             'goto_companies']
 

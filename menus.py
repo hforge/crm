@@ -88,14 +88,14 @@ class ContactsMenu(ContextMenu):
         for brain in self.get_contacts(context):
             items.append(item(
                 title=get_contact_title(brain, context),
-                src='/ui/crm/icons/16x16/contact.png',
+                icon='contact',
                 href=context.get_link(brain),
                 selected=self.is_selected(brain, resource, context)))
         # New contact
         if resource.class_id == 'mission':
             items.append(item(
                 title=MSG(u"Link Existing Contact"),
-                src='/ui/icons/16x16/add.png',
+                icon='contact-add',
                 href=';add_contacts',
                 selected=False))
             m_contact = resource.get_property('crm_m_contact')
@@ -105,20 +105,20 @@ class ContactsMenu(ContextMenu):
                 p_company = contact.get_property('crm_p_company')
                 items.append(item(
                     title=MSG(u"New Contact"),
-                    src='/ui/icons/16x16/add.png',
+                    icon='contact-add',
                     href='../../contacts/?crm_p_company=' + p_company,
                     selected=False))
         elif resource.class_id == 'contact':
             p_company = resource.get_property('crm_p_company')
             items.append(item(
                 title=MSG(u"New Contact"),
-                src='/ui/icons/16x16/add.png',
+                icon='contact-add',
                 href='../?crm_p_company=' + p_company,
                 selected=False))
         elif resource.class_id == 'company':
             items.append(item(
                 title=MSG(u"New Contact"),
-                src='/ui/icons/16x16/add.png',
+                icon='contact-add',
                 href='../../contacts/?crm_p_company=' + resource.name,
                 selected=False))
         return items
@@ -197,7 +197,7 @@ class MissionsMenu(ContextMenu):
                 selected = (resource.name in brain.crm_m_contact)
             items.append(item(
                 title=brain.title,
-                src=m_status_icons[brain.crm_m_status],
+                icon=m_status_icons[brain.crm_m_status],
                 src_title=MissionStatus.get_value(brain.crm_m_status),
                 href=context.get_link(brain),
                 selected=selected))
@@ -206,13 +206,13 @@ class MissionsMenu(ContextMenu):
             m_contact = resource.get_property('crm_m_contact')[0]
             items.append(item(
                 title=MSG(u"New Mission"),
-                src='/ui/icons/16x16/add.png',
+                icon='mission-add',
                 href=('../;new_mission?crm_m_contact=' + m_contact),
                 selected=False))
         elif resource.class_id == 'contact':
             items.append(item(
                 title=MSG(u"New Mission"),
-                src='/ui/icons/16x16/add.png',
+                icon='mission-add',
                 href=('../../missions/;new_mission?crm_m_contact=' +
                     resource.name),
                 selected=False))
@@ -245,12 +245,12 @@ class CompaniesMenu(ContextMenu):
                 company = companies.get_resource(p_company)
                 items.append(item(
                     title=company.get_property('title'),
-                    src='/ui/crm/icons/16x16/company.png',
+                    icon='company',
                     href=context.get_link(company),
                     selected=True))
         items.append(item(
             title=MSG(u"New Company"),
-            src='/ui/icons/16x16/add.png',
+            icon='company-add',
             href=context.get_link(companies),
             selected=False))
         return items
@@ -269,7 +269,7 @@ class CompanyMenu(ContextMenu):
         if resource.class_id == 'company':
             items.append(item(
                 title=MSG(u"New Company"),
-                src='/ui/icons/16x16/add.png',
+                icon='company-add',
                 href='..',
                 selected=False))
         return items

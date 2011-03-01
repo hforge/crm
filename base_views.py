@@ -34,21 +34,28 @@ from ikaaro.popup import DBResource_AddImage
 
 
 m_status_icons = {
-    'opportunity': '/ui/crm/icons/16x16/mission.png',
-    'project': '/ui/crm/icons/16x16/project.png',
-    'finished': '/ui/crm/icons/16x16/finished.png',
-    'nogo': '/ui/crm/icons/16x16/nogo.png' }
+    'opportunity': 'mission',
+    'project': 'project',
+    'finished': 'finished',
+    'nogo': 'nogo'}
 alert_icons = {
-    'past': '/ui/crm/icons/16x16/bell_notification.png',
-    'now': '/ui/crm/icons/16x16/bell_error.png',
-    'future': '/ui/crm/icons/16x16/bell_go.png'}
+    'past': 'bell-notification',
+    'now': 'bell-error',
+    'future': 'bell-go'}
 phone_icons = {
-    'crm_p_phone': '/ui/crm/icons/16x16/phone.png',
-    'crm_p_mobile': '/ui/crm/icons/16x16/mobile.png',
-    'crm_c_phone': '/ui/crm/icons/16x16/phone.png',
-    'crm_c_fax': '/ui/crm/icons/16x16/fax.png'}
+    'crm_p_phone': 'phone',
+    'crm_p_mobile': 'mobile',
+    'crm_c_phone': 'phone',
+    'crm_c_fax': 'fax'}
 
-REMOVE_ALERT_MSG = MSG(u"""Are you sure you want to remove this alert?""")
+ICON = MSG(u'<img class="crmsprites16 {icon}" '
+        u'src="/ui/crm/images/1x1.gif"/>',
+        format='replace_html')
+ICON_TITLE = MSG(u'<img class="crmsprites16 {icon}" '
+        u'title="{title}" '
+        u'src="/ui/crm/images/1x1.gif"/>',
+        format='replace_html')
+
 DUMMY_COMMENT = u"_"
 
 

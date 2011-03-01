@@ -48,7 +48,7 @@
             ${widgets/crm_m_nextaction/widget}
           </td>
           <td>
-            <img src="/ui/crm/icons/16x16/bell_add.png" />
+            <img src="/ui/crm/images/1x1.gif" class="crmsprites16 nofloat bell-go"/>
             <label for="${widgets/alert_date/name}">
               ${widgets/alert_date/title}
             </label>

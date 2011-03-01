@@ -36,7 +36,7 @@ from itws.tags import TagsList
 
 # Import from crm
 from base_views import m_status_icons, phone_icons, alert_icons
-from base_views import format_amount
+from base_views import format_amount, ICON, ICON_TITLE
 from csv import CSV_Export
 from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
@@ -44,9 +44,6 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
-PHONE = MSG(u'<img src="{icon}" class="icon phone"/>{phone}')
-STATUS_ICON = MSG(u'<img src="{icon}" title="{title}"/>',
-        format='replace_html')
 
 
 def two_lines(one, two):
@@ -59,9 +56,9 @@ def get_phones(brain, *fields):
         value = getattr(brain, field)
         if not value:
             continue
-        icon = phone_icons[field]
-        phone = value.replace(u" ", u"\u00a0")
-        phones.append(PHONE.gettext(icon=icon, phone=phone))
+        icon = u"nofloat " + phone_icons[field]
+        icon = ICON(format='replace').gettext(icon=icon)
+        phones.append(icon + value.replace(u" ", u"\u00a0"))
     if not phones:
         return None
     return MSG(u"<br/>".join(phones), format='html')
@@ -143,8 +140,8 @@ class CRM_Search(CSV_Export, SearchForm):
         item_brain, item_resource = item
         if column == 'checkbox':
             return item_brain.name, False
-        elif column == 'icon':
-            return item_resource.get_class_icon()
+        elif column == 'sprite':
+            return ICON(icon=item_brain.sprite16)
         elif column == 'title':
             href = context.get_link(item_resource)
             return item_brain.title, href
@@ -198,7 +195,7 @@ class CRM_SearchMissions(CRM_Search):
     query_schema = freeze(merge_dicts(
         CRM_Search.query_schema,
         batch_size=Integer(default=100),
-        sort_by=String(default='icon'),
+        sort_by=String(default='alert'),
         reverse=Boolean(default=False)))
 
     search_template = '/ui/crm/crm/search_missions.xml'
@@ -209,7 +206,7 @@ class CRM_SearchMissions(CRM_Search):
     search_format = 'mission'
 
     table_columns = freeze([
-        ('icon', MSG(u" "), True),
+        ('alert', MSG(u" "), True),
         ('crm_m_alert', MSG(u"Alert"), True),
         ('status', MSG(u" "), True),
         ('title', MSG(u'Mission'), True),
@@ -274,7 +271,7 @@ class CRM_SearchMissions(CRM_Search):
         return context.root.search(query)
 
 
-    def get_key_sorted_by_icon(self):
+    def get_key_sorted_by_alert(self):
         today = date.today()
         def key(item):
             alert = item.crm_m_alert
@@ -359,15 +356,15 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
-        if column == 'icon':
+        if column == 'alert':
             alert = item_brain.crm_m_alert
             if alert is None:
                 return None
             elif alert.date() < date.today():
-                return alert_icons['past']
+                return ICON(icon=alert_icons['past'])
             elif alert < datetime.now():
-                return alert_icons['now']
-            return alert_icons['future']
+                return ICON(icon=alert_icons['now'])
+            return ICON(icon=alert_icons['future'])
         elif column == 'crm_m_alert':
             alert = item_brain.crm_m_alert
             if alert:
@@ -378,7 +375,7 @@ class CRM_SearchMissions(CRM_Search):
             m_status = item_brain.crm_m_status
             icon = m_status_icons[m_status]
             title = MissionStatusShortened.get_value(m_status)
-            return STATUS_ICON(icon=icon, title=title)
+            return ICON_TITLE(icon=icon, title=title)
         elif column in ('contacts', 'contacts_csv'):
             m_contacts = item_brain.crm_m_contact
             query = [PhraseQuery('name', name) for name in m_contacts]
@@ -457,7 +454,7 @@ class CRM_SearchContacts(CRM_Search):
     search_format = 'contact'
 
     table_columns = freeze([
-        ('icon', None, False),
+        ('sprite', None, False),
         ('title', MSG(u'Contact'), True),
         ('company', MSG(u'Company'), False),
         ('email', MSG(u'Email'), False),
@@ -603,7 +600,7 @@ class CRM_SearchCompanies(CRM_Search):
     search_format = 'company'
 
     table_columns = [
-        ('icon', None, False),
+        ('sprite', None, False),
         ('title', MSG(u'Company'), True),
         ('address', MSG(u'Address'), True),
         ('phones', MSG(u'Phone'), True),
@@ -631,13 +628,7 @@ class CRM_SearchCompanies(CRM_Search):
     def get_item_value(self, resource, context, item, column, cache={}):
         proxy = super(CRM_SearchCompanies, self)
         item_brain, item_resource = item
-        if column == 'icon':
-            logo = item_brain.crm_c_logo
-            if not logo or logo == '.':
-                return proxy.get_item_value(resource, context, item, column,
-                        cache={})
-            return context.get_link(item_resource.get_resource(logo))
-        elif column == 'address':
+        if column == 'address':
             return merge_columns(item_brain, 'crm_c_address_1',
                     'crm_c_address_2', 'crm_c_zipcode', 'crm_c_town',
                     'crm_c_country')

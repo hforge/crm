@@ -44,7 +44,7 @@ class Contact(CRMFolder):
     class_title = MSG(u'Contact')
     class_icon16 = 'crm/icons/16x16/contact.png'
     class_icon48 = 'crm/icons/48x48/contact.png'
-
+    class_sprite16 = 'contact'
     class_views = ['view', 'goto_missions', 'goto_contacts', 'goto_companies']
 
     # The class used to be named "Prospect" so the prefix is "p_"

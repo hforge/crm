@@ -46,7 +46,7 @@ class CRM(Folder):
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
     class_views = ['alerts', 'missions', 'contacts', 'companies',
-            'goto_contacts', 'goto_companies', 'browse_content', 'edit']
+            'goto_contacts', 'goto_companies']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies',
             'contacts', 'missions']
@@ -62,8 +62,10 @@ class CRM(Folder):
     preview_content = Folder_BrowseContent(access='is_allowed_to_edit')
     backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
     goto_contacts = GoToSpecificDocument(specific_document='contacts',
+        adminbar_icon='crmsprites16 contact-add',
         title=MSG(u'New contact'), access='is_allowed_to_edit')
     goto_companies = GoToSpecificDocument(specific_document='companies',
+        adminbar_icon='crmsprites16 company-add',
         title=MSG(u'New company'), access='is_allowed_to_edit')
     test = CRM_Test()
 
