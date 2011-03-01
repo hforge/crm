@@ -15,20 +15,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import date, datetime
+from datetime import date, time, datetime, timedelta
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.core import merge_dicts, freeze
+from itools.core import merge_dicts, freeze, thingy_property
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, String, Integer
+from itools.datatypes import Boolean, String, Integer, Date
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
-from itools.web import STLView, get_context
+from itools.web import STLView, get_context, INFO
 
 # Import from ikaaro
-from ikaaro.autoform import TextWidget, SelectWidget
+from ikaaro.autoform import TextWidget, SelectWidget, DateWidget
 from ikaaro.buttons import BrowseButton
+from ikaaro.utils import make_stl_template
 from ikaaro.views import SearchForm
 
 # Import from itws
@@ -44,6 +45,8 @@ from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
 TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
+MSG_MISSIONS_POSTPONED = INFO(u"Missions postponed to {postpone}: "
+        u"{missions}.", format='replace_html')
 
 
 def two_lines(one, two):
@@ -190,12 +193,21 @@ class CRM_Search(CSV_Export, SearchForm):
 
 
 
-class PostponeAlerts(BrowseButton):
+class PostponeAlerts(DateWidget, BrowseButton):
     access = 'is_allowed_to_edit'
+    template = (make_stl_template('''
+        Postpone selected alerts to''')
+        + DateWidget.template
+        + BrowseButton.template)
     name = 'postpone'
-    title = MSG(u"Postpone Alerts")
+    title = MSG(u"Postpone")
     css = 'button-calendar'
     confirm = MSG(u"Are you sure you want to postpone the selected alerts?")
+
+
+    @thingy_property
+    def value_(cls):
+        return str(date.today() + timedelta(days=1))
 
 
 
@@ -226,7 +238,11 @@ class CRM_SearchMissions(CRM_Search):
         ('assigned', MSG(u'Assigned To'), True),
         ('mtime', MSG(u'Last Modified'), True)])
     table_actions = freeze([
-        PostponeAlerts()])
+        PostponeAlerts])
+
+    action_postpone_schema = freeze({
+        'ids': String(multiple=True, mandatory=False),
+        'postpone': Date(mandatory=False)})
 
     csv_columns = freeze([
         ('crm_m_alert', MSG(u"Alert")),
@@ -436,6 +452,23 @@ class CRM_SearchMissions(CRM_Search):
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
                 context, item, column, cache=cache)
+
+
+    def action_postpone(self, resource, context, form):
+        postpone = form['postpone']
+        alert = datetime.combine(postpone, time(9, 0))
+        pattern = MSG(u'<a href="{path}">{title}</a>', format='replace')
+        missions = []
+        for path in form['ids']:
+            mission = resource.get_resource(path)
+            mission.set_property('crm_m_alert', alert)
+            missions.append(pattern.gettext(path=path,
+                title=mission.get_title()))
+
+        postpone = context.format_date(postpone)
+        missions = u", ".join(missions)
+        context.message = MSG_MISSIONS_POSTPONED(postpone=postpone,
+                missions=missions)
 
 
 
