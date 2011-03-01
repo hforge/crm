@@ -24,11 +24,11 @@ from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Boolean, String, Integer
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
-from itools.web import STLView, ERROR, get_context
+from itools.web import STLView, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import TextWidget, SelectWidget
-from ikaaro.messages import MSG_CHANGES_SAVED
+from ikaaro.buttons import BrowseButton
 from ikaaro.views import SearchForm
 
 # Import from itws
@@ -190,6 +190,15 @@ class CRM_Search(CSV_Export, SearchForm):
 
 
 
+class PostponeAlerts(BrowseButton):
+    access = 'is_allowed_to_edit'
+    name = 'postpone'
+    title = MSG(u"Postpone Alerts")
+    css = 'button-calendar'
+    confirm = MSG(u"Are you sure you want to postpone the selected alerts?")
+
+
+
 class CRM_SearchMissions(CRM_Search):
     title = MSG(u'Missions')
     query_schema = freeze(merge_dicts(
@@ -206,6 +215,7 @@ class CRM_SearchMissions(CRM_Search):
     search_format = 'mission'
 
     table_columns = freeze([
+        ('checkbox', None, False),
         ('alert', MSG(u" "), True),
         ('crm_m_alert', MSG(u"Alert"), True),
         ('status', MSG(u" "), True),
@@ -215,7 +225,8 @@ class CRM_SearchMissions(CRM_Search):
         ('company', MSG(u'Company'), True),
         ('assigned', MSG(u'Assigned To'), True),
         ('mtime', MSG(u'Last Modified'), True)])
-    table_actions = freeze([])
+    table_actions = freeze([
+        PostponeAlerts()])
 
     csv_columns = freeze([
         ('crm_m_alert', MSG(u"Alert")),
@@ -356,7 +367,16 @@ class CRM_SearchMissions(CRM_Search):
 
     def get_item_value(self, resource, context, item, column, cache={}):
         item_brain, item_resource = item
-        if column == 'alert':
+        if column == 'checkbox':
+            parent = item_resource.parent
+            if parent is None:
+                return None
+            if item_resource.name in parent.__fixed_handlers__:
+                return None
+            id = resource.get_canonical_path().get_pathto(item_brain.abspath)
+            id = str(id)
+            return id, False
+        elif column == 'alert':
             alert = item_brain.crm_m_alert
             if alert is None:
                 return None
@@ -416,30 +436,6 @@ class CRM_SearchMissions(CRM_Search):
             return context.root.get_user_title(user_id)
         return super(CRM_SearchMissions, self).get_item_value(resource,
                 context, item, column, cache=cache)
-
-
-    def action_remove(self, resource, context, form):
-        not_removed = []
-        for alert_id in form.get('ids', []):
-            try:
-                mission_name, comment_id = alert_id.split('__')
-                comment_id = int(comment_id)
-            except ValueError:
-                not_removed.append(alert_id)
-                continue
-            # Remove alert_datetime
-            crm = get_crm(resource)
-            mission = crm.get_resource('missions/%s' % mission_name)
-            comments = mission.metadata.get_property('comment')
-            comments[comment_id].set_parameter('alert_datetime', None)
-            mission.set_property('comment', comments)
-
-        if not_removed:
-            msg = ERROR(u'One or more alert could not have been removed.')
-        else:
-            msg = MSG_CHANGES_SAVED
-
-        context.message = msg
 
 
 
