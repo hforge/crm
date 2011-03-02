@@ -5,8 +5,7 @@ version.txt
 MANIFEST
 *.swp
 *.swo
-*.patch
 *.pyc
 *~
-*.xml.fr
+*.xml.??
 locale/*.mo
