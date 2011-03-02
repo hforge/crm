@@ -41,12 +41,8 @@ from utils import generate_code
 class Contact(CRMFolder):
     class_id = 'contact'
     class_version = '20100924'
-    class_title = MSG(u'Contact')
     class_icon16 = 'crm/icons/16x16/contact.png'
     class_icon48 = 'crm/icons/48x48/contact.png'
-    class_sprite16 = 'contact'
-    class_views = ['view', 'goto_missions', 'goto_contacts', 'goto_companies']
-
     # The class used to be named "Prospect" so the prefix is "p_"
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
@@ -68,6 +64,9 @@ class Contact(CRMFolder):
         crm_p_project=Integer(stored=True),
         crm_p_finished=Integer(stored=True),
         crm_p_nogo=Integer(stored=True)))
+    class_sprite16 = 'contact'
+    class_title = MSG(u'Contact')
+    class_views = ['view'] + CRMFolder.class_views_shortcuts
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')

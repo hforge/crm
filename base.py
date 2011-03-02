@@ -41,13 +41,15 @@ class CRMFolder(TagsAware, RoleAware, Folder):
     """
     class_version = '20100912'
     class_document_types = []
-    class_sprite16 = None
     class_schema = freeze(merge_dicts(
         Folder.class_schema,
         RoleAware.class_schema,
         TagsAware.class_schema,
         sprite16=String(stored=True),
         comment=Unicode(source='metadata', mandatory=True, multiple=True)))
+    class_sprite16 = None
+    class_views_shortcuts = ['goto_missions', 'goto_contacts',
+            'goto_companies', 'goto_add_contact', 'goto_add_company']
 
     # Views
     add_logo = CRMFolder_AddImage()
@@ -66,6 +68,16 @@ class CRMFolder(TagsAware, RoleAware, Folder):
             specific_document='../..',
             specific_view='companies',
             adminbar_icon='crmsprites16 company-go')
+    goto_add_contact = GoToSpecificDocument(
+            title=MSG(u"Add Contact"),
+            specific_document='../../contacts',
+            specific_view='new_contact',
+            adminbar_icon='crmsprites16 contact-add')
+    goto_add_company = GoToSpecificDocument(
+            title=MSG(u"Add Company"),
+            specific_document='../../companies',
+            specific_view='new_company',
+            adminbar_icon='crmsprites16 company-add')
 
 
     def init_resource(self, **kw):

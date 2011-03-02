@@ -39,13 +39,8 @@ class Company(CRMFolder):
     """
     class_id = 'company'
     class_version = '20100916'
-    class_title = MSG(u'Company')
     class_icon16 = 'crm/icons/16x16/company.png'
     class_icon48 = 'crm/icons/48x48/company.png'
-    class_sprite16 = 'company'
-    class_views = ['view', 'goto_missions', 'goto_contacts',
-            'goto_companies']
-
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
         crm_c_address_1=Unicode(source='metadata', stored=True),
@@ -59,6 +54,9 @@ class Company(CRMFolder):
         crm_c_activity=Unicode(source='metadata', stored=True),
         crm_c_logo=PathDataType(source='metadata', default='.',
             stored=True)))
+    class_sprite16 = 'company'
+    class_title = MSG(u'Company')
+    class_views = ['view'] + CRMFolder.class_views_shortcuts
 
     # Views
     browse_content = Folder_BrowseContent(access='is_allowed_to_edit')

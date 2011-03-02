@@ -45,13 +45,9 @@ class Mission(CRMFolder):
     """
     class_id = 'mission'
     class_version = '20100927'
-    class_title = MSG(u'Mission')
     class_icon16 = 'crm/icons/16x16/mission.png'
     class_icon48 = 'crm/icons/48x48/mission.png'
-    class_sprite16 = 'mission'
-    class_views = ['view', 'add_contacts', 'edit_contacts', 'edit_alerts',
-            'goto_missions', 'goto_contacts', 'goto_companies']
-
+    class_title = MSG(u'Mission')
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
         crm_m_contact=String(source='metadata', indexed=True, stored=True,
@@ -70,6 +66,9 @@ class Mission(CRMFolder):
         comment=comment_datatype(parameters_schema=merge_dicts(
             comment_datatype.parameters_schema,
             attachment=String))))
+    class_sprite16 = 'mission'
+    class_views = (['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
+            + CRMFolder.class_views_shortcuts)
 
     # Views
     add_contacts = Mission_AddContacts()
