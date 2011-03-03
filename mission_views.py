@@ -471,13 +471,11 @@ class Mission_AddForm(CRMFolder_AddForm, Mission_EditForm):
 
 class Mission_ViewContacts(CRM_SearchContacts):
     search_template = None
+    csv_columns = None
     batch_msg1 = MSG(' ')
     batch_msg2 = MSG(' ')
 
-    csv_columns = None
-
-    columns_to_keep = (
-            'icon', 'title', 'crm_p_company', 'crm_p_email', 'phones',
+    columns_to_keep = ('sprite', 'title', 'email', 'phones',
             'crm_p_position')
 
 

@@ -140,18 +140,18 @@ class Company_AddForm(CRMFolder_AddForm, Company_EditForm):
 
 class Company_ViewContacts(CRM_SearchContacts):
     search_template = None
+    csv_columns = None
+
+    columns_to_keep = ('sprite', 'title', 'email', 'phones', 'crm_p_position',
+            'crm_p_opportunity', 'crm_p_project', 'crm_p_nogo',
+            'crm_p_assured', 'crm_p_probable')
 
 
     def get_table_columns(self, resource, context):
-        columns = []
-        for column in self.table_columns:
-            name, title, sort = column
-            if name == 'crm_p_company':
-                continue
-            if name not in ('crm_p_email', 'crm_p_phone', 'crm_p_mobile'):
-                columns.append(column)
-
-        return columns
+        proxy = super(Company_ViewContacts, self)
+        columns = proxy.get_table_columns(resource, context)
+        to_keep = self.columns_to_keep
+        return [column for column in columns if column[0] in to_keep]
 
 
     def get_items(self, resource, context, *args):
