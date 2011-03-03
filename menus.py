@@ -71,7 +71,7 @@ class ContactsMenu(ContextMenu):
         query = AndQuery(self.get_crm_path_query(context),
                 PhraseQuery('format', 'contact'),
                 OrQuery(*[PhraseQuery('crm_p_company', company)
-                    for company in company_names]))
+                    for company in company_names if company]))
         results = context.root.search(query)
         for brain in results.get_documents(sort_by='title'):
             yield brain
@@ -232,8 +232,9 @@ class CompaniesMenu(ContextMenu):
             todo = []
             if resource.class_id == 'contact':
                 p_company = resource.get_property('crm_p_company')
-                todo.append(p_company)
-            else:
+                if p_company:
+                    todo.append(p_company)
+            elif resource.class_id == 'mission':
                 contacts = resource.get_resource('../../contacts')
                 for m_contact in resource.get_property('crm_m_contact'):
                     contact = contacts.get_resource(m_contact)
