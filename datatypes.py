@@ -15,10 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Import from the Standard Library
+from operator import itemgetter
+
 # Import from itools
 from itools.core import thingy_property
 from itools.datatypes import Enumerate
 from itools.gettext import MSG
+from itools.handlers.utils import transmap
 from itools.web import get_context
 
 # Import from ikaaro
@@ -43,14 +47,19 @@ class CompanyName(Enumerate):
         root = context.root
         results = root.search(format='company', parent_path=parent_path)
         options = []
-        for brain in results.get_documents(sort_by='title'):
+        # FIXME catalog case-independant sort
+        for brain in results.get_documents():
             value = brain.title
             # Reduce the length of the title
             if len(value) > 63:
                 value = '%s...%s' % (value[:30], value[-30:])
             options.append({
                 'name': brain.name,
-                'value': value})
+                'value': value,
+                'sort_value': value.lower().translate(transmap)})
+
+        # FIXME move hack to a catalog index
+        options.sort(key=itemgetter('sort_value'))
 
         return options
 
