@@ -79,6 +79,7 @@ company_widgets = freeze(
 
 
 class Company_EditForm(TagsAware_Edit, DBResource_Edit):
+    template = '/ui/crm/generic/auto_form.xml'
     title = MSG(u'Edit Company')
     styles = ['/ui/crm/style.css']
     context_menus = []

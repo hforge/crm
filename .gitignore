@@ -6,5 +6,5 @@ dist
 *.swo
 *.pyc
 *~
-*.xml.??
+*.xml.fr
 locale/*.mo

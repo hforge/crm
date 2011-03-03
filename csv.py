@@ -40,7 +40,7 @@ class CSV_Export(object):
     schema = freeze({
         'editor': CSVEditor})
 
-    csv_template = '/ui/crm/crm/csv.xml'
+    csv_template = '/ui/crm/generic/csv.xml'
     csv_columns = freeze([])
     csv_filename = None
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+
+${before}
+
+<form id="autoform" name="autoform" action="${action}" method="post"
+  enctype="multipart/form-data" stl:omit-tag="not actions">
+  <fieldset>
+    <legend>${title}</legend>
+    <p stl:if="description">${description}</p>
+    <table>
+      <tr stl:repeat="widget widgets">
+        <td>
+          <stl:block stl:if="widget/title">
+            <label for="${widget/name}">${widget/title}</label>
+            <span stl:if="widget/mandatory" class="field-is-missing"
+              title="This field is required">*</span>
+            <span stl:if="widget/tip" title="${widget/tip}">(?)</span>
+            <br/>
+          </stl:block>
+        </td>
+        <td>
+          <span stl:if="widget/error" class="field-error">${widget/error}<br/></span>
+          <p class="widget" stl:repeat="widget widget/widgets">${widget}</p>
+        </td>
+      </tr>
+    </table>
+    <p stl:if="actions">
+      <stl:block stl:repeat="action actions">
+        <button stl:if="not action/value" type="submit"
+          class="${action/class}" onclick="${action/onclick}"
+          >${action/title}</button>
+        <button stl:if="action/value" type="submit" name="action" value="${action/value}"
+          class="${action/class}" onclick="${action/onclick}"
+          >${action/title}</button>
+      </stl:block>
+    </p>
+  </fieldset>
+  <script type="text/javascript">
+    document.getElementById("${first_widget}").focus();
+  </script>
+</form>
+
+${after}
+
+</stl:block>

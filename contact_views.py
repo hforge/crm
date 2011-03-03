@@ -83,6 +83,7 @@ contact_widgets = freeze([
 
 
 class Contact_EditForm(TagsAware_Edit, DBResource_Edit):
+    template = '/ui/crm/generic/auto_form.xml'
     access = 'is_allowed_to_edit'
     title = MSG(u'Edit Contact')
     styles = ['/ui/crm/style.css']
