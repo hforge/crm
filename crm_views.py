@@ -102,7 +102,7 @@ class CRM_Search(CSV_Export, SearchForm):
     styles = ['/ui/crm/style.css']
     template = '/ui/crm/crm/search.xml'
 
-    search_template = '/ui/crm/crm/search_form.xml'
+    search_template = '/ui/crm/crm/search_tabular.xml'
     search_fields = freeze([
         ('text', MSG(u'Text'))])
     search_schema = freeze(merge_dicts(
@@ -478,6 +478,7 @@ class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
     template = '/ui/crm/crm/contacts.xml'
 
+    search_template = '/ui/crm/crm/search_linear.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         status=ContactStatus(multiple=True, default=['lead', 'client'])))
@@ -615,6 +616,7 @@ class CRM_SearchContacts(CRM_Search):
 class CRM_SearchCompanies(CRM_Search):
     title = MSG(u'Companies')
 
+    search_template = '/ui/crm/crm/search_linear.xml'
     search_format = 'company'
 
     table_columns = [

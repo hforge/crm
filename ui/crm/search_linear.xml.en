@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stl:block xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
+
+  <form action="" method="get">
+    <fieldset>
+      <legend>Search</legend>
+      <stl:block stl:repeat="widget widgets">${widget/title}: ${widget}</stl:block>
+      ${action}
+    </fieldset>
+  </form>
+
+</stl:block>
