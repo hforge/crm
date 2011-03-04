@@ -28,7 +28,7 @@ from itools.web import STLView, get_context, INFO
 
 # Import from ikaaro
 from ikaaro.autoform import TextWidget, SelectWidget, DateWidget
-from ikaaro.buttons import BrowseButton
+from ikaaro.buttons import Button, BrowseButton
 from ikaaro.utils import make_stl_template
 from ikaaro.views import SearchForm
 
@@ -86,6 +86,12 @@ def get_name(brain):
 
 
 
+class SearchButton(Button):
+    access = 'is_allowed_to_view'
+    css = 'button-search'
+
+
+
 class CRM_Search(CSV_Export, SearchForm):
     access = 'is_allowed_to_edit'
     query_schema = freeze(merge_dicts(
@@ -96,8 +102,16 @@ class CRM_Search(CSV_Export, SearchForm):
     styles = ['/ui/crm/style.css']
     template = '/ui/crm/crm/search.xml'
 
+    search_template = '/ui/crm/crm/search_form.xml'
     search_fields = freeze([
         ('text', MSG(u'Text'))])
+    search_schema = freeze(merge_dicts(
+        SearchForm.search_schema,
+        tags=TagsList))
+    search_widgets = freeze([
+        TextWidget('search_term', title=MSG(u"Search Term"), size=20),
+        SelectWidget('tags', title=MSG(u"Tag"))])
+    search_action = SearchButton
 
 
     def _get_query(self, resource, context, *args):
@@ -119,12 +133,15 @@ class CRM_Search(CSV_Export, SearchForm):
 
     def get_search_namespace(self, resource, context):
         namespace = {}
-        # Full-text search
-        namespace['search_term'] = TextWidget('search_term', size=20,
-                value=context.query['search_term'])
-        # Tags
-        namespace['tags'] = SelectWidget('tags', title=MSG(u"Tag"),
-                datatype=TagsList, value=context.query['tags'])
+        widgets = []
+        for widget in self.search_widgets:
+            name = widget.name
+            widget = widget(datatype=self.search_schema[name],
+                    value=context.query[name])
+            widgets.append(widget)
+        namespace['widgets'] = widgets
+        namespace['action'] = self.search_action(resource=resource,
+                context=context)
         return namespace
 
 
@@ -219,11 +236,16 @@ class CRM_SearchMissions(CRM_Search):
         sort_by=String(default='alert'),
         reverse=Boolean(default=False)))
 
-    search_template = '/ui/crm/crm/search_missions.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
         assigned=AssignedList,
-        status=MissionStatus(multiple=True)))
+        status=MissionStatusShortened(multiple=True,
+            default=['opportunity', 'project'])))
+    search_widgets = freeze(
+            CRM_Search.search_widgets[:1]
+            + [SelectWidget('assigned', title=MSG(u"Assigned To")),
+                MultipleCheckboxWidget('status', title=MSG(u'Status'))]
+            + CRM_Search.search_widgets[1:])
     search_format = 'mission'
 
     table_columns = freeze([
@@ -257,26 +279,6 @@ class CRM_SearchMissions(CRM_Search):
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
-
-
-    def get_search_namespace(self, resource, context):
-        proxy = super(CRM_SearchMissions, self)
-        namespace = proxy.get_search_namespace(resource, context)
-
-        # Assigned
-        datatype = self.search_schema['assigned'](resource=resource)
-        namespace['assigned'] = SelectWidget('assigned', datatype=datatype,
-                title=MSG(u"Assigned To"), value=context.query['assigned'])
-        # Status
-        default_status = ['opportunity', 'project']
-        m_status = context.query['status']
-        if not m_status:
-            m_status = default_status
-        namespace['status'] = MultipleCheckboxWidget('status',
-                title=MSG(u'Status'), datatype=MissionStatusShortened,
-                value=m_status)
-
-        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -476,10 +478,13 @@ class CRM_SearchContacts(CRM_Search):
     title = MSG(u'Contacts')
     template = '/ui/crm/crm/contacts.xml'
 
-    search_template = '/ui/crm/crm/search_contacts.xml'
     search_schema = freeze(merge_dicts(
         CRM_Search.search_schema,
-        status=ContactStatus(multiple=True)))
+        status=ContactStatus(multiple=True, default=['lead', 'client'])))
+    search_widgets = freeze(
+            CRM_Search.search_widgets[:1]
+            + [MultipleCheckboxWidget('status', title=MSG(u'Status'))]
+            + CRM_Search.search_widgets[1:])
     search_format = 'contact'
 
     table_columns = freeze([
@@ -513,21 +518,6 @@ class CRM_SearchContacts(CRM_Search):
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
-
-
-    def get_search_namespace(self, resource, context):
-        proxy = super(CRM_SearchContacts, self)
-        namespace = proxy.get_search_namespace(resource, context)
-
-        # Add status
-        default_status = ['lead', 'client']
-        p_status = context.query['status']
-        if not p_status:
-            p_status = default_status
-        namespace['status'] = MultipleCheckboxWidget('status',
-                title=MSG(u'Status'), datatype=ContactStatus, value=p_status)
-
-        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -625,7 +615,6 @@ class CRM_SearchContacts(CRM_Search):
 class CRM_SearchCompanies(CRM_Search):
     title = MSG(u'Companies')
 
-    search_template = '/ui/crm/crm/search_companies.xml'
     search_format = 'company'
 
     table_columns = [

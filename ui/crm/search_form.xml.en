@@ -5,10 +5,16 @@
   <form action="" method="get">
     <fieldset>
       <legend>Search</legend>
-      ${search_term}
-      ${tags/title}: ${tags}
-      <!-- OK -->
-      <button type="submit" class="button-search">OK</button>
+      <table>
+        <tr>
+          <td stl:repeat="widget widgets">${widget/title}:</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td stl:repeat="widget widgets">${widget}</td>
+          <td>${action}</td>
+        </tr>
+      </table>
     </fieldset>
   </form>
 
