@@ -21,8 +21,7 @@ from decimal import Decimal as dec
 from itools.core import freeze
 from itools.datatypes import Decimal, Unicode
 from itools.gettext import MSG
-from itools.web import STLView
-from itools.web import get_context
+from itools.web import STLView, get_context
 
 # Import from ikaaro
 from ikaaro.autoform import MultilineWidget
@@ -34,19 +33,19 @@ from ikaaro.popup import DBResource_AddImage
 
 
 m_status_icons = {
-    'opportunity': 'mission',
-    'project': 'project',
-    'finished': 'finished',
+    'opportunity': "mission",
+    'project': "project",
+    'finished': "finished",
     'nogo': 'nogo'}
 alert_icons = {
-    'past': 'bell-notification',
-    'now': 'bell-error',
-    'future': 'bell-go'}
+    'past': "bell-notification",
+    'now': "bell-error",
+    'future': "bell-go"}
 phone_icons = {
-    'crm_p_phone': 'phone',
-    'crm_p_mobile': 'mobile',
-    'crm_c_phone': 'phone',
-    'crm_c_fax': 'fax'}
+    'crm_p_phone': "phone",
+    'crm_p_mobile': "mobile",
+    'crm_c_phone': "phone",
+    'crm_c_fax': "fax"}
 
 ICON = MSG(u'<img class="crmsprites16 {icon}" '
         u'src="/ui/crm/images/1x1.gif"/>',
