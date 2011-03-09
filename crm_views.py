@@ -39,7 +39,7 @@ from itws.tags import TagsList
 from base_views import m_status_icons, phone_icons, alert_icons
 from base_views import format_amount, ICON, ICON_TITLE
 from csv import CSV_Export
-from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
+from datatypes import MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget

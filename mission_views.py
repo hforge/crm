@@ -565,7 +565,7 @@ class Mission_AddContacts(CRM_SearchContacts):
     display_sidebar = False
 
 
-    def _get_default_company(self, resource, context):
+    def get_default_company(self, resource, context):
         m_contact = resource.get_property('crm_m_contact')
         if not m_contact:
             return None
@@ -576,17 +576,17 @@ class Mission_AddContacts(CRM_SearchContacts):
 
 
     def get_query_schema(self):
-        # Filter by same company
-        search_term = u""
-        context = get_context()
-        resource = context.resource
-        company = self._get_default_company(resource, context)
-        if company is not None:
-            search_term = company.get_property('title')
         proxy = super(Mission_AddContacts, self)
+        schema = proxy.get_query_schema()
+        context = get_context()
+        company = self.get_default_company(context.resource, context)
+        if company is None:
+            return schema
+        # Just a search term, not hard coded to search contacts from another
+        # company
         return freeze(merge_dicts(
-            proxy.get_query_schema(),
-            search_term=Unicode(default=search_term)))
+            schema,
+            search_term=Unicode(default=company.get_property('title'))))
 
 
     def get_table_columns(self, resource, context):
@@ -601,7 +601,7 @@ class Mission_AddContacts(CRM_SearchContacts):
         proxy = super(Mission_AddContacts, self)
         namespace = proxy.get_search_namespace(resource, context)
         namespace['name'] = resource.name
-        company = self._get_default_company(resource, context)
+        company = self.get_default_company(resource, context)
         if company is None:
             p_company = ''
         else:
