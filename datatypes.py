@@ -20,6 +20,7 @@ from operator import itemgetter
 
 # Import from itools
 from itools.core import thingy_property
+from itools.database import AndQuery, PhraseQuery
 from itools.datatypes import Enumerate
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
@@ -27,6 +28,7 @@ from itools.web import get_context
 
 # Import from ikaaro
 from ikaaro.cc import UsersList
+from ikaaro.utils import get_base_path_query
 
 # Import from crm
 from utils import get_crm
@@ -42,10 +44,10 @@ class CompanyName(Enumerate):
     @classmethod
     def get_options(cls):
         context = get_context()
-        crm = get_crm(context.resource)
-        parent_path = '%s/companies' % crm.get_abspath()
-        root = context.root
-        results = root.search(format='company', parent_path=parent_path)
+        abspath = get_crm(context.resource).get_canonical_path()
+        results = context.root.search(AndQuery(
+            PhraseQuery('format', 'company'),
+            get_base_path_query(abspath, recursive=False)))
         options = []
         # FIXME catalog case-independant sort
         for brain in results.get_documents():
@@ -96,10 +98,10 @@ class ContactName(Enumerate):
     @classmethod
     def get_options(cls):
         context = get_context()
-        crm = get_crm(context.resource)
-        parent_path = '%s/contacts' % crm.get_abspath()
-        root = context.root
-        results = root.search(format='contact', parent_path=parent_path)
+        abspath = get_crm(context.resource).get_canonical_path()
+        results = context.root.search(AndQuery(
+            PhraseQuery('format', 'contact'),
+            get_base_path_query(abspath, recursive=False)))
         options = []
         for brain in results.get_documents(sort_by='crm_p_lastname'):
             options.append({

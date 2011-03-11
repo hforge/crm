@@ -31,6 +31,7 @@ from ikaaro.autoform import timestamp_widget, HiddenWidget
 from ikaaro.datatypes import Multilingual
 from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
+from ikaaro.utils import get_base_path_query
 from ikaaro.views import CompositeForm, SearchForm
 
 # Import from itws
@@ -329,9 +330,9 @@ class Contact_SearchMissions(SearchForm):
         args = list(args)
         args.append(PhraseQuery('format', 'mission'))
         args.append(PhraseQuery('crm_m_contact', resource.name))
-        missions = resource.parent.parent.get_resource('missions')
-        abspath = str(missions.get_canonical_path())
-        args.append(PhraseQuery('parent_path', abspath))
+        crm = get_crm(resource)
+        abspath = crm.get_canonical_path()
+        args.append(get_base_path_query(abspath, recursive=False))
         if search_text:
             args.append(PhraseQuery(field, search_text))
         # Insert status filter
@@ -346,7 +347,6 @@ class Contact_SearchMissions(SearchForm):
             query = AndQuery(*args)
 
         # Ok
-        crm = get_crm(resource)
         base_path_query = get_crm_path_query(crm)
         return context.root.search(AndQuery(query, base_path_query))
 

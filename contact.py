@@ -19,6 +19,7 @@ from decimal import Decimal as decimal
 
 # Import from itools
 from itools.core import merge_dicts, freeze
+from itools.database import AndQuery, PhraseQuery
 from itools.datatypes import Decimal, Email, Integer
 from itools.datatypes import String, Unicode
 from itools.gettext import MSG
@@ -27,6 +28,7 @@ from itools.gettext import MSG
 from ikaaro.comments import comment_datatype
 from ikaaro.folder import Folder
 from ikaaro.folder_views import Folder_BrowseContent
+from ikaaro.utils import get_base_path_query
 
 # Import from crm
 from base import CRMFolder
@@ -35,7 +37,7 @@ from contact_views import Contact_AddForm, Contact_EditForm, Contact_View
 from contact_views import Contact_SearchMissions, Contact_ViewMissions
 from datatypes import ContactStatus
 from mission_views import Mission_EditForm
-from utils import generate_code
+from utils import generate_code, get_crm
 
 
 class Contact(CRMFolder):
@@ -161,10 +163,11 @@ class Contact(CRMFolder):
     # CRM API
     #############################################
     def get_first_mission(self, context):
-        root = context.root
-        crm = self.parent.parent
-        parent_path = str('%s/missions' % crm.get_abspath())
-        results = root.search(format='mission', parent_path=parent_path)
+        crm = get_crm(self)
+        abspath = crm.get_canonical_path()
+        results = context.root.search(AndQuery(
+                PhraseQuery('format', 'mission'),
+                get_base_path_query(abspath, recursive=False)))
         mission = results.get_documents(sort_by='mtime', reverse=True)
         if not len(results):
             return None
