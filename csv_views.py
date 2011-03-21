@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
+from cStringIO import StringIO
+import csv
 from decimal import Decimal as dec
 
 # Import from itools
@@ -33,6 +35,46 @@ from datatypes import CSVEditor
 
 
 ERR_NO_DATA = ERROR(u"No data to export.")
+
+sniffer = csv.Sniffer()
+
+
+def cleanup_gmail_csv(body):
+    # Sniff dialect
+    dialect = sniffer.sniff(body)
+    dialect.doublequote = True
+    if dialect.delimiter == '' or dialect.delimiter == ' ':
+        dialect.delimiter = ','
+    # Reader
+    reader = csv.reader(StringIO(body), dialect)
+    # Reformated CSV
+    output = StringIO()
+    writer = csv.writer(output, dialect='excel', quoting=csv.QUOTE_ALL)
+    # Read header and number of columns
+    header = reader.next()
+    writer.writerow(header)
+    n_columns = len(header)
+    # Align columns to that number XXX not solid
+    for row in reader:
+        n_row = len(row)
+        if n_row < n_columns:
+            row += [''] * (n_columns - n_row)
+        elif n_row > n_columns:
+            row = row[:n_columns]
+        writer.writerow([value.decode('cp1252').encode('utf_8')
+            for value in row])
+    return output.getvalue()
+
+
+
+def find_value_by_column(header, row, title, cache={}):
+    if title in cache:
+        return unicode(row[cache[title]], 'utf_8')
+    for i, column in enumerate(header):
+        if column == title:
+            cache[title] = i
+            return unicode(row[i], 'utf_8')
+
 
 
 class CSV_Export(object):
