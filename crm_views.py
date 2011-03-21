@@ -19,17 +19,20 @@ from datetime import date, time, datetime, timedelta
 from decimal import Decimal as dec
 
 # Import from itools
-from itools.core import merge_dicts, freeze, thingy_property
+from itools.core import merge_dicts, freeze, thingy_property, thingy
+from itools.csv import CSVFile
 from itools.database import AndQuery, OrQuery, PhraseQuery
-from itools.datatypes import Boolean, String, Integer, Date
+from itools.datatypes import Boolean, String, Integer, Date, XMLContent
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
 from itools.stl import STLTemplate
-from itools.web import STLView, get_context, INFO
+from itools.web import STLView, get_context, INFO, ERROR
 
 # Import from ikaaro
-from ikaaro.autoform import TextWidget, SelectWidget, DateWidget
+from ikaaro.autoform import TextWidget, SelectWidget, DateWidget, FileWidget
+from ikaaro.autoform import AutoForm, Widget
 from ikaaro.buttons import Button, BrowseButton
+from ikaaro.datatypes import FileDataType
 from ikaaro.utils import make_stl_template
 from ikaaro.views import SearchForm
 
@@ -39,7 +42,7 @@ from itws.tags import TagsList
 # Import from crm
 from base_views import Icon, ShortStatusIcon, PhoneIcon, get_alert_icon
 from base_views import format_amount
-from csv import CSV_Export
+from csv_views import cleanup_gmail_csv, find_value_by_column, CSV_Export
 from datatypes import MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
@@ -48,6 +51,11 @@ from widgets import MultipleCheckboxWidget
 
 MSG_MISSIONS_POSTPONED = INFO(u"Missions postponed to {postpone}: "
         u"{missions}.", format='replace_html')
+MSG_CONTACTS_ADDED = INFO(u"The following {n} contacts were added: "
+        u"{added}", format='replace_html')
+MSG_CONTACTS_UPDATED = INFO(u"The following {n} contacts were updated: "
+        u"{updated}", format='replace_html')
+ERR_NO_CONTACT_FOUND = ERROR(u"No contact found.")
 
 
 class Phones(STLTemplate):
@@ -721,3 +729,129 @@ class CRM_Test(STLView):
         namespace['tests'] = tests
 
         return namespace
+
+
+
+import_columns = freeze({
+    u"Last Name": 'crm_p_lastname',
+    u"First Name": 'crm_p_firstname',
+    #u"Company": 'crm_p_company', # Treated separately
+    u"E-mail Address": 'crm_p_email',
+    u"Business Phone": 'crm_p_phone',
+    u"Mobile Phone": 'crm_p_mobile'})
+
+
+class ColumnsWidget(Widget):
+    template = make_stl_template("Known columns (no order required): "
+            + ", ".join(c.encode('utf_8') for c in import_columns))
+
+
+
+class CRM_ImportContacts(AutoForm):
+    access = 'is_allowed_to_edit'
+    title = MSG(u"Import Contacts")
+    schema = freeze({
+        'file': FileDataType(mandatory=True,
+            mimetypes=CSVFile.class_mimetypes),
+        'help': String})
+    widgets = freeze([
+        FileWidget('file', title=MSG(u"CSV File")),
+        ColumnsWidget('help')])
+
+
+    def action(self, resource, context, form):
+        filename, mimetype, body = form['file']
+
+        # Clean up f*ing Google export with no quote
+        body = cleanup_gmail_csv(body)
+
+        csv = CSVFile()
+        csv.load_state_from_string(body)
+        rows = csv.get_rows()
+
+        # Decode header
+        header = rows.next()
+
+        root = context.root
+        language = context.site_root.get_default_language()
+        contacts_added = []
+        contacts_updated = []
+
+        for row in rows:
+            # Find company
+            company = None
+            company_title = find_value_by_column(header, row, u"Company")
+            if company_title is not None:
+                query = AndQuery(get_crm_path_query(resource),
+                        PhraseQuery('format', 'company'),
+                        PhraseQuery('title', company_title))
+                results = root.search(query)
+                for document in results.get_documents():
+                    # Found
+                    company = root.get_resource(document.abspath)
+                    break
+            # Find contact by name and company if available
+            firstname = find_value_by_column(header, row, u"First Name")
+            lastname = find_value_by_column(header, row, u"Last Name")
+            query = AndQuery(get_crm_path_query(resource),
+                    PhraseQuery('format', 'contact'),
+                    PhraseQuery('crm_p_firstname', firstname),
+                    PhraseQuery('crm_p_lastname', lastname))
+            if company is not None:
+                query.append(PhraseQuery('crm_p_company', company.name))
+            results = root.search(query)
+            if len(results):
+                # Existing contact
+                for document in results.get_documents():
+                    # Found
+                    contact = root.get_resource(document.abspath)
+                    contacts_updated.append(contact)
+                    break
+            else:
+                # Creating contact
+                if company is None:
+                    if company_title:
+                        # Creating company
+                        companies = resource.get_resource('companies')
+                        company = companies.add_company(
+                                title={language: company_title})
+                    else:
+                        company = thingy(name=None)
+                contacts = resource.get_resource('contacts')
+                contact = contacts.add_contact(
+                        crm_p_firstname=firstname,
+                        crm_p_lastname=lastname,
+                        crm_p_company=company.name,
+                        crm_p_status='lead')
+                contacts_added.append(contact)
+            # Update contact
+            for title, name in import_columns.iteritems():
+                if title in (u"First Name", u"Last Name", u"Company"):
+                    continue
+                value = find_value_by_column(header, row, title)
+                if value is not None:
+                    datatype = contact.get_property_datatype(name)
+                    if issubclass(datatype, String):
+                        value = value.encode('utf8')
+                    contact.set_property(name, value)
+
+        message = []
+        pattern = u'<a href="{0}">{1}</a>'
+        if contacts_added:
+            n = len(contacts_added)
+            contacts_added = u", ".join(pattern.format(
+                context.get_link(contact),
+                XMLContent.encode(contact.get_title()))
+                for contact in contacts_added)
+            message.append(MSG_CONTACTS_ADDED(n=n, added=contacts_added))
+        if contacts_updated:
+            n = len(contacts_updated)
+            contacts_updated = u", ".join(pattern.format(
+                context.get_link(contact),
+                XMLContent.encode(contact.get_title()))
+                for contact in contacts_updated)
+            message.append(MSG_CONTACTS_UPDATED(n=n,
+                updated=contacts_updated))
+        if not message:
+            message = ERR_NO_CONTACT_FOUND
+        context.message = message

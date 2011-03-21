@@ -47,8 +47,8 @@ class Contact(CRMFolder):
     class_schema = freeze(merge_dicts(
         CRMFolder.class_schema,
         crm_p_company=String(source='metadata', indexed=True, stored=True),
-        crm_p_lastname=Unicode(source='metadata', stored=True),
-        crm_p_firstname=Unicode(source='metadata', stored=True),
+        crm_p_lastname=Unicode(source='metadata', indexed=True, stored=True),
+        crm_p_firstname=Unicode(source='metadata', indexed=True, stored=True),
         crm_p_phone=Unicode(source='metadata', stored=True),
         crm_p_mobile=Unicode(source='metadata', stored=True),
         crm_p_email=Email(source='metadata', stored=True),

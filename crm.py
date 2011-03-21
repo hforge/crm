@@ -30,7 +30,7 @@ from ikaaro.skins import register_skin
 from company import Companies
 from contact import Contacts
 from crm_views import CRM_SearchMissions, CRM_SearchContacts
-from crm_views import CRM_SearchCompanies, CRM_Test
+from crm_views import CRM_SearchCompanies, CRM_Test, CRM_ImportContacts
 from mission import Missions
 
 
@@ -46,7 +46,7 @@ class CRM(Folder):
     class_icon16 = 'crm/icons/16x16/crm.png'
     class_icon48 = 'crm/icons/48x48/crm.png'
     class_views = ['alerts', 'missions', 'contacts', 'companies',
-            'goto_contacts', 'goto_companies']
+            'goto_contacts', 'goto_companies', 'import_contacts']
 
     __fixed_handlers__ = Folder.__fixed_handlers__ + ['companies',
             'contacts', 'missions']
@@ -67,6 +67,7 @@ class CRM(Folder):
     goto_companies = GoToSpecificDocument(specific_document='companies',
         adminbar_icon='crmsprites16 company-add',
         title=MSG(u'New company'), access='is_allowed_to_edit')
+    import_contacts = CRM_ImportContacts()
     test = CRM_Test()
 
 
