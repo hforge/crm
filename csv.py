@@ -27,7 +27,6 @@ from itools.web import ERROR
 
 # Import from ikaaro
 from ikaaro.autoform import SelectWidget
-from ikaaro.registry import get_resource_class
 
 # Import from crm
 from datatypes import CSVEditor
@@ -50,23 +49,6 @@ class CSV_Export(object):
         namespace['editor'] = SelectWidget('editor', value='excel',
                 datatype=CSVEditor, has_empty_option=False)
         return namespace
-
-
-    def get_csv_datatype(self, name):
-        if name.startswith('crm_m_'):
-            format = 'mission'
-        elif name.startswith('crm_p_'):
-            format = 'contact'
-        elif name.startswith('crm_c_'):
-            format = 'company'
-        else:
-            raise ValueError, name
-        resource_class = get_resource_class(format)
-        try:
-            return resource_class.get_property_datatype(name)
-        except ValueError:
-            return String
-
 
 
     def get_namespace(self, resource, context):
@@ -107,6 +89,7 @@ class CSV_Export(object):
         # Fill the CSV
         cache = {}
         for item in items:
+            item_brain, item_resource = item
             row = []
             for name, title in self.csv_columns:
                 value = self.get_item_value(resource, context, item, name,
@@ -118,7 +101,10 @@ class CSV_Export(object):
                 elif type(value) is unicode:
                     data = value.encode(encoding, 'replace')
                 else:
-                    datatype = self.get_csv_datatype(name)
+                    try:
+                        datatype = resource.get_property_datatype(name)
+                    except ValueError:
+                        datatype = String
                     if issubclass(datatype, Enumerate):
                         value = datatype.get_value(value)
                         if is_thingy(value, MSG):
