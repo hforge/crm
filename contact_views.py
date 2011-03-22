@@ -72,7 +72,7 @@ contact_widgets = freeze([
         size=30),
     TextWidget('crm_p_phone', title=MSG(u'Phone'), default='', size=15),
     TextWidget('crm_p_mobile', title=MSG(u'Mobile'), default='', size=15),
-    EmailWidget('crm_p_email', title=MSG(u'Email'), default='', size=30),
+    EmailWidget('crm_p_email', title=MSG(u'E-mail Address'), default='', size=30),
     TextWidget('crm_p_position', title=MSG(u'Position'), default='', size=15),
     # TODO reuse description
     MultilineWidget('crm_p_description', title=MSG(u'Observations'),

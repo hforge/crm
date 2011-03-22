@@ -493,7 +493,7 @@ class CRM_SearchContacts(CRM_Search):
         ('sprite', None, False),
         ('title', MSG(u'Contact'), True),
         ('company', MSG(u'Company'), False),
-        ('email', MSG(u'Email'), False),
+        ('email', MSG(u'E-mail Address'), False),
         ('phones', MSG(u'Phone'), False),
         ('crm_p_position', MSG(u'Position'), False),
         ('crm_p_opportunity', MSG(u'Opp.'), True),
