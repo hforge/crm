@@ -24,15 +24,13 @@ from itools.web import get_context
 from ikaaro.utils import CMSTemplate
 
 # Import from crm
-from base_views import m_status_icons
-from datatypes import MissionStatus
+from base_views import Icon, StatusIcon
 from utils import get_crm, get_crm_path_query, get_contact_title
 
 
 class item(thingy):
     title = u""
-    src = None
-    src_title = None
+    icon = None
     href = None
     css_class = None
     selected = False
@@ -88,14 +86,14 @@ class ContactsMenu(ContextMenu):
         for brain in self.get_contacts(context):
             items.append(item(
                 title=get_contact_title(brain, context),
-                icon='contact',
+                icon=Icon('contact'),
                 href=context.get_link(brain),
                 selected=self.is_selected(brain, resource, context)))
         # New contact
         if resource.class_id == 'mission':
             items.append(item(
                 title=MSG(u"Link Existing Contact"),
-                icon='contact-add',
+                icon=Icon('contact-add'),
                 href=';add_contacts',
                 selected=False))
             m_contact = resource.get_property('crm_m_contact')
@@ -105,20 +103,20 @@ class ContactsMenu(ContextMenu):
                 p_company = contact.get_property('crm_p_company')
                 items.append(item(
                     title=MSG(u"New Contact"),
-                    icon='contact-add',
+                    icon=Icon('contact-add'),
                     href='../../contacts/?crm_p_company=' + p_company,
                     selected=False))
         elif resource.class_id == 'contact':
             p_company = resource.get_property('crm_p_company')
             items.append(item(
                 title=MSG(u"New Contact"),
-                icon='contact-add',
+                icon=Icon('contact-add'),
                 href='../?crm_p_company=' + p_company,
                 selected=False))
         elif resource.class_id == 'company':
             items.append(item(
                 title=MSG(u"New Contact"),
-                icon='contact-add',
+                icon=Icon('contact-add'),
                 href='../../contacts/?crm_p_company=' + resource.name,
                 selected=False))
         return items
@@ -197,8 +195,7 @@ class MissionsMenu(ContextMenu):
                 selected = (resource.name in brain.crm_m_contact)
             items.append(item(
                 title=brain.title,
-                icon=m_status_icons[brain.crm_m_status],
-                src_title=MissionStatus.get_value(brain.crm_m_status),
+                icon=StatusIcon(brain.crm_m_status),
                 href=context.get_link(brain),
                 selected=selected))
         # New mission

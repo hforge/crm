@@ -24,6 +24,7 @@ from itools.database import AndQuery, OrQuery, PhraseQuery
 from itools.datatypes import Boolean, String, Integer, Date
 from itools.gettext import MSG
 from itools.handlers.utils import transmap
+from itools.stl import STLTemplate
 from itools.web import STLView, get_context, INFO
 
 # Import from ikaaro
@@ -36,53 +37,65 @@ from ikaaro.views import SearchForm
 from itws.tags import TagsList
 
 # Import from crm
-from base_views import m_status_icons, phone_icons, alert_icons
-from base_views import format_amount, ICON, ICON_TITLE
+from base_views import Icon, ShortStatusIcon, AlertIcon, PhoneIcon
+from base_views import format_amount
 from csv import CSV_Export
 from datatypes import MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
 
-TWO_LINES = MSG(u'{one}<br/>{two}', format='replace_html')
+
 MSG_MISSIONS_POSTPONED = INFO(u"Missions postponed to {postpone}: "
         u"{missions}.", format='replace_html')
 
 
-def two_lines(one, two):
-    return TWO_LINES.gettext(one=one, two=two)
+class Phones(STLTemplate):
+    template = make_stl_template('''
+        <div stl:repeat="phone phones">${phone/icon}${phone/value}</div>''')
+    
+    def __init__(cls, brain, *fields):
+        cls.brain = brain
+        cls.fields = fields
 
 
-def get_phones(brain, *fields):
-    phones = []
-    for field in fields:
-        value = getattr(brain, field)
-        if not value:
-            continue
-        icon = u"nofloat " + phone_icons[field]
-        icon = ICON(format='replace').gettext(icon=icon)
-        phones.append(icon + value.replace(u" ", u"\u00a0"))
-    if not phones:
-        return None
-    return MSG(u"<br/>".join(phones), format='html')
+    def phones(cls):
+        phones = []
+        for field in cls.fields:
+            value = getattr(cls.brain, field)
+            if not value:
+                continue
+            phones.append({
+                'icon': PhoneIcon(field, css="nofloat"),
+                'value': value.replace(u" ", u"\u00a0")})
+        return phones
 
 
-def merge_columns(brain, *fields):
-    address = []
-    for field in fields:
-        value = getattr(brain, field)
-        if not value:
-            continue
-        if field == 'crm_p_lastname':
-            value = value.upper()
-        address.append(value)
-    if not address:
-        return None
-    return MSG(u"<br/>".join(address), format='html')
+
+class SplitLines(STLTemplate):
+    template = make_stl_template('''
+        <stl:block stl:repeat="line address">${line}<br/></stl:block>''')
+
+    def __init__(cls, brain, *fields):
+        cls.brain = brain
+        cls.fields = fields
+
+
+    def address(cls):
+        address = []
+        for field in cls.fields:
+            value = getattr(cls.brain, field)
+            if not value:
+                continue
+            if field == 'crm_p_lastname':
+                value = value.upper()
+            address.append(value)
+        return address
+
 
 
 def get_name(brain):
-    return merge_columns(brain, 'crm_p_lastname', 'crm_p_firstname')
+    return SplitLines(brain, 'crm_p_lastname', 'crm_p_firstname')
 
 
 
@@ -161,7 +174,7 @@ class CRM_Search(CSV_Export, SearchForm):
         if column == 'checkbox':
             return item_brain.name, False
         elif column == 'sprite':
-            return ICON(icon=item_brain.sprite16)
+            return Icon(name=item_brain.sprite16)
         elif column == 'title':
             href = context.get_link(item_resource)
             return item_brain.title, href
@@ -400,10 +413,10 @@ class CRM_SearchMissions(CRM_Search):
             if alert is None:
                 return None
             elif alert.date() < date.today():
-                return ICON(icon=alert_icons['past'])
+                return AlertIcon(name='past')
             elif alert < datetime.now():
-                return ICON(icon=alert_icons['now'])
-            return ICON(icon=alert_icons['future'])
+                return AlertIcon(name='now')
+            return AlertIcon(name='future')
         elif column == 'crm_m_alert':
             alert = item_brain.crm_m_alert
             if alert:
@@ -411,10 +424,7 @@ class CRM_SearchMissions(CRM_Search):
             return None
         elif column == 'status':
             # Status
-            m_status = item_brain.crm_m_status
-            icon = m_status_icons[m_status]
-            title = MissionStatusShortened.get_value(m_status)
-            return ICON_TITLE(icon=icon, title=title)
+            return ShortStatusIcon(name=item_brain.crm_m_status)
         elif column in ('contacts', 'contacts_csv'):
             m_contacts = item_brain.crm_m_contact
             query = [PhraseQuery('name', name) for name in m_contacts]
@@ -555,7 +565,7 @@ class CRM_SearchContacts(CRM_Search):
             href = 'mailto:%s' % value
             return value, href
         elif column == 'phones':
-            return get_phones(item_brain, 'crm_p_phone', 'crm_p_mobile')
+            return Phones(item_brain, 'crm_p_phone', 'crm_p_mobile')
         elif column == 'crm_p_assured':
             value = item_brain.crm_p_assured
             return format_amount(value, context)
@@ -650,11 +660,11 @@ class CRM_SearchCompanies(CRM_Search):
         proxy = super(CRM_SearchCompanies, self)
         item_brain, item_resource = item
         if column == 'address':
-            return merge_columns(item_brain, 'crm_c_address_1',
+            return SplitLines(item_brain, 'crm_c_address_1',
                     'crm_c_address_2', 'crm_c_zipcode', 'crm_c_town',
                     'crm_c_country')
         elif column == 'phones':
-            return get_phones(item_brain, 'crm_c_phone', 'crm_c_fax')
+            return Phones(item_brain, 'crm_c_phone', 'crm_c_fax')
         elif column == 'website':
             value = item_brain.crm_c_website
             if value == 'http://':

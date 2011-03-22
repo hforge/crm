@@ -21,6 +21,7 @@ from decimal import Decimal as dec
 from itools.core import freeze
 from itools.datatypes import Decimal, Unicode
 from itools.gettext import MSG
+from itools.stl import STLTemplate
 from itools.web import STLView, get_context
 
 # Import from ikaaro
@@ -28,32 +29,11 @@ from ikaaro.autoform import MultilineWidget
 from ikaaro.buttons import Button
 from ikaaro.comments import indent
 from ikaaro.popup import DBResource_AddImage
+from ikaaro.utils import make_stl_template
 
 # Import from crm
+from datatypes import MissionStatus, MissionStatusShortened
 
-
-m_status_icons = {
-    'opportunity': "mission",
-    'project': "project",
-    'finished': "finished",
-    'nogo': 'nogo'}
-alert_icons = {
-    'past': "bell-notification",
-    'now': "bell-error",
-    'future': "bell-go"}
-phone_icons = {
-    'crm_p_phone': "phone",
-    'crm_p_mobile': "mobile",
-    'crm_c_phone': "phone",
-    'crm_c_fax': "fax"}
-
-ICON = MSG(u'<img class="crmsprites16 {icon}" '
-        u'src="/ui/crm/images/1x1.gif"/>',
-        format='replace_html')
-ICON_TITLE = MSG(u'<img class="crmsprites16 {icon}" '
-        u'title="{title}" '
-        u'src="/ui/crm/images/1x1.gif"/>',
-        format='replace_html')
 
 DUMMY_COMMENT = u"_"
 
@@ -62,16 +42,6 @@ def format_amount(str_value, context):
     value = Decimal.decode(str_value)
     value = value / dec('1000')
     return context.format_number(value, curr=u' k€')
-
-
-# TODO delete
-def get_form_values(form):
-    values = {}
-    for key, value in form.iteritems():
-        if not value:
-            continue
-        values[key] = value
-    return values
 
 
 def monolingual_name(name):
@@ -105,9 +75,72 @@ def reset_comment(namespace, is_edit=False):
             return
 
 
-############
-# Comments #
-############
+############################################################################
+# Icons / Sprites
+############################################################################
+
+class Icon(STLTemplate):
+    template = make_stl_template('''
+        <img class="crmsprites16 ${css} ${icon}" title="${title}"
+            src="/ui/crm/images/1x1.gif" width="16" height="16"/>''')
+    datatype = None
+    icons = None
+    css = None
+
+
+    def __init__(cls, name=None, **kw):
+        super(Icon, cls).__init__(**kw)
+        if name:
+            cls.name = name
+
+
+    def title(cls):
+        if cls.datatype is None:
+            return None
+        return cls.datatype.get_value(cls.name)
+
+
+    def icon(cls):
+        if cls.icons is not None:
+            return cls.icons[cls.name]
+        return cls.name
+
+
+
+class StatusIcon(Icon):
+    datatype = MissionStatus
+    icons = {
+        'opportunity': "mission",
+        'project': "project",
+        'finished': "finished",
+        'nogo': 'nogo'}
+
+
+
+class ShortStatusIcon(StatusIcon):
+    datatype = MissionStatusShortened
+
+
+
+class AlertIcon(Icon):
+    icons = {
+        'past': "bell-notification",
+        'now': "bell-error",
+        'future': "bell-go"}
+
+
+class PhoneIcon(Icon):
+    icons = {
+        'crm_p_phone': "phone",
+        'crm_p_mobile': "mobile",
+        'crm_c_phone': "phone",
+        'crm_c_fax': "fax"}
+
+
+
+############################################################################
+# Comments
+############################################################################
 
 class Comments_View(STLView):
 
@@ -152,9 +185,9 @@ class Comments_View(STLView):
 
 
 
-#############
-# CRMFolder #
-#############
+############################################################################
+# CRMFolder
+############################################################################
 
 class CRMFolder_AddImage(DBResource_AddImage):
 

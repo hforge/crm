@@ -37,8 +37,8 @@ from ikaaro.views import CompositeForm, SearchForm
 from itws.tags import TagsAware_Edit
 
 # Import from crm
-from base_views import m_status_icons, Comments_View, CRMFolder_AddForm
-from base_views import monolingual_widgets, ICON
+from base_views import Comments_View, CRMFolder_AddForm
+from base_views import monolingual_widgets, StatusIcon
 from datatypes import CompanyName, MissionStatus, ContactStatus
 from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
@@ -359,8 +359,7 @@ class Contact_SearchMissions(SearchForm):
         get_property = item_resource.get_property
         if column == 'sprite':
             # Status
-            value = get_property('crm_m_status')
-            return ICON(icon=m_status_icons[value])
+            return StatusIcon(name=get_property('crm_m_status'))
         # FIXME
         elif column == 'title':
             # Title
