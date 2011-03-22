@@ -37,7 +37,7 @@ from ikaaro.views import SearchForm
 from itws.tags import TagsList
 
 # Import from crm
-from base_views import Icon, ShortStatusIcon, AlertIcon, PhoneIcon
+from base_views import Icon, ShortStatusIcon, PhoneIcon, get_alert_icon
 from base_views import format_amount
 from csv import CSV_Export
 from datatypes import MissionStatusShortened, ContactStatus
@@ -410,14 +410,7 @@ class CRM_SearchMissions(CRM_Search):
             id = str(id)
             return id, False
         elif column == 'alert':
-            alert = item_brain.crm_m_alert
-            if alert is None:
-                return None
-            elif alert.date() < date.today():
-                return AlertIcon(name='past')
-            elif alert < datetime.now():
-                return AlertIcon(name='now')
-            return AlertIcon(name='future')
+            return get_alert_icon(item_brain.crm_m_alert)
         elif column == 'crm_m_alert':
             alert = item_brain.crm_m_alert
             if alert:

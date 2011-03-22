@@ -47,6 +47,7 @@ from itws.tags import TagsAware_Edit
 # Import from crm
 from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
 from base_views import Comments_View, CRMFolder_AddForm, StatusIcon
+from base_views import get_alert_icon
 from crm_views import CRM_SearchContacts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
@@ -260,9 +261,9 @@ def send_notification(resource, context, form, changes, new=False):
     comment = u""
     if form.get('comment'):
         n = len(resource.get_property('comment')) - 1
-        date = context.format_datetime(datetime.now())
+        now = context.format_datetime(datetime.now())
         comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
-            user_email=user_email, date=date)]
+            user_email=user_email, date=now)]
         comment.extend(form['comment'].splitlines())
         comment = u"\n".join(comment)
     body = BODY.gettext(mission_uri=mission_uri,
@@ -359,6 +360,12 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
+        try:
+            alert = resource.get_property('crm_m_alert')
+        except ValueError:
+            # New mission
+            alert = datetime.now()
+        namespace['icon_alert'] = get_alert_icon(alert)
         try:
             status = resource.get_property('crm_m_status')
         except ValueError:
