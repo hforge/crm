@@ -90,8 +90,7 @@ class Icon(STLTemplate):
 
     def __init__(cls, name=None, **kw):
         super(Icon, cls).__init__(**kw)
-        if name:
-            cls.name = name
+        cls.name = name
 
 
     def title(cls):
@@ -102,7 +101,8 @@ class Icon(STLTemplate):
 
     def icon(cls):
         if cls.icons is not None:
-            return cls.icons[cls.name]
+            # TODO point to "not found" sprite
+            return cls.icons.get(cls.name, None)
         return cls.name
 
 
