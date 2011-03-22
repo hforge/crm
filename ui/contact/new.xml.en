@@ -223,17 +223,37 @@
           <td class="amount">
             <span stl:if="widgets/crm_m_amount/error"
               class="field-error">${widgets/crm_m_amount/error}<br/></span>
-            ${widgets/crm_m_amount/widget}
+            ${widgets/crm_m_amount/widget} €
           </td>
           <td>
             <label for="${widgets/crm_m_probability/name}">
               ${widgets/crm_m_probability/title}
             </label>
           </td>
-          <td class="amount">
+          <td class="amount" colspan="2">
             <span stl:if="widgets/crm_m_probability/error"
               class="field-error">${widgets/crm_m_probability/error}<br/></span>
             ${widgets/crm_m_probability/widget} %
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5">
+            <fieldset id="edit-mission-comment">
+              <table cellpadding="0" cellspacing="5">
+                <tr>
+                  <td>
+                    <label for="${widgets/mission_comment/name}">
+                      ${widgets/mission_comment/title}
+                    </label>
+                  </td>
+                  <td>
+                    <span stl:if="widgets/mission_comment/error"
+                      class="field-error">${widgets/mission_comment/error}<br/></span>
+                    ${widgets/mission_comment/widget}
+                  </td>
+                </tr>
+              </table>
+            </fieldset>
           </td>
         </tr>
       </tbody>

@@ -165,7 +165,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         mission=String))
     mission_fields = (
         'title', 'description', 'crm_m_assigned', 'crm_m_cc', 'crm_m_status',
-        'crm_m_deadline', 'crm_m_amount', 'crm_m_probability')
+        'crm_m_deadline', 'crm_m_amount', 'crm_m_probability', 'comment')
 
 
     def _get_schema(self, resource, context):
@@ -175,7 +175,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
         for name, datatype in mission_schema.iteritems():
             if name not in self.mission_fields:
                 continue
-            if name in ('title', 'description'):
+            if name in ('title', 'description', 'comment'):
                 # Prefix double title and description
                 schema['mission_%s' % name] = datatype
             elif name in ('crm_m_assigned', 'crm_m_cc'):
@@ -195,7 +195,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
             name = widget.name
             if name not in self.mission_fields:
                 continue
-            elif name in ('title', 'description'):
+            if name in ('title', 'description', 'comment'):
                 # Prefix double title and description
                 widget = widget(name='mission_' + name)
             widgets.append(widget)
@@ -222,7 +222,7 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
     def _get_form(self, resource, context):
         form = super(Contact_AddForm, self)._get_form(resource, context)
 
-        # If title is defined, status is required
+        # If mission title is defined, status is required
         title = form['mission_title']
         if title:
             language = resource.get_edit_languages(context)[0]
@@ -273,6 +273,9 @@ class Contact_AddForm(CRMFolder_AddForm, Contact_EditForm):
             elif m_values['title'][language]:
                 # Create new mission and link to it
                 m_values['crm_m_contact'] = contact.name
+                if m_values['comment']:
+                    m_values['comment'] = Property(m_values['comment'],
+                            date=context.timestamp, author=context.user.name)
                 mission = missions.add_mission(**m_values)
                 changes = get_changes(mission, context, m_values, new=True)
                 send_notification(mission, context, m_values, changes,

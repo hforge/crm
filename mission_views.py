@@ -261,7 +261,7 @@ def send_notification(resource, context, form, changes, new=False):
     comment = u""
     if form.get('comment'):
         n = len(resource.get_property('comment')) - 1
-        now = context.format_datetime(datetime.now())
+        now = context.format_datetime(context.timestamp)
         comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
             user_email=user_email, date=now)]
         comment.extend(form['comment'].splitlines())
@@ -364,7 +364,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
             alert = resource.get_property('crm_m_alert')
         except ValueError:
             # New mission
-            alert = datetime.now()
+            alert = context.timestamp
         namespace['icon_alert'] = get_alert_icon(alert)
         try:
             status = resource.get_property('crm_m_status')
