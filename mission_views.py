@@ -359,14 +359,18 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
-        status = resource.get_property('crm_m_status')
+        try:
+            status = resource.get_property('crm_m_status')
+        except ValueError:
+            # New mission
+            status = 'opportunity'
         namespace['icon_status'] = StatusIcon(name=status, css="nofloat")
         return namespace
 
 
-    def action(self, resource, context, form):
+    def action(self, resource, context, form, new=False):
         # First compute differences
-        changes = get_changes(resource, context, form)
+        changes = get_changes(resource, context, form, new=new)
 
         # Save changes
         super(Mission_EditForm, self).action(resource, context, form)
@@ -381,7 +385,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
             context.database.change_resource(contact)
 
         # Send notification to CC
-        send_notification(resource, context, form, changes)
+        send_notification(resource, context, form, changes, new=new)
 
 
     def set_value(self, resource, context, name, form):
