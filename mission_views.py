@@ -31,7 +31,7 @@ from itools.web import INFO, ERROR, get_context
 
 # Import from ikaaro
 from ikaaro.buttons import Button, BrowseButton, RemoveButton
-from ikaaro.autoform import DateWidget, MultilineWidget
+from ikaaro.autoform import DateWidget, MultilineWidget, description_widget
 from ikaaro.autoform import FileWidget, TextWidget, SelectWidget
 from ikaaro.cc import UsersList
 from ikaaro.datatypes import FileDataType, Multilingual
@@ -93,9 +93,10 @@ mission_schema = freeze(merge_dicts(
 
 
 mission_widgets = freeze(
-    DBResource_Edit.widgets[:3] + [
+    DBResource_Edit.widgets[:2] + [
+        description_widget(rows=2),
         MultilineWidget('comment', title=MSG(u"New Comment"), default='',
-                        rows=3),
+            rows=8, cols=80),
         TextWidget('crm_m_nextaction', title=MSG(u"Next Action"), size=20),
         FileWidget('attachment', title=MSG(u"Attachment"), size=35,
             default=''),
