@@ -46,7 +46,7 @@ from itws.tags import TagsAware_Edit
 
 # Import from crm
 from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
-from base_views import Comments_View, CRMFolder_AddForm
+from base_views import Comments_View, CRMFolder_AddForm, StatusIcon
 from crm_views import CRM_SearchContacts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
@@ -359,6 +359,8 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         namespace = proxy.get_namespace(resource, context)
         monolingual_widgets(namespace)
         reset_comment(namespace, is_edit=self.is_edit(context))
+        status = resource.get_property('crm_m_status')
+        namespace['icon_status'] = StatusIcon(name=status, css="nofloat")
         return namespace
 
 

@@ -97,6 +97,7 @@
             <span stl:if="widgets/crm_m_status/error"
               class="field-error">${widgets/crm_m_status/error}<br/></span>
             ${widgets/crm_m_status/widget}
+            ${icon_status}
           </td>
           <td>
             <label for="${widgets/crm_m_deadline/name}">
