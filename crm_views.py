@@ -269,6 +269,7 @@ class CRM_SearchMissions(CRM_Search):
     csv_columns = freeze([
         ('crm_m_alert', MSG(u"Alert")),
         ('crm_m_status', MSG(u"Status")),
+        ('crm_m_probability', MSG(u"Probability")),
         ('title', MSG(u'Mission')),
         ('crm_m_nextaction', MSG(u'Next Action')),
         ('contacts_csv', MSG(u'Contacts')),
