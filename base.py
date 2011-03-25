@@ -57,27 +57,27 @@ class CRMFolder(TagsAware, RoleAware, Folder):
             title=MSG(u"Missions"),
             specific_document='../..',
             specific_view='missions',
-            adminbar_icon='crmsprites16 mission-go')
+            adminbar_icon='crm16 crm16-mission-go')
     goto_contacts = GoToSpecificDocument(
             title=MSG(u"Contacts"),
             specific_document='../..',
             specific_view='contacts',
-            adminbar_icon='crmsprites16 contact-go')
+            adminbar_icon='crm16 crm16-contact-go')
     goto_companies = GoToSpecificDocument(
             title=MSG(u"Companies"),
             specific_document='../..',
             specific_view='companies',
-            adminbar_icon='crmsprites16 company-go')
+            adminbar_icon='crm16 crm16-company-go')
     goto_add_contact = GoToSpecificDocument(
             title=MSG(u"Add Contact"),
             specific_document='../../contacts',
             specific_view='new_contact',
-            adminbar_icon='crmsprites16 contact-add')
+            adminbar_icon='crm16 crm16-contact-add')
     goto_add_company = GoToSpecificDocument(
             title=MSG(u"Add Company"),
             specific_document='../../companies',
             specific_view='new_company',
-            adminbar_icon='crmsprites16 company-add')
+            adminbar_icon='crm16 crm16-company-add')
 
 
     def init_resource(self, **kw):

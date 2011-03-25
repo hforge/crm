@@ -182,7 +182,7 @@ class CRM_Search(CSV_Export, SearchForm):
         if column == 'checkbox':
             return item_brain.name, False
         elif column == 'sprite':
-            return Icon(name=item_brain.sprite16)
+            return Icon(item_brain.sprite16)
         elif column == 'title':
             href = context.get_link(item_resource)
             return item_brain.title, href
@@ -426,7 +426,7 @@ class CRM_SearchMissions(CRM_Search):
             return None
         elif column == 'status':
             # Status
-            return ShortStatusIcon(name=item_brain.crm_m_status)
+            return ShortStatusIcon(item_brain.crm_m_status)
         elif column in ('contacts', 'contacts_csv'):
             m_contacts = item_brain.crm_m_contact
             query = [PhraseQuery('name', name) for name in m_contacts]
@@ -758,7 +758,7 @@ class CRM_ImportContacts(AutoForm):
     access = 'is_allowed_to_edit'
     title = MSG(u"Import Contacts")
     styles = ['/ui/crm/style.css']
-    adminbar_icon = 'crmsprites16 book-addresses'
+    adminbar_icon = 'crm16 crm16-book-addresses'
     schema = freeze({
         'file': FileDataType(mandatory=True,
             mimetypes=CSVFile.class_mimetypes),

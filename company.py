@@ -54,7 +54,7 @@ class Company(CRMFolder):
         crm_c_activity=Unicode(source='metadata', stored=True),
         crm_c_logo=PathDataType(source='metadata', default='.',
             stored=True)))
-    class_sprite16 = 'company'
+    class_sprite16 = 'crm16-company'
     class_title = MSG(u'Company')
     class_views = ['view'] + CRMFolder.class_views_shortcuts
 

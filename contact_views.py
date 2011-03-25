@@ -362,7 +362,7 @@ class Contact_SearchMissions(SearchForm):
         get_property = item_resource.get_property
         if column == 'sprite':
             # Status
-            return StatusIcon(name=get_property('crm_m_status'))
+            return StatusIcon(get_property('crm_m_status'))
         # FIXME
         elif column == 'title':
             # Title

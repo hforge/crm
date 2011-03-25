@@ -63,10 +63,10 @@ class CRM(Folder):
     edit = DBResource_Edit(styles=['/ui/crm/style.css'])
     backlinks = DBResource_Backlinks(access='is_allowed_to_edit')
     goto_contacts = GoToSpecificDocument(specific_document='contacts',
-        adminbar_icon='crmsprites16 contact-add',
+        adminbar_icon='crm16 crm16-contact-add',
         title=MSG(u'New contact'), access='is_allowed_to_edit')
     goto_companies = GoToSpecificDocument(specific_document='companies',
-        adminbar_icon='crmsprites16 company-add',
+        adminbar_icon='crm16 crm16-company-add',
         title=MSG(u'New company'), access='is_allowed_to_edit')
     import_contacts = CRM_ImportContacts()
     test = CRM_Test()

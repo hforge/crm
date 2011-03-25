@@ -1,5 +1,5 @@
 sprites:
-	make_map.py ui/icons/16x16/sprites.conf
+	make -C sprites
 
 all: sprites
 

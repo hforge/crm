@@ -371,7 +371,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         except ValueError:
             # New mission
             status = 'opportunity'
-        namespace['icon_status'] = StatusIcon(name=status, css="nofloat")
+        namespace['icon_status'] = StatusIcon(status, css="nofloat")
         return namespace
 
 

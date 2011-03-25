@@ -64,7 +64,7 @@ class Contact(CRMFolder):
         crm_p_project=Integer(stored=True),
         crm_p_finished=Integer(stored=True),
         crm_p_nogo=Integer(stored=True)))
-    class_sprite16 = 'contact'
+    class_sprite16 = 'crm16-contact'
     class_title = MSG(u'Contact')
     class_views = ['view'] + CRMFolder.class_views_shortcuts
 

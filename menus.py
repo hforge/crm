@@ -86,14 +86,14 @@ class ContactsMenu(ContextMenu):
         for brain in self.get_contacts(context):
             items.append(item(
                 title=get_contact_title(brain, context),
-                icon=Icon('contact'),
+                icon=Icon('crm16-contact'),
                 href=context.get_link(brain),
                 selected=self.is_selected(brain, resource, context)))
         # New contact
         if resource.class_id == 'mission':
             items.append(item(
                 title=MSG(u"Link Existing Contact"),
-                icon=Icon('contact-add'),
+                icon=Icon('crm16-contact-add'),
                 href=';add_contacts',
                 selected=False))
             m_contact = resource.get_property('crm_m_contact')
@@ -103,20 +103,20 @@ class ContactsMenu(ContextMenu):
                 p_company = contact.get_property('crm_p_company')
                 items.append(item(
                     title=MSG(u"New Contact"),
-                    icon=Icon('contact-add'),
+                    icon=Icon('crm16-contact-add'),
                     href='../../contacts/?crm_p_company=' + p_company,
                     selected=False))
         elif resource.class_id == 'contact':
             p_company = resource.get_property('crm_p_company')
             items.append(item(
                 title=MSG(u"New Contact"),
-                icon=Icon('contact-add'),
+                icon=Icon('crm16-contact-add'),
                 href='../?crm_p_company=' + p_company,
                 selected=False))
         elif resource.class_id == 'company':
             items.append(item(
                 title=MSG(u"New Contact"),
-                icon=Icon('contact-add'),
+                icon=Icon('crm16-contact-add'),
                 href='../../contacts/?crm_p_company=' + resource.name,
                 selected=False))
         return items
@@ -203,13 +203,13 @@ class MissionsMenu(ContextMenu):
             m_contact = resource.get_property('crm_m_contact')[0]
             items.append(item(
                 title=MSG(u"New Mission"),
-                icon=Icon('mission-add'),
+                icon=Icon('crm16-mission-add'),
                 href=('../;new_mission?crm_m_contact=' + m_contact),
                 selected=False))
         elif resource.class_id == 'contact':
             items.append(item(
                 title=MSG(u"New Mission"),
-                icon=Icon('mission-add'),
+                icon=Icon('crm16-mission-add'),
                 href=('../../missions/;new_mission?crm_m_contact=' +
                     resource.name),
                 selected=False))
@@ -243,12 +243,12 @@ class CompaniesMenu(ContextMenu):
                 company = companies.get_resource(p_company)
                 items.append(item(
                     title=company.get_property('title'),
-                    icon=Icon('company'),
+                    icon=Icon('crm16-company'),
                     href=context.get_link(company),
                     selected=True))
         items.append(item(
             title=MSG(u"New Company"),
-            icon=Icon('company-add'),
+            icon=Icon('crm16-company-add'),
             href=context.get_link(companies),
             selected=False))
         return items
@@ -267,7 +267,7 @@ class CompanyMenu(ContextMenu):
         if resource.class_id == 'company':
             items.append(item(
                 title=MSG(u"New Company"),
-                icon=Icon('company-add'),
+                icon=Icon('crm16-company-add'),
                 href='..',
                 selected=False))
         return items

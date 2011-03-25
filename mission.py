@@ -66,7 +66,7 @@ class Mission(CRMFolder):
         comment=comment_datatype(parameters_schema=merge_dicts(
             comment_datatype.parameters_schema,
             attachment=String))))
-    class_sprite16 = 'mission'
+    class_sprite16 = 'crm16-mission'
     class_views = (['view', 'add_contacts', 'edit_contacts', 'edit_alerts']
             + CRMFolder.class_views_shortcuts)
 

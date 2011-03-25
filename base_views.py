@@ -82,14 +82,14 @@ def reset_comment(namespace, is_edit=False):
 
 class Icon(STLTemplate):
     template = make_stl_template('''
-        <img class="crmsprites16 ${css} ${icon}" title="${title}"
+        <img class="crm16 ${css} ${icon}" title="${title}"
             src="/ui/crm/images/1x1.gif" width="16" height="16"/>''')
     datatype = None
     icons = None
     css = None
 
 
-    def __init__(cls, name=None, **kw):
+    def __init__(cls, name, **kw):
         super(Icon, cls).__init__(**kw)
         cls.name = name
 
@@ -102,8 +102,7 @@ class Icon(STLTemplate):
 
     def icon(cls):
         if cls.icons is not None:
-            # TODO point to "not found" sprite
-            return cls.icons.get(cls.name, None)
+            return cls.icons.get(cls.name)
         return cls.name
 
 
@@ -111,10 +110,10 @@ class Icon(STLTemplate):
 class StatusIcon(Icon):
     datatype = MissionStatus
     icons = {
-        'opportunity': "mission",
-        'project': "project",
-        'finished': "finished",
-        'nogo': 'nogo'}
+        'opportunity': "crm16-mission",
+        'project': "crm16-project",
+        'finished': "crm16-finished",
+        'nogo': "crm16-nogo"}
 
 
 
@@ -125,27 +124,27 @@ class ShortStatusIcon(StatusIcon):
 
 class AlertIcon(Icon):
     icons = {
-        'past': "bell-notification",
-        'now': "bell-error",
-        'future': "bell-go"}
+        'past': "crm16-bell-notification",
+        'now': "crm16-bell-error",
+        'future': "crm16-bell-go"}
 
 
 class PhoneIcon(Icon):
     icons = {
-        'crm_p_phone': "phone",
-        'crm_p_mobile': "mobile",
-        'crm_c_phone': "phone",
-        'crm_c_fax': "fax"}
+        'crm_p_phone': "crm16-phone",
+        'crm_p_mobile': "crm16-mobile",
+        'crm_c_phone': "crm16-phone",
+        'crm_c_fax': "crm16-fax"}
 
 
 def get_alert_icon(alert):
     if alert is None:
         return None
     elif alert.date() < date.today():
-        return AlertIcon(name='past')
+        return AlertIcon('past')
     elif alert < datetime.now():
-        return AlertIcon(name='now')
-    return AlertIcon(name='future')
+        return AlertIcon('now')
+    return AlertIcon('future')
 
 
 

@@ -264,40 +264,44 @@ fieldset#company legend a {
   width: 200px !important;
 }
 
-.crmsprites16 {
-  background: url("icons/16x16/sprites.png") no-repeat scroll 0 0 transparent;
+.crm16 {
+  background-color: transparent;
+  background-image: url("icons/16x16/icons16.png");
+  background-repeat: no-repeat;
+  background-position: -2px -2px;
   display: block;
   float: left;
   height: 16px;
   vertical-align: top;
   width: 16px;
 }
-.crmsprites16.nofloat {
+.crm16.nofloat {
   display: inline;
   float: none;
 }
-.crmsprites16.mission { background-position: -2px -2px; }
-.crmsprites16.contact { background-position: -2px -20px; }
-.crmsprites16.company { background-position: -2px -38px; }
-.crmsprites16.bell { background-position: -2px -56px; }
-.crmsprites16.bell-add { background-position: -2px -74px; }
-.crmsprites16.bell-delete { background-position: -2px -92px; }
-.crmsprites16.bell-error { background-position: -2px -110px; }
-.crmsprites16.bell-go { background-position: -2px -128px; }
-.crmsprites16.bell-notification { background-position: -2px -146px; }
-.crmsprites16.project { background-position: -2px -164px; }
-.crmsprites16.finished { background-position: -2px -182px; }
-.crmsprites16.nogo { background-position: -2px -200px; }
-.crmsprites16.phone { background-position: -2px -218px; }
-.crmsprites16.mobile { background-position: -2px -236px; }
-.crmsprites16.fax { background-position: -2px -254px; }
-.crmsprites16.mission-go { background-position: -2px -272px; }
-.crmsprites16.contact-go { background-position: -2px -290px; }
-.crmsprites16.company-go { background-position: -2px -308px; }
-.crmsprites16.mission-add { background-position: -2px -326px; }
-.crmsprites16.contact-add { background-position: -2px -344px; }
-.crmsprites16.company-add { background-position: -2px -362px; }
-.crmsprites16.book-addresses { background-position: -2px -380px; }
+.crm16-notfound { background-position: -2px -2px; }
+.crm16-mission { background-position: -2px -20px; }
+.crm16-contact { background-position: -2px -38px; }
+.crm16-company { background-position: -2px -56px; }
+.crm16-bell { background-position: -2px -74px; }
+.crm16-bell-add { background-position: -2px -92px; }
+.crm16-bell-delete { background-position: -2px -110px; }
+.crm16-bell-error { background-position: -2px -128px; }
+.crm16-bell-go { background-position: -2px -146px; }
+.crm16-bell-notification { background-position: -2px -164px; }
+.crm16-project { background-position: -2px -182px; }
+.crm16-finished { background-position: -2px -200px; }
+.crm16-nogo { background-position: -2px -218px; }
+.crm16-phone { background-position: -2px -236px; }
+.crm16-mobile { background-position: -2px -254px; }
+.crm16-fax { background-position: -2px -272px; }
+.crm16-mission-go { background-position: -2px -290px; }
+.crm16-contact-go { background-position: -2px -308px; }
+.crm16-company-go { background-position: -2px -326px; }
+.crm16-mission-add { background-position: -2px -344px; }
+.crm16-contact-add { background-position: -2px -362px; }
+.crm16-company-add { background-position: -2px -380px; }
+.crm16-book-addresses { background-position: -2px -398px; }
 
 .button-calendar.button-selector {
   background-image: none;
