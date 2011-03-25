@@ -186,6 +186,12 @@ class CRM_Search(CSV_Export, SearchForm):
             return item_resource.get_property(column)
 
 
+    def get_key_sorted_by_title(self):
+        def key(item):
+            return item.title.lower().translate(transmap)
+        return key
+
+
     def sort_and_batch(self, resource, context, results):
         start = context.query['batch_start']
         size = context.query['batch_size']
@@ -337,12 +343,6 @@ class CRM_SearchMissions(CRM_Search):
     def get_key_sorted_by_status(self):
         def key(item):
             return item.crm_m_status
-        return key
-
-
-    def get_key_sorted_by_title(self):
-        def key(item):
-            return item.title.lower().translate(transmap)
         return key
 
 
@@ -524,6 +524,13 @@ class CRM_SearchContacts(CRM_Search):
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
+
+
+    def get_key_sorted_by_title(self):
+        def key(item):
+            return (item.crm_p_lastname.lower().translate(transmap),
+                    item.crm_p_firstname.lower().translate(transmap))
+        return key
 
 
     def get_items(self, resource, context, *args):
