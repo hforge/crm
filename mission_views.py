@@ -264,7 +264,10 @@ def send_notification(resource, context, form, changes, new=False):
         now = context.format_datetime(context.timestamp)
         comment = [COMMENT_LINE.gettext(n=n, user_title=user_title,
             user_email=user_email, date=now)]
-        comment.extend(form['comment'].splitlines())
+        comment_value = form['comment']
+        if type(comment_value) is Property:
+            comment_value = comment_value.value
+        comment.extend(comment_value.splitlines())
         comment = u"\n".join(comment)
     body = BODY.gettext(mission_uri=mission_uri,
             mission_name=mission_name, mission_title=mission_title,
