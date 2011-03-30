@@ -205,7 +205,7 @@ def get_changes(resource, context, form, new=False):
         elif key == 'attachment':
             if new_value is not None:
                 # Filename
-                added = new_value[0]
+                added = unicode(new_value[0], 'utf_8')
                 changes.append(CHANGES_LINE.gettext(what=title,
                     removed=u"", added=added))
         elif key == 'alert_date' or key == 'crm_m_deadline':
