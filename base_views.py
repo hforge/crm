@@ -137,6 +137,8 @@ class PhoneIcon(Icon):
 
 
 def get_alert_icon(alert, context):
+    if not alert.tzinfo:
+        alert = context.fix_tzinfo(alert)
     if alert is None:
         return None
     elif alert.date() < context.timestamp.date():
