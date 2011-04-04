@@ -418,7 +418,7 @@ class CRM_SearchMissions(CRM_Search):
             id = str(id)
             return id, False
         elif column == 'alert':
-            return get_alert_icon(item_brain.crm_m_alert)
+            return get_alert_icon(item_brain.crm_m_alert, context)
         elif column == 'crm_m_alert':
             alert = item_brain.crm_m_alert
             if alert:

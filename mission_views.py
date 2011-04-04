@@ -368,7 +368,7 @@ class Mission_EditForm(TagsAware_Edit, DBResource_Edit):
         except ValueError:
             # New mission
             alert = context.timestamp
-        namespace['icon_alert'] = get_alert_icon(alert)
+        namespace['icon_alert'] = get_alert_icon(alert, context)
         try:
             status = resource.get_property('crm_m_status')
         except ValueError:

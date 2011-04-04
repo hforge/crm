@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the Standard Library
-from datetime import date, datetime
 from decimal import Decimal as dec
 
 # Import from itools
@@ -137,12 +136,12 @@ class PhoneIcon(Icon):
         'crm_c_fax': "crm16-fax"}
 
 
-def get_alert_icon(alert):
+def get_alert_icon(alert, context):
     if alert is None:
         return None
-    elif alert.date() < date.today():
+    elif alert.date() < context.timestamp.date():
         return AlertIcon('past')
-    elif alert < datetime.now():
+    elif alert < context.timestamp:
         return AlertIcon('now')
     return AlertIcon('future')
 
