@@ -3,11 +3,9 @@
   xmlns:stl="http://www.hforge.org/xml-namespaces/stl">
   <form method="POST">
     <fieldset>
-      <legend>Export <em>all data</em> to CSV</legend>
-      Please select output format:
-      ${editor}
-      <button type="submit" name="action" value="csv"
-        class="button-ok">Export</button>
+      <legend>Export to CSV</legend>
+      Please select the output format: ${format}
+      ${action}
     </fieldset>
   </form>
 </stl:block>

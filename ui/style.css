@@ -306,3 +306,7 @@ fieldset#company legend a {
 .button-calendar.button-selector {
   background-image: none;
 }
+.button-csv {
+  background-image: url(/ui/icons/16x16/excel.png);
+  padding-left: 19px;
+}

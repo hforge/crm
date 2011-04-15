@@ -42,8 +42,9 @@ from itws.tags import TagsList
 # Import from crm
 from base_views import Icon, ShortStatusIcon, PhoneIcon, get_alert_icon
 from base_views import format_amount
-from csv_views import cleanup_gmail_csv, find_value_by_column, CSV_Export
-from datatypes import MissionStatusShortened, ContactStatus
+from csv_views import cleanup_gmail_csv, find_value_by_column
+from csv_views import Folder_CSV_Export, CSVColumn
+from datatypes import MissionStatus, MissionStatusShortened, ContactStatus
 from datatypes import AssignedList
 from utils import get_crm, get_crm_path_query
 from widgets import MultipleCheckboxWidget
@@ -113,13 +114,16 @@ class SearchButton(Button):
 
 
 
-class CRM_Search(CSV_Export, SearchForm):
+class CRM_Search(Folder_CSV_Export, SearchForm):
     access = 'is_allowed_to_edit'
     query_schema = freeze(merge_dicts(
         SearchForm.query_schema,
         sort_by=String(default='mtime'),
         reverse=Boolean(default=True),
         tags=TagsList))
+    schema = freeze(merge_dicts(
+        SearchForm.schema,
+        Folder_CSV_Export.csv_schema))
     styles = ['/ui/crm/style.css']
     template = '/ui/crm/crm/search.xml'
 
@@ -167,9 +171,10 @@ class CRM_Search(CSV_Export, SearchForm):
 
 
     def get_namespace(self, resource, context):
-        return merge_dicts(
-            SearchForm.get_namespace(self, resource, context),
-            CSV_Export.get_namespace(self, resource, context))
+        namespace = SearchForm.get_namespace(self, resource, context)
+        namespace['csv'] = Folder_CSV_Export.get_csv_namespace(self,
+                resource, context)
+        return namespace
 
 
     def get_items(self, resource, context, *args):
@@ -286,25 +291,25 @@ class CRM_SearchMissions(CRM_Search):
         ('company', MSG(u'Company'), True),
         ('assigned', MSG(u'Assigned To'), True),
         ('mtime', MSG(u'Last Modified'), True)])
-    table_actions = freeze([
-        PostponeAlerts])
+    table_actions = freeze([PostponeAlerts])
 
     action_postpone_schema = freeze({
         'ids': String(multiple=True, mandatory=False),
         'postpone': Date(mandatory=False)})
 
     csv_columns = freeze([
-        ('crm_m_alert', MSG(u"Alert")),
-        ('crm_m_status', MSG(u"Status")),
-        ('crm_m_amount', MSG(u"Amount")),
-        ('crm_m_probability', MSG(u"Probability")),
-        ('title', MSG(u'Mission')),
-        ('crm_m_nextaction', MSG(u'Next Action')),
-        ('contacts_csv', MSG(u'Contacts')),
-        ('company', MSG(u'Company')),
-        ('assigned', MSG(u'Assigned To')),
-        ('mtime', MSG(u'Last Modified'))])
-    csv_filename = 'missions.csv'
+        CSVColumn('crm_m_alert', title=MSG(u"Alert")),
+        CSVColumn('crm_m_status', title=MSG(u"Status"),
+            datatype=MissionStatus),
+        CSVColumn('crm_m_amount', title=MSG(u"Amount")),
+        CSVColumn('crm_m_probability', title=MSG(u"Probability")),
+        CSVColumn('title', title=MSG(u'Mission')),
+        CSVColumn('crm_m_nextaction', title=MSG(u'Next Action')),
+        CSVColumn('contacts_csv', title=MSG(u'Contacts')),
+        CSVColumn('company', title=MSG(u'Company')),
+        CSVColumn('assigned', title=MSG(u'Assigned To')),
+        CSVColumn('mtime', title=MSG(u'Last Modified'))])
+    csv_filename = 'missions'
 
     batch_msg1 = MSG(u'1 mission.')
     batch_msg2 = MSG(u'{n} missions.')
@@ -517,18 +522,19 @@ class CRM_SearchContacts(CRM_Search):
 
     csv_columns = freeze([
         # Not translated for Gmail
-        ('crm_p_lastname', u"Last Name"),
-        ('crm_p_firstname', u"First Name"),
-        ('company', u"Company"),
-        ('crm_p_email', u"E-mail Address"),
-        ('crm_p_phone', u"Business Phone"),
-        ('crm_p_mobile', u"Mobile Phone"),
-        ('crm_m_title', MSG(u"Mission")),
-        ('crm_m_amount', MSG(u"Amount")),
-        ('crm_m_probability', MSG(u"Probability")),
-        ('crm_m_status', MSG(u"Status")),
-        ('crm_m_deadline', MSG(u"Deadline"))])
-    csv_filename = 'contacts.csv'
+        CSVColumn('crm_p_lastname', title=u"Last Name"),
+        CSVColumn('crm_p_firstname', title=u"First Name"),
+        CSVColumn('company', title=u"Company"),
+        CSVColumn('crm_p_email', title=u"E-mail Address"),
+        CSVColumn('crm_p_phone', title=u"Business Phone"),
+        CSVColumn('crm_p_mobile', title=u"Mobile Phone"),
+        CSVColumn('crm_m_title', title=MSG(u"Mission")),
+        CSVColumn('crm_m_amount', title=MSG(u"Amount")),
+        CSVColumn('crm_m_probability', title=MSG(u"Probability")),
+        CSVColumn('crm_m_status', title=MSG(u"Status"),
+            datatype=MissionStatus),
+        CSVColumn('crm_m_deadline', title=MSG(u"Deadline"))])
+    csv_filename = 'contacts'
 
     batch_msg1 = MSG(u'1 contact.')
     batch_msg2 = MSG(u'{n} contacts.')
@@ -607,6 +613,8 @@ class CRM_SearchContacts(CRM_Search):
 
     def sort_and_batch(self, resource, context, results):
         # Calculate the probable and assured amount
+        self.assured = dec('0.0')
+        self.probable = dec('0.0')
         for brain in results.get_documents():
             self.assured += brain.crm_p_assured
             self.probable += brain.crm_p_probable
@@ -616,8 +624,6 @@ class CRM_SearchContacts(CRM_Search):
 
 
     def get_namespace(self, resource, context):
-        self.assured = dec('0.0')
-        self.probable = dec('0.0')
         proxy = super(CRM_SearchContacts, self)
         namespace = proxy.get_namespace(resource, context)
         # Add infos about assured and probable amount
@@ -649,17 +655,17 @@ class CRM_SearchCompanies(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True)]
 
     csv_columns = freeze([
-        ('title', MSG(u"Company")),
-        ('crm_c_address_1', MSG(u"Address 1")),
-        ('crm_c_address_2', MSG(u"Address 2")),
-        ('crm_c_zipcode', MSG(u"Zip Code")),
-        ('crm_c_town', MSG(u"Town")),
-        ('crm_c_country', MSG(u"Country")),
-        ('crm_c_phone', MSG(u"Phone")),
-        ('crm_c_fax', MSG(u"Fax")),
-        ('crm_c_website', MSG(u"Website")),
-        ('crm_c_activity', MSG(u"Activity"))])
-    csv_filename = 'companies.csv'
+        CSVColumn('title', title=MSG(u"Company")),
+        CSVColumn('crm_c_address_1', title=MSG(u"Address 1")),
+        CSVColumn('crm_c_address_2', title=MSG(u"Address 2")),
+        CSVColumn('crm_c_zipcode', title=MSG(u"Zip Code")),
+        CSVColumn('crm_c_town', title=MSG(u"Town")),
+        CSVColumn('crm_c_country', title=MSG(u"Country")),
+        CSVColumn('crm_c_phone', title=MSG(u"Phone")),
+        CSVColumn('crm_c_fax', title=MSG(u"Fax")),
+        CSVColumn('crm_c_website', title=MSG(u"Website")),
+        CSVColumn('crm_c_activity', title=MSG(u"Activity"))])
+    csv_filename = 'companies'
 
     batch_msg1 = MSG(u'1 company.')
     batch_msg2 = MSG(u'{n} companies.')
