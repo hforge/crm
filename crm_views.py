@@ -59,6 +59,15 @@ MSG_CONTACTS_UPDATED = INFO(u"The following {n} contacts were updated: "
 ERR_NO_CONTACT_FOUND = ERROR(u"No contact found.")
 
 
+GMAIL_LAST_NAME = u"Last Name"
+GMAIL_FIRST_NAME = u"First Name"
+GMAIL_COMPANY = u"Company"
+GMAIL_EMAIL = u"E-mail Address"
+GMAIL_BUSINESS_PHONE = u"Business Phone"
+GMAIL_MOBILE_PHONE = u"Mobile Phone"
+
+
+
 class Phones(STLTemplate):
     template = make_stl_template('''
         <div stl:repeat="phone phones">${phone/icon}${phone/value}</div>''')
@@ -521,13 +530,12 @@ class CRM_SearchContacts(CRM_Search):
         ('mtime', MSG(u'Last Modified'), True)])
 
     csv_columns = freeze([
-        # Not translated for Gmail
-        CSVColumn('crm_p_lastname', title=u"Last Name"),
-        CSVColumn('crm_p_firstname', title=u"First Name"),
-        CSVColumn('company', title=u"Company"),
-        CSVColumn('crm_p_email', title=u"E-mail Address"),
-        CSVColumn('crm_p_phone', title=u"Business Phone"),
-        CSVColumn('crm_p_mobile', title=u"Mobile Phone"),
+        CSVColumn('crm_p_lastname', title=GMAIL_LAST_NAME),
+        CSVColumn('crm_p_firstname', title=GMAIL_FIRST_NAME),
+        CSVColumn('company', title=GMAIL_COMPANY),
+        CSVColumn('crm_p_email', title=GMAIL_EMAIL),
+        CSVColumn('crm_p_phone', title=GMAIL_BUSINESS_PHONE),
+        CSVColumn('crm_p_mobile', title=GMAIL_MOBILE_PHONE),
         CSVColumn('crm_m_title', title=MSG(u"Mission")),
         CSVColumn('crm_m_amount', title=MSG(u"Amount")),
         CSVColumn('crm_m_probability', title=MSG(u"Probability")),
@@ -746,12 +754,12 @@ class CRM_Test(STLView):
 
 
 import_columns = freeze({
-    u"Last Name": 'crm_p_lastname',
-    u"First Name": 'crm_p_firstname',
-    #u"Company": 'crm_p_company', # Treated separately
-    u"E-mail Address": 'crm_p_email',
-    u"Business Phone": 'crm_p_phone',
-    u"Mobile Phone": 'crm_p_mobile'})
+    GMAIL_LAST_NAME: 'crm_p_lastname',
+    GMAIL_FIRST_NAME: 'crm_p_firstname',
+    #GMAIL_COMPANY: 'crm_p_company', # Treated separately
+    GMAIL_EMAIL: 'crm_p_email',
+    GMAIL_BUSINESS_PHONE: 'crm_p_phone',
+    GMAIL_MOBILE_PHONE: 'crm_p_mobile'})
 
 
 class ColumnsWidget(Widget):
@@ -800,7 +808,7 @@ class CRM_ImportContacts(AutoForm):
 
         for row in rows:
             # Find company
-            company_title = find_value_by_column(header, row, u"Company")
+            company_title = find_value_by_column(header, row, GMAIL_COMPANY)
             if company_title:
                 company = None
                 # FIXME the catalog should do this
@@ -827,9 +835,10 @@ class CRM_ImportContacts(AutoForm):
                 company = thingy(name=None)
             # Find contact by name and company if available
             contact = None
-            firstname = find_value_by_column(header, row, u"First Name")
-            lastname = find_value_by_column(header, row, u"Last Name")
-            key = (firstname, lastname, company_title)
+            firstname = find_value_by_column(header, row, GMAIL_FIRST_NAME)
+            lastname = find_value_by_column(header, row, GMAIL_LAST_NAME)
+            email = find_value_by_column(header, row, GMAIL_EMAIL)
+            key = (firstname, lastname, email, company_title)
             if key in contacts_added:
                 # Already added
                 contact = contacts_added[key]
@@ -841,6 +850,8 @@ class CRM_ImportContacts(AutoForm):
                     query.append(TextQuery('crm_p_firstname', firstname))
                 if lastname:
                     query.append(TextQuery('crm_p_lastname', lastname))
+                if email:
+                    query.append(TextQuery('crm_p_email', email))
                 if company.name is not None:
                     query.append(PhraseQuery('crm_p_company', company.name))
                 results = root.search(query)
@@ -854,12 +865,14 @@ class CRM_ImportContacts(AutoForm):
                     contact = contacts.add_contact(
                             crm_p_firstname=firstname,
                             crm_p_lastname=lastname,
+                            crm_p_email=email,
                             crm_p_company=company.name,
                             crm_p_status='lead')
                     contacts_added[key] = contact
             # Update contact
             for title, name in import_columns.iteritems():
-                if title in (u"First Name", u"Last Name", u"Company"):
+                if title in (GMAIL_FIRST_NAME, GMAIL_LAST_NAME, GMAIL_EMAIL,
+                        GMAIL_COMPANY):
                     continue
                 value = find_value_by_column(header, row, title)
                 if value is not None:
