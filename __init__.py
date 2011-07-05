@@ -22,6 +22,10 @@ from sys import argv
 from itools.core import get_abspath, get_version
 from itools.gettext import register_domain
 
+# Import from ikaaro
+from ikaaro.registry import register_document_type
+from ikaaro.website import WebSite
+
 # Import from crm
 from crm import CRM
 
@@ -37,5 +41,9 @@ if argv[0].endswith('icms-update.py'):
     import obsolete
     print 'Imported', obsolete.__name__
 
+# Activate crm as an itws website's document type
+#register_document_type(CRM, WebSite.class_id)
+
 # Silent pyflakes
-CRM
+CRM, WebSite, register_document_type
+
