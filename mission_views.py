@@ -41,9 +41,6 @@ from ikaaro.resource_views import DBResource_Edit
 from ikaaro.utils import generate_name
 from ikaaro.views import CompositeForm
 
-# Import from itws
-from itws.tags import TagsAware_Edit
-
 # Import from crm
 from base_views import monolingual_widgets, reset_comment, DUMMY_COMMENT
 from base_views import Comments_View, CRMFolder_AddForm, StatusIcon
@@ -52,6 +49,7 @@ from crm_views import CRM_SearchContacts
 from datatypes import MissionStatus, ContactName
 from menus import MissionsMenu, ContactsByMissionMenu, CompaniesMenu
 from utils import get_crm
+from views import TagsAware_Edit
 from widgets import TimeWidget
 
 

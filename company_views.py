@@ -30,14 +30,12 @@ from ikaaro.datatypes import Multilingual
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm
 
-# Import from itws
-from itws.tags import TagsAware_Edit
-
 # Import from crm
 from base_views import CRMFolder_AddForm
 from crm_views import CRM_SearchContacts
 from menus import MissionsMenu, ContactsByCompanyMenu, CompanyMenu
 from utils import get_crm
+from views import TagsAware_Edit
 from widgets import LinkWidget
 
 

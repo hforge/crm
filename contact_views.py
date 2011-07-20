@@ -33,9 +33,6 @@ from ikaaro.messages import MSG_NEW_RESOURCE
 from ikaaro.resource_views import DBResource_Edit
 from ikaaro.views import CompositeForm, SearchForm
 
-# Import from itws
-from itws.tags import TagsAware_Edit
-
 # Import from crm
 from base_views import Comments_View, CRMFolder_AddForm
 from base_views import monolingual_widgets, StatusIcon
@@ -44,6 +41,7 @@ from menus import MissionsMenu, ContactsByContactMenu, CompaniesMenu
 from mission_views import mission_schema, mission_widgets
 from mission_views import get_changes, send_notification, MSG_CONTACT_ADDED
 from utils import get_crm, get_crm_path_query
+from views import TagsAware_Edit
 from widgets import EmailWidget, MultipleCheckboxWidget
 from widgets import SelectCompanyWidget
 
