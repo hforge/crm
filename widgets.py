@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 # Copyright (C) 2007-2008 Henry Obein <henry@itaapy.com>
 # Copyright (C) 2008-2010 Nicolas Deram <nicolas@itaapy.com>
+# Copyright (C) 2010 Hervé Cauwelier <herve@itaapy.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
